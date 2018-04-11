@@ -11,10 +11,16 @@ class Base(object):
         self.__dict__['children'] = collections.OrderedDict()
 
         for name, value in kwargs.items():       
-            #print( ' - Init of %s:  %s = %s'%(self.get_type(),name, value))
-            if not name in self.allowed_fields:
+            print( ' - Init of %s:  %s = %s'%(self.get_type(),name, value))
+            
+            if name in self.allowed_fields:
+                
+                if self._is_base_type(self.allowed_fields[name][1]):
+                    self.fields[name] = (self.allowed_fields[name][1])(value)
+                else:
+                    self.fields[name] = value
+            else:
                 raise Exception('Error, cannot set %s=%s in %s. Allowed fields here: %s'%(name, value, self.get_type(), self.allowed_fields))
-            self.fields[name] = (self.allowed_fields[name][1])(value)
             
     # Will be overridden when id required
     def get_id(self):
