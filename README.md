@@ -54,3 +54,5 @@ Can be exported to:
 
 Can be simulated using:
 - **NetPyNE**
+
+[![Build Status](https://travis-ci.org/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.org/NeuroML/NeuroMLlite)
