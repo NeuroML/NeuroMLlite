@@ -1,0 +1,71 @@
+{
+    "TestNetwork": {
+        "notes": "A simple network with 2 populations & projection between them. Cells are specified to be NeuroML 2 HH cell models & pre population is given a spiking input.", 
+        "cells": [
+            {
+                "hhcell": {
+                    "neuroml2_source_file": "test_files/hhcell.cell.nml"
+                }
+            }
+        ], 
+        "synapses": [
+            {
+                "ampa": {
+                    "neuroml2_source_file": "test_files/ampa.synapse.nml"
+                }
+            }
+        ], 
+        "input_sources": [
+            {
+                "poissonFiringSyn": {
+                    "neuroml2_source_file": "test_files/inputs.nml"
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "pop0": {
+                    "size": 5, 
+                    "component": "hhcell", 
+                    "random_layout": {
+                        "width": 1000.0, 
+                        "height": 100.0, 
+                        "depth": 1000.0
+                    }
+                }
+            }, 
+            {
+                "pop1": {
+                    "size": 10, 
+                    "component": "hhcell", 
+                    "random_layout": {
+                        "width": 1000.0, 
+                        "height": 1000.0, 
+                        "depth": 1000.0
+                    }
+                }
+            }
+        ], 
+        "projections": [
+            {
+                "proj0": {
+                    "presynaptic": "pop0", 
+                    "postsynaptic": "pop1", 
+                    "synapse": "ampa", 
+                    "random_connectivity": {
+                        "probability": 0.5
+                    }
+                }
+            }
+        ], 
+        "inputs": [
+            {
+                "stim_pop0": {
+                    "input_source": "poissonFiringSyn", 
+                    "population": "pop0", 
+                    "percentage": 80.0
+                }
+            }
+        ]
+    }
+}

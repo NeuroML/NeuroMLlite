@@ -1,0 +1,147 @@
+{
+    "Example6_PyNN": {
+        "notes": "Another network for PyNN - work in progress...", 
+        "cells": [
+            {
+                "CorticalCell": {
+                    "pynn_cell": "IF_curr_exp", 
+                    "parameters": {
+                        "tau_refrac": 2.0, 
+                        "tau_m": 10.0, 
+                        "i_offset": 0.0, 
+                        "cm": 0.25, 
+                        "v_thresh": -50.0, 
+                        "v_rest": -65.0, 
+                        "v_reset": -65.0
+                    }
+                }
+            }, 
+            {
+                "InputCell": {
+                    "pynn_cell": "SpikeSourcePoisson", 
+                    "parameters": {
+                        "duration": 10000000000, 
+                        "start": 0, 
+                        "rate": 150
+                    }
+                }
+            }
+        ], 
+        "synapses": [
+            {
+                "ampa": {
+                    "pynn_synapse_type": "curr_alpha", 
+                    "pynn_receptor_type": "excitatory", 
+                    "parameters": {
+                        "tau_syn": 0.5
+                    }
+                }
+            }, 
+            {
+                "gaba": {
+                    "pynn_synapse_type": "curr_alpha", 
+                    "pynn_receptor_type": "inhibitory", 
+                    "parameters": {
+                        "tau_syn": 0.5
+                    }
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "L23_E": {
+                    "size": 10, 
+                    "component": "CorticalCell"
+                }
+            }, 
+            {
+                "L23_E_input": {
+                    "size": 10, 
+                    "component": "InputCell"
+                }
+            }, 
+            {
+                "L23_I": {
+                    "size": 10, 
+                    "component": "CorticalCell"
+                }
+            }, 
+            {
+                "L23_I_input": {
+                    "size": 10, 
+                    "component": "InputCell"
+                }
+            }
+        ], 
+        "projections": [
+            {
+                "proj_input_L23_E": {
+                    "presynaptic": "L23_E_input", 
+                    "postsynaptic": "L23_E", 
+                    "synapse": "ampa", 
+                    "delay": 2.0, 
+                    "weight": 10.0, 
+                    "one_to_one_connector": {}
+                }
+            }, 
+            {
+                "proj_input_L23_I": {
+                    "presynaptic": "L23_I_input", 
+                    "postsynaptic": "L23_I", 
+                    "synapse": "ampa", 
+                    "delay": 2.0, 
+                    "weight": 10.0, 
+                    "one_to_one_connector": {}
+                }
+            }, 
+            {
+                "proj_L23_E_L23_E": {
+                    "presynaptic": "L23_E", 
+                    "postsynaptic": "L23_E", 
+                    "synapse": "ampa", 
+                    "delay": 1.0, 
+                    "weight": 1.0, 
+                    "random_connectivity": {
+                        "probability": 0.1009
+                    }
+                }
+            }, 
+            {
+                "proj_L23_E_L23_I": {
+                    "presynaptic": "L23_E", 
+                    "postsynaptic": "L23_I", 
+                    "synapse": "ampa", 
+                    "delay": 1.0, 
+                    "weight": 1.0, 
+                    "random_connectivity": {
+                        "probability": 0.1346
+                    }
+                }
+            }, 
+            {
+                "proj_L23_I_L23_E": {
+                    "presynaptic": "L23_I", 
+                    "postsynaptic": "L23_E", 
+                    "synapse": "gaba", 
+                    "delay": 1.0, 
+                    "weight": -1.0, 
+                    "random_connectivity": {
+                        "probability": 0.1689
+                    }
+                }
+            }, 
+            {
+                "proj_L23_I_L23_I": {
+                    "presynaptic": "L23_I", 
+                    "postsynaptic": "L23_I", 
+                    "synapse": "gaba", 
+                    "delay": 1.0, 
+                    "weight": -1.0, 
+                    "random_connectivity": {
+                        "probability": 0.1371
+                    }
+                }
+            }
+        ]
+    }
+}

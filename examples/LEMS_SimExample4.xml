@@ -1,0 +1,52 @@
+<Lems>
+    
+    <!-- 
+
+        This LEMS file has been automatically generated using PyNeuroML v0.3.11 (libNeuroML v0.2.40)
+
+     -->
+    
+    <!-- Specify which component to run -->
+    <Target component="SimExample4"/>
+
+    <!-- Include core NeuroML2 ComponentType definitions -->
+    <Include file="Cells.xml"/>
+    <Include file="Networks.xml"/>
+    <Include file="Simulation.xml"/>
+    
+    <Include file="PyNN.xml"/>
+    <Include file="Example4_PyNN.net.nml"/>
+   
+    <Simulation id="SimExample4" length="1000.0ms" step="0.025ms" target="Example4_PyNN" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
+        
+        <Display id="DispPop__pop0" title="Membrane potentials of cells in pop0" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-90" ymax="50">
+            <Line id="pop0[0]: v" quantity="pop0[0]/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
+            <Line id="pop0[1]: v" quantity="pop0[1]/v" scale="1mV" color="#029a72" timeScale="1ms"/>
+        </Display>
+        
+        <Display id="DispPop__pop1" title="Membrane potentials of cells in pop1" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-90" ymax="50">
+            <Line id="pop1[0]: v" quantity="pop1[0]/v" scale="1mV" color="#d340bb" timeScale="1ms"/>
+            <Line id="pop1[1]: v" quantity="pop1[1]/v" scale="1mV" color="#4c73a9" timeScale="1ms"/>
+        </Display>
+        
+        <Display id="DispPop__pop2" title="Membrane potentials of cells in pop2" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-90" ymax="50">
+            <Line id="pop2[0]: v" quantity="pop2[0]/v" scale="1mV" color="#5e503a" timeScale="1ms"/>
+        </Display>
+        
+        <OutputFile id="Volts_file__pop0" fileName="SimExample4.pop0.v.dat">
+            <OutputColumn id="v_pop0_0__v" quantity="pop0[0]/v"/> 
+            <OutputColumn id="v_pop0_1__v" quantity="pop0[1]/v"/> 
+        </OutputFile>
+        
+        <OutputFile id="Volts_file__pop1" fileName="SimExample4.pop1.v.dat">
+            <OutputColumn id="v_pop1_0__v" quantity="pop1[0]/v"/> 
+            <OutputColumn id="v_pop1_1__v" quantity="pop1[1]/v"/> 
+        </OutputFile>
+        
+        <OutputFile id="Volts_file__pop2" fileName="SimExample4.pop2.v.dat">
+            <OutputColumn id="v_pop2_0__v" quantity="pop2[0]/v"/> 
+        </OutputFile>
+        
+    </Simulation>
+
+</Lems>

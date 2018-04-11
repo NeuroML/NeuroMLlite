@@ -1,5 +1,7 @@
 import collections
 
+__version__ = '0.1.0'
+
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
 from neuromllite.BaseTypes import NetworkReader

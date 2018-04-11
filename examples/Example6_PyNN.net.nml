@@ -1,0 +1,230 @@
+<neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example6_PyNN">
+    <notes>
+    This NeuroML 2 file has been generated from: 
+        PyNN v0.9.2
+        libNeuroML v0.2.40
+        pyNeuroML v0.3.11
+    </notes>
+    <IF_curr_exp id="IF_curr_exp_L23_E" cm="0.25" i_offset="0." tau_syn_E="0.5" tau_syn_I="0.5" v_init="-65." tau_m="10." tau_refrac="2." v_reset="-65." v_rest="-65." v_thresh="-50."/>
+    <IF_curr_exp id="IF_curr_exp_L23_I" cm="0.25" i_offset="0." tau_syn_E="0.5" tau_syn_I="0.5" v_init="-65." tau_m="10." tau_refrac="2." v_reset="-65." v_rest="-65." v_thresh="-50."/>
+    <expCurrSynapse id="syn__proj_input_L23_E" tau_syn="0.5"/>
+    <expCurrSynapse id="syn__proj_input_L23_I" tau_syn="0.5"/>
+    <expCurrSynapse id="syn__proj_L23_E_L23_E" tau_syn="0.5"/>
+    <expCurrSynapse id="syn__proj_L23_E_L23_I" tau_syn="0.5"/>
+    <expCurrSynapse id="syn__proj_L23_I_L23_E" tau_syn="0.5"/>
+    <expCurrSynapse id="syn__proj_L23_I_L23_I" tau_syn="0.5"/>
+    <SpikeSourcePoisson id="SpikeSourcePoisson_L23_E_input" start="0.0ms" duration="10000000000.0ms" rate="150.0Hz"/>
+    <SpikeSourcePoisson id="SpikeSourcePoisson_L23_I_input" start="0.0ms" duration="10000000000.0ms" rate="150.0Hz"/>
+    <network id="Example6_PyNN">
+        <population id="L23_E" component="IF_curr_exp_L23_E" size="10" type="populationList">
+            <instance id="0">
+                <location x="0." y="0." z="0."/>
+            </instance>
+            <instance id="1">
+                <location x="1." y="0." z="0."/>
+            </instance>
+            <instance id="2">
+                <location x="2." y="0." z="0."/>
+            </instance>
+            <instance id="3">
+                <location x="3." y="0." z="0."/>
+            </instance>
+            <instance id="4">
+                <location x="4." y="0." z="0."/>
+            </instance>
+            <instance id="5">
+                <location x="5." y="0." z="0."/>
+            </instance>
+            <instance id="6">
+                <location x="6." y="0." z="0."/>
+            </instance>
+            <instance id="7">
+                <location x="7." y="0." z="0."/>
+            </instance>
+            <instance id="8">
+                <location x="8." y="0." z="0."/>
+            </instance>
+            <instance id="9">
+                <location x="9." y="0." z="0."/>
+            </instance>
+        </population>
+        <population id="L23_E_input" component="SpikeSourcePoisson_L23_E_input" size="10" type="populationList">
+            <instance id="0">
+                <location x="0." y="0." z="0."/>
+            </instance>
+            <instance id="1">
+                <location x="1." y="0." z="0."/>
+            </instance>
+            <instance id="2">
+                <location x="2." y="0." z="0."/>
+            </instance>
+            <instance id="3">
+                <location x="3." y="0." z="0."/>
+            </instance>
+            <instance id="4">
+                <location x="4." y="0." z="0."/>
+            </instance>
+            <instance id="5">
+                <location x="5." y="0." z="0."/>
+            </instance>
+            <instance id="6">
+                <location x="6." y="0." z="0."/>
+            </instance>
+            <instance id="7">
+                <location x="7." y="0." z="0."/>
+            </instance>
+            <instance id="8">
+                <location x="8." y="0." z="0."/>
+            </instance>
+            <instance id="9">
+                <location x="9." y="0." z="0."/>
+            </instance>
+        </population>
+        <population id="L23_I" component="IF_curr_exp_L23_I" size="10" type="populationList">
+            <instance id="0">
+                <location x="0." y="0." z="0."/>
+            </instance>
+            <instance id="1">
+                <location x="1." y="0." z="0."/>
+            </instance>
+            <instance id="2">
+                <location x="2." y="0." z="0."/>
+            </instance>
+            <instance id="3">
+                <location x="3." y="0." z="0."/>
+            </instance>
+            <instance id="4">
+                <location x="4." y="0." z="0."/>
+            </instance>
+            <instance id="5">
+                <location x="5." y="0." z="0."/>
+            </instance>
+            <instance id="6">
+                <location x="6." y="0." z="0."/>
+            </instance>
+            <instance id="7">
+                <location x="7." y="0." z="0."/>
+            </instance>
+            <instance id="8">
+                <location x="8." y="0." z="0."/>
+            </instance>
+            <instance id="9">
+                <location x="9." y="0." z="0."/>
+            </instance>
+        </population>
+        <population id="L23_I_input" component="SpikeSourcePoisson_L23_I_input" size="10" type="populationList">
+            <instance id="0">
+                <location x="0." y="0." z="0."/>
+            </instance>
+            <instance id="1">
+                <location x="1." y="0." z="0."/>
+            </instance>
+            <instance id="2">
+                <location x="2." y="0." z="0."/>
+            </instance>
+            <instance id="3">
+                <location x="3." y="0." z="0."/>
+            </instance>
+            <instance id="4">
+                <location x="4." y="0." z="0."/>
+            </instance>
+            <instance id="5">
+                <location x="5." y="0." z="0."/>
+            </instance>
+            <instance id="6">
+                <location x="6." y="0." z="0."/>
+            </instance>
+            <instance id="7">
+                <location x="7." y="0." z="0."/>
+            </instance>
+            <instance id="8">
+                <location x="8." y="0." z="0."/>
+            </instance>
+            <instance id="9">
+                <location x="9." y="0." z="0."/>
+            </instance>
+        </population>
+        <projection id="proj_input_L23_E" presynapticPopulation="L23_E_input" postsynapticPopulation="L23_E" synapse="syn__proj_input_L23_E">
+            <connectionWD id="0" preCellId="../L23_E_input/0/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/0/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="1" preCellId="../L23_E_input/1/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/1/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="2" preCellId="../L23_E_input/2/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/2/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="3" preCellId="../L23_E_input/3/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/3/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="4" preCellId="../L23_E_input/4/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/4/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="5" preCellId="../L23_E_input/5/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/5/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="6" preCellId="../L23_E_input/6/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/6/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="7" preCellId="../L23_E_input/7/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/7/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="8" preCellId="../L23_E_input/8/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/8/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="9" preCellId="../L23_E_input/9/SpikeSourcePoisson_L23_E_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/9/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+        </projection>
+        <projection id="proj_input_L23_I" presynapticPopulation="L23_I_input" postsynapticPopulation="L23_I" synapse="syn__proj_input_L23_I">
+            <connectionWD id="0" preCellId="../L23_I_input/0/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/0/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="1" preCellId="../L23_I_input/1/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/1/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="2" preCellId="../L23_I_input/2/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/2/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="3" preCellId="../L23_I_input/3/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/3/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="4" preCellId="../L23_I_input/4/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/4/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="5" preCellId="../L23_I_input/5/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/5/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="6" preCellId="../L23_I_input/6/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/6/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="7" preCellId="../L23_I_input/7/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/7/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="8" preCellId="../L23_I_input/8/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/8/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+            <connectionWD id="9" preCellId="../L23_I_input/9/SpikeSourcePoisson_L23_I_input" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/9/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="10." delay="2.0ms"/>
+        </projection>
+        <projection id="proj_L23_E_L23_E" presynapticPopulation="L23_E" postsynapticPopulation="L23_E" synapse="syn__proj_L23_E_L23_E">
+            <connectionWD id="0" preCellId="../L23_E/1/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/0/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="1" preCellId="../L23_E/6/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/0/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="2" preCellId="../L23_E/2/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/1/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="3" preCellId="../L23_E/0/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/2/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="4" preCellId="../L23_E/4/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/2/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="5" preCellId="../L23_E/5/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/2/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="6" preCellId="../L23_E/2/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/5/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="7" preCellId="../L23_E/9/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/5/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="8" preCellId="../L23_E/3/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/6/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="9" preCellId="../L23_E/0/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/7/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="10" preCellId="../L23_E/9/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/7/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="11" preCellId="../L23_E/1/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/8/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="12" preCellId="../L23_E/3/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/8/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="13" preCellId="../L23_E/9/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/9/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+        </projection>
+        <projection id="proj_L23_E_L23_I" presynapticPopulation="L23_E" postsynapticPopulation="L23_I" synapse="syn__proj_L23_E_L23_I">
+            <connectionWD id="0" preCellId="../L23_E/7/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/0/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="1" preCellId="../L23_E/0/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/1/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="2" preCellId="../L23_E/9/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/2/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="3" preCellId="../L23_E/3/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/3/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="4" preCellId="../L23_E/5/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/4/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="5" preCellId="../L23_E/6/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/4/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="6" preCellId="../L23_E/3/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/5/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="7" preCellId="../L23_E/0/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/6/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="8" preCellId="../L23_E/0/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/8/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="9" preCellId="../L23_E/2/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/9/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="10" preCellId="../L23_E/5/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/9/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+            <connectionWD id="11" preCellId="../L23_E/8/IF_curr_exp_L23_E" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/9/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="1." delay="1.0ms"/>
+        </projection>
+        <projection id="proj_L23_I_L23_E" presynapticPopulation="L23_I" postsynapticPopulation="L23_E" synapse="syn__proj_L23_I_L23_E">
+            <connectionWD id="0" preCellId="../L23_I/2/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/0/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="1" preCellId="../L23_I/4/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/0/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="2" preCellId="../L23_I/5/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/0/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="3" preCellId="../L23_I/8/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/0/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="4" preCellId="../L23_I/4/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/4/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="5" preCellId="../L23_I/7/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/5/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="6" preCellId="../L23_I/9/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/6/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="7" preCellId="../L23_I/4/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/7/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="8" preCellId="../L23_I/6/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/7/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="9" preCellId="../L23_I/7/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/7/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="10" preCellId="../L23_I/1/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/8/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="11" preCellId="../L23_I/2/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/8/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="12" preCellId="../L23_I/1/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/9/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="13" preCellId="../L23_I/9/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_E/9/IF_curr_exp_L23_E" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+        </projection>
+        <projection id="proj_L23_I_L23_I" presynapticPopulation="L23_I" postsynapticPopulation="L23_I" synapse="syn__proj_L23_I_L23_I">
+            <connectionWD id="0" preCellId="../L23_I/1/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/0/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="1" preCellId="../L23_I/5/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/0/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="2" preCellId="../L23_I/4/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/2/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="3" preCellId="../L23_I/7/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/5/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="4" preCellId="../L23_I/4/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/6/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="5" preCellId="../L23_I/0/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/7/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="6" preCellId="../L23_I/6/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/8/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="7" preCellId="../L23_I/7/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/8/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="8" preCellId="../L23_I/7/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/9/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+            <connectionWD id="9" preCellId="../L23_I/8/IF_curr_exp_L23_I" preSegmentId="0" preFractionAlong="0.5" postCellId="../L23_I/9/IF_curr_exp_L23_I" postSegmentId="0" postFractionAlong="0.5" weight="-1." delay="1.0ms"/>
+        </projection>
+    </network>
+</neuroml>
