@@ -1,13 +1,15 @@
 from neuromllite import Network, Cell, InputSource, Population, Synapse
 from neuromllite import Projection, RandomConnectivity, Input, Simulation
 from neuromllite.NetworkGenerator import generate_and_run
+from neuromllite.NetworkGenerator import generate_neuroml2_from_network
 import sys
 
 ################################################################################
 ###   Build new network
 
 net = Network(id='Example7_Brunel2000')
-net.notes = 'Example 7: based on Brunel 2000'
+net.notes = 'Example 7: based on network of Brunel 2000'
+net.parameters = { "N": 100 }
 
 cell = Cell(id='ifcell', pynn_cell='IF_cond_alpha')
 cell.parameters = { "tau_refrac":5, "i_offset":.1 }
@@ -21,8 +23,8 @@ input_source = InputSource(id='iclamp0',
 net.input_sources.append(input_source)
 
 
-pE = Population(id='E', size=10, component=cell.id)
-pI = Population(id='I', size=10, component=cell.id)
+pE = Population(id='E', size='int(N*0.8)', component=cell.id)
+pI = Population(id='I', size='int(N*0.2)', component=cell.id)
 
 net.populations.append(pE)
 net.populations.append(pI)
@@ -104,6 +106,11 @@ elif '-jnmlnrn' in sys.argv:
 elif '-jnmlnetpyne' in sys.argv:
     generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
     
+#else:
+#    generate_and_run(sim, net, simulator='PyNN_NeuroML')
+
 else:
-    generate_and_run(sim, net, simulator='PyNN_NeuroML')
+
+    generate_neuroml2_from_network(net, 
+                               nml_file_name='%s.net.nml'%net.id)
 

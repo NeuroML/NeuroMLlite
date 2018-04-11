@@ -1,0 +1,114 @@
+{
+    "Example7_Brunel2000": {
+        "parameters": {
+            "N": 100
+        }, 
+        "notes": "Example 7: based on network of Brunel 2000", 
+        "cells": [
+            {
+                "ifcell": {
+                    "pynn_cell": "IF_cond_alpha", 
+                    "parameters": {
+                        "tau_refrac": 5, 
+                        "i_offset": 0.1
+                    }
+                }
+            }
+        ], 
+        "synapses": [
+            {
+                "ampa": {
+                    "pynn_synapse_type": "cond_alpha", 
+                    "pynn_receptor_type": "excitatory", 
+                    "parameters": {
+                        "e_rev": -10, 
+                        "tau_syn": 2
+                    }
+                }
+            }, 
+            {
+                "gaba": {
+                    "pynn_synapse_type": "cond_alpha", 
+                    "pynn_receptor_type": "inhibitory", 
+                    "parameters": {
+                        "e_rev": -80, 
+                        "tau_syn": 10
+                    }
+                }
+            }
+        ], 
+        "input_sources": [
+            {
+                "iclamp0": {
+                    "pynn_input": "DCSource", 
+                    "parameters": {
+                        "start": 100.0, 
+                        "stop": 900.0, 
+                        "amplitude": 0.99
+                    }
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "E": {
+                    "size": "int(N*0.8)", 
+                    "component": "ifcell"
+                }
+            }, 
+            {
+                "I": {
+                    "size": "int(N*0.2)", 
+                    "component": "ifcell"
+                }
+            }
+        ], 
+        "projections": [
+            {
+                "projEe": {
+                    "presynaptic": "E", 
+                    "postsynaptic": "E", 
+                    "synapse": "ampa", 
+                    "delay": 2.0, 
+                    "weight": 0.02, 
+                    "random_connectivity": {
+                        "probability": 0.5
+                    }
+                }
+            }, 
+            {
+                "projEI": {
+                    "presynaptic": "E", 
+                    "postsynaptic": "I", 
+                    "synapse": "ampa", 
+                    "delay": 2.0, 
+                    "weight": 0.02, 
+                    "random_connectivity": {
+                        "probability": 0.5
+                    }
+                }
+            }, 
+            {
+                "projIE": {
+                    "presynaptic": "I", 
+                    "postsynaptic": "E", 
+                    "synapse": "gaba", 
+                    "delay": 2.0, 
+                    "weight": 0.02, 
+                    "random_connectivity": {
+                        "probability": 0.5
+                    }
+                }
+            }
+        ], 
+        "inputs": [
+            {
+                "stim": {
+                    "input_source": "iclamp0", 
+                    "population": "E", 
+                    "percentage": 50.0
+                }
+            }
+        ]
+    }
+}

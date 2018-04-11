@@ -1,10 +1,16 @@
 import collections
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
 from neuromllite.BaseTypes import NetworkReader
+
+class EvaluableExpression(str):
+    
+    def __init__(self,expr):
+        self.expr = expr
+    
       
 class Network(BaseWithId):
 
@@ -17,7 +23,8 @@ class Network(BaseWithId):
                                  ('projections',('The projections...',Projection)),
                                  ('inputs',('The inputs to apply...',Input))])
                                  
-        self.allowed_fields = collections.OrderedDict([('network_reader',('Can read in network',NetworkReader))])
+        self.allowed_fields = collections.OrderedDict([('parameters',('Dict of global parameters for the network',dict)),
+                                                       ('network_reader',('Can read in network',NetworkReader))])
                         
         super(Network, self).__init__(**kwargs)
           
@@ -60,7 +67,7 @@ class Population(BaseWithId):
 
     def __init__(self, **kwargs):
         
-        self.allowed_fields = collections.OrderedDict([('size',('Size of population',int)),
+        self.allowed_fields = collections.OrderedDict([('size',('Size of population',EvaluableExpression)),
                                ('component',('Type of cell to use in population',str)),
                                ('color',('Optional color to use for visualizing population',str)),
                                ('random_layout',('Layout in random region',RandomLayout))])

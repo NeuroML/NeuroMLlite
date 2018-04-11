@@ -38,6 +38,10 @@ echo
 echo "**** Running Example 6 ****"
 python Example6.py
 
+echo
+echo "**** Running Example 7 ****"
+python Example7.py
+
 
 jnml -validate *nml
 

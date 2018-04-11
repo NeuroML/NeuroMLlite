@@ -6,6 +6,17 @@ import copy
 from neuromllite.utils import print_v
 
 
+def evaluate(expr, globals={}):
+    try:
+        return int(expr)
+    except:
+        try:
+            return float(expr)
+        except:
+            return eval(expr, globals)
+        
+
+
 def generate_network(nl_model, handler, seed=1234):
     
     pop_locations = {}
@@ -51,14 +62,15 @@ def generate_network(nl_model, handler, seed=1234):
             
     for p in nl_model.populations:
         
+        size = evaluate(p.size, nl_model.parameters)
         handler.handle_population(p.id, 
                                  p.component, 
-                                 p.size, 
+                                 size, 
                                  cell_objects[p.component] if p.component in cell_objects else None)
                                  
-        pop_locations[p.id] = np.zeros((p.size,3))
+        pop_locations[p.id] = np.zeros((size,3))
         
-        for i in range(p.size):
+        for i in range(size):
             if p.random_layout:
                 x = rng.random()*p.random_layout.width
                 y = rng.random()*p.random_layout.height
