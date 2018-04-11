@@ -6,6 +6,7 @@ python:
   
 install:
     - pip install pyneuroml
+    - pip install tables
     - pip install . 
     
 script:
