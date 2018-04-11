@@ -1,0 +1,9 @@
+*.dat
+*.mod
+/x86_64
+/test_files/x86_64
+*.pyc
+*_netpyne.py
+*_nrn.py
+*.hoc
+/test_files/cons_locs_pathways_mc0_Column.h5

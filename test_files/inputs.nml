@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<neuroml xmlns="http://www.neuroml.org/schema/neuroml2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2  ../Schemas/NeuroML2/NeuroML_v2beta5.xsd"
+    id="NML2_Inputs">
+
+    <expTwoSynapse id="synInput" gbase="8nS" erev="20mV" tauRise="1ms" tauDecay="5ms"/><!-- Will be used below... -->
+
+    <pulseGenerator id="iclamp0" delay="20ms" duration="800ms" amplitude="0.1 nA" />
+
+    <spikeGeneratorPoisson id="spikeGenPoisson" averageRate="50 Hz"/>
+    
+    <poissonFiringSynapse id="poissonFiringSyn" averageRate="10 Hz" synapse="synInput" spikeTarget="./synInput"/>
+
+</neuroml>
+
