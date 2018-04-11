@@ -11,3 +11,4 @@ examples/test_files/x86_64
 /dist
 /examples/test_files/cons_locs_pathways_mc0_Column.h5
 /neuromllite.egg-info
+*py.class

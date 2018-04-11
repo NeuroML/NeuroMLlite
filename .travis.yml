@@ -10,4 +10,6 @@ install:
     
 script:
     - ls -alt
-    #- ./regenerateAndTest.sh
+    - cd examples
+    - python Example2.py
+    - cd ..
