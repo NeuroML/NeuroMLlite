@@ -1,51 +1,28 @@
 <neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example4_PyNN">
-    <notes>
-    This NeuroML 2 file has been generated from: 
-        PyNN v0.9.2
-        libNeuroML v0.2.40
-        pyNeuroML v0.3.11
-    </notes>
-    <pulseGenerator id="DCSource_DCSource_0" delay="200.0ms" duration="600.0ms" amplitude="0.99nA"/>
-    <IF_cond_alpha id="IF_cond_alpha_pop0" cm="1." i_offset="0.1" tau_syn_E="0.3" tau_syn_I="0.5" v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="0." e_rev_I="-70."/>
-    <IF_cond_alpha id="IF_cond_alpha_pop1" cm="1." i_offset="-0.1" tau_syn_E="2." tau_syn_I="10." v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="-10." e_rev_I="-80."/>
-    <IF_cond_alpha id="IF_cond_alpha_pop2" cm="1." i_offset="-0.1" tau_syn_E="2." tau_syn_I="10." v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="-10." e_rev_I="-80."/>
-    <alphaCondSynapse id="syn__proj0" tau_syn="2." e_rev="-10."/>
-    <alphaCondSynapse id="syn__proj1" tau_syn="10." e_rev="-80."/>
+    <notes>Generated network</notes>
+    <pulseGenerator id="iclamp0" delay="200.0ms" duration="600.0ms" amplitude="0.99nA"/>
+    <IF_cond_alpha id="testcell" cm="1." i_offset="0.1" tau_syn_E="0.3" tau_syn_I="0.5" v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="0." e_rev_I="-70."/>
+    <IF_cond_alpha id="testcell2" cm="1." i_offset="-0.1" tau_syn_E="2." tau_syn_I="10." v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="-10." e_rev_I="-80."/>
+    <alphaCondSynapse id="ampa" tau_syn="2." e_rev="-10."/>
+    <alphaCondSynapse id="gaba" tau_syn="10." e_rev="-80."/>
     <network id="Example4_PyNN">
-        <population id="pop0" component="IF_cond_alpha_pop0" size="2" type="populationList">
-            <instance id="0">
-                <location x="0." y="0." z="0."/>
-            </instance>
-            <instance id="1">
-                <location x="1." y="0." z="0."/>
-            </instance>
-        </population>
-        <population id="pop1" component="IF_cond_alpha_pop1" size="2" type="populationList">
-            <instance id="0">
-                <location x="0." y="0." z="0."/>
-            </instance>
-            <instance id="1">
-                <location x="1." y="0." z="0."/>
-            </instance>
-        </population>
-        <population id="pop2" component="IF_cond_alpha_pop2" size="1" type="populationList">
-            <instance id="0">
-                <location x="0." y="0." z="0."/>
-            </instance>
-        </population>
-        <projection id="proj0" presynapticPopulation="pop0" postsynapticPopulation="pop1" synapse="syn__proj0">
-            <connectionWD id="0" preCellId="../pop0/0/IF_cond_alpha_pop0" preSegmentId="0" preFractionAlong="0.5" postCellId="../pop1/0/IF_cond_alpha_pop1" postSegmentId="0" postFractionAlong="0.5" weight="0.02" delay="2.0ms"/>
-            <connectionWD id="1" preCellId="../pop0/1/IF_cond_alpha_pop0" preSegmentId="0" preFractionAlong="0.5" postCellId="../pop1/0/IF_cond_alpha_pop1" postSegmentId="0" postFractionAlong="0.5" weight="0.02" delay="2.0ms"/>
-            <connectionWD id="2" preCellId="../pop0/0/IF_cond_alpha_pop0" preSegmentId="0" preFractionAlong="0.5" postCellId="../pop1/1/IF_cond_alpha_pop1" postSegmentId="0" postFractionAlong="0.5" weight="0.02" delay="2.0ms"/>
-            <connectionWD id="3" preCellId="../pop0/1/IF_cond_alpha_pop0" preSegmentId="0" preFractionAlong="0.5" postCellId="../pop1/1/IF_cond_alpha_pop1" postSegmentId="0" postFractionAlong="0.5" weight="0.02" delay="2.0ms"/>
+        <notes>Example 4: a network with PyNN cells &amp; inputs</notes>
+        <population id="pop0" component="testcell" size="2"/>
+        <population id="pop1" component="testcell2" size="2"/>
+        <population id="pop2" component="testcell2" size="1"/>
+        <projection id="proj0" presynapticPopulation="pop0" postsynapticPopulation="pop1" synapse="ampa">
+            <connectionWD id="0" preCellId="../pop0[0]" postCellId="../pop1[0]" weight="0.02" delay="2.0ms"/>
+            <connectionWD id="1" preCellId="../pop0[0]" postCellId="../pop1[1]" weight="0.02" delay="2.0ms"/>
+            <connectionWD id="2" preCellId="../pop0[1]" postCellId="../pop1[0]" weight="0.02" delay="2.0ms"/>
+            <connectionWD id="3" preCellId="../pop0[1]" postCellId="../pop1[1]" weight="0.02" delay="2.0ms"/>
         </projection>
-        <projection id="proj1" presynapticPopulation="pop0" postsynapticPopulation="pop2" synapse="syn__proj1">
-            <connectionWD id="0" preCellId="../pop0/0/IF_cond_alpha_pop0" preSegmentId="0" preFractionAlong="0.5" postCellId="../pop2/0/IF_cond_alpha_pop2" postSegmentId="0" postFractionAlong="0.5" weight="0.02" delay="2.0ms"/>
-            <connectionWD id="1" preCellId="../pop0/1/IF_cond_alpha_pop0" preSegmentId="0" preFractionAlong="0.5" postCellId="../pop2/0/IF_cond_alpha_pop2" postSegmentId="0" postFractionAlong="0.5" weight="0.02" delay="2.0ms"/>
+        <projection id="proj1" presynapticPopulation="pop0" postsynapticPopulation="pop2" synapse="gaba">
+            <connectionWD id="0" preCellId="../pop0[0]" postCellId="../pop2[0]" weight="0.02" delay="2.0ms"/>
+            <connectionWD id="1" preCellId="../pop0[1]" postCellId="../pop2[0]" weight="0.02" delay="2.0ms"/>
         </projection>
-        <inputList id="Input_DCSource_DCSource_0" population="pop0" component="DCSource_DCSource_0">
-            <input id="0" target="../pop0/0/IF_cond_alpha_pop0" destination="synapses"/>
-            <input id="1" target="../pop0/1/IF_cond_alpha_pop0" destination="synapses"/>
+        <inputList id="stim" population="pop0" component="iclamp0">
+            <input id="0" target="../pop0[0]" destination="synapses"/>
+            <input id="1" target="../pop0[1]" destination="synapses"/>
         </inputList>
     </network>
 </neuroml>

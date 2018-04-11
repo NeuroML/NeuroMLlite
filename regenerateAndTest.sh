@@ -1,5 +1,7 @@
 set -e
 
+cd examples
+
 rm -rf *dat *json *nml LEMS* x86_64 *mod *hoc
 
 echo
@@ -41,3 +43,5 @@ jnml -validate *nml
 
 echo
 echo "** All generated and tested! **"
+
+cd ..
