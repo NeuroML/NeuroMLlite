@@ -91,7 +91,7 @@ for pre_i in range(len(pops)):
         net.projections.append(proj)
 
 
-print net.to_json()
+print(net.to_json())
 net.to_json_file('%s.json'%net.id)
 
 ################################################################################

@@ -61,7 +61,7 @@ net.inputs.append(Input(id='stim',
                         population=p0.id,
                         percentage=70))
 
-print net.to_json()
+print(net.to_json())
 net.to_json_file('%s.json'%net.id)
 
 

@@ -8,7 +8,7 @@ net = Network(id='net0')
 net.notes = "A simple network with 2 populations & projection between them. "+ \
             "No info yet on what the cells are so network can't be simulated."
 
-print net
+print(net)
 
 
 ################################################################################
@@ -17,8 +17,8 @@ print net
 p0 = Population(id='pop0', size=5, component='iaf')
 p1 = Population(id='pop1', size=10, component='iaf')
 
-print p0
-print p1.to_json()
+print(p0)
+print(p1.to_json())
 
 net.populations.append(p0)
 net.populations.append(p1)
@@ -38,8 +38,8 @@ net.projections[0].random_connectivity=RandomConnectivity(probability=0.5)
 ################################################################################
 ###   Save to JSON format
                                  
-print net
+print(net)
 net.id = 'TestNetwork'
 
-print net.to_json()
+print(net.to_json())
 net.to_json_file('Example1_%s.json'%net.id)
