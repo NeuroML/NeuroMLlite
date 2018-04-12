@@ -21,17 +21,17 @@
     <Simulation id="Sim_Example4_PyNN" length="1000.0ms" step="0.025ms" target="Example4_PyNN" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
         
         <Display id="pop2_v" title="pop2 v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-70" ymax="10">
-            <Line id="pop2 v: cell 46" quantity="pop2/0/IF_cond_alpha_pop2/v" scale="1mV" color="#3263b4" timeScale="1ms"/>
+            <Line id="pop2 v: cell 46" quantity="pop2/0/IF_cond_alpha_pop2/v" scale="1mV" color="#5b5f08" timeScale="1ms"/>
         </Display>
         
         <Display id="pop1_v" title="pop1 v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-70" ymax="10">
-            <Line id="pop1 v: cell 44" quantity="pop1/0/IF_cond_alpha_pop1/v" scale="1mV" color="#8c6392" timeScale="1ms"/>
-            <Line id="pop1 v: cell 45" quantity="pop1/1/IF_cond_alpha_pop1/v" scale="1mV" color="#575575" timeScale="1ms"/>
+            <Line id="pop1 v: cell 44" quantity="pop1/0/IF_cond_alpha_pop1/v" scale="1mV" color="#ef4f65" timeScale="1ms"/>
+            <Line id="pop1 v: cell 45" quantity="pop1/1/IF_cond_alpha_pop1/v" scale="1mV" color="#ebbf4d" timeScale="1ms"/>
         </Display>
         
         <Display id="pop0_v" title="pop0 v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-70" ymax="10">
-            <Line id="pop0 v: cell 42" quantity="pop0/0/IF_cond_alpha_pop0/v" scale="1mV" color="#88661d" timeScale="1ms"/>
-            <Line id="pop0 v: cell 43" quantity="pop0/1/IF_cond_alpha_pop0/v" scale="1mV" color="#10882c" timeScale="1ms"/>
+            <Line id="pop0 v: cell 42" quantity="pop0/0/IF_cond_alpha_pop0/v" scale="1mV" color="#28e83f" timeScale="1ms"/>
+            <Line id="pop0 v: cell 43" quantity="pop0/1/IF_cond_alpha_pop0/v" scale="1mV" color="#539c50" timeScale="1ms"/>
         </Display>
         
         <OutputFile id="OF_pop2_v" fileName="pop2_v.dat">

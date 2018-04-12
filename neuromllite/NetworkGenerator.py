@@ -78,6 +78,9 @@ def generate_network(nl_model, handler, seed=1234):
                 pop_locations[p.id][i]=(x,y,z)
 
                 handler.handle_location(i, p.id, p.component, x, y, z)
+                
+        if hasattr(handler,'finalise_population'):
+            handler.finalise_population(p.id)
         
     for p in nl_model.projections:
         
@@ -151,7 +154,9 @@ def generate_network(nl_model, handler, seed=1234):
                 handler.handle_single_input(input.id, input_count, i)
                 input_count+=1
             
-                                
+    if hasattr(handler,'finalise_document'):
+        handler.finalise_document()
+        
         
         
         
@@ -353,9 +358,7 @@ def generate_and_run(simulation, network, simulator):
         sonata_handler = SonataHandler()
         
         generate_network(network, sonata_handler)
-        
-        sonata_handler.write()
-        
+    
         print_v("Done with Sonata...")
         
         

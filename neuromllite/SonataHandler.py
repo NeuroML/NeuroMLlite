@@ -8,15 +8,14 @@ from neuromllite.utils import print_v
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
 import h5py
+import numpy as np
 
 
 
 class SonataHandler(DefaultNetworkHandler):
         
-    populations = {}
-    projections = {}
-    input_sources = {}
-    input_info = {}
+    positions = {}
+    pop_indices = {}
     
     def __init__(self):
         print_v("Initiating Sonata handler")
@@ -36,9 +35,10 @@ class SonataHandler(DefaultNetworkHandler):
             
         print_v("Document: %s"%id)
         
-    def write(self):
+    def finalise_document(self):
         
         print_v("Writing file...: %s"%id)
+        self.sonata_nodes.close()
         
 
     def handle_network(self, network_id, notes, temperature=None):
@@ -50,7 +50,7 @@ class SonataHandler(DefaultNetworkHandler):
             print_v("  Notes: "+notes)
             
             
-        self.sonata_file = h5py.File("%s.sonata.h5"%network_id, "w")
+        self.sonata_nodes = h5py.File("%s_nodes.sonata.h5"%network_id, "w")
 
     def handle_population(self, population_id, component, size=-1, component_obj=None):
         sizeInfo = " as yet unspecified size"
@@ -63,20 +63,27 @@ class SonataHandler(DefaultNetworkHandler):
             
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo)
         
-        population = self.sonata_file.create_group("edges/%s"%population_id)
+        self.sonata_nodes.create_group("nodes/%s"%population_id)
+        self.sonata_nodes.create_group("nodes/%s/0"%population_id)
+        
+ 
+    def handle_location(self, id, population_id, component, x, y, z):
+        
+        if not population_id in self.positions:
+            self.positions[population_id] = np.array([[x,y,z]])
+            self.pop_indices[population_id] = np.array([id])
+        else:
+            self.positions[population_id] = np.concatenate((self.positions[population_id], [[x,y,z]]))
+            self.pop_indices[population_id] = np.concatenate((self.pop_indices[population_id], [id]))
+        
+        
+    def finalise_population(self, population_id):
+        
+        self.sonata_nodes.create_dataset("nodes/%s/0/positions"%population_id, data=self.positions[population_id])
+        self.sonata_nodes.create_dataset("nodes/%s/node_group_index"%population_id, data=self.pop_indices[population_id])
+        self.sonata_nodes.create_dataset("nodes/%s/node_id"%population_id, data=self.pop_indices[population_id])
 
 '''
-    #
-    #  Should be overridden to create specific cell instance
-    #    
-    def handle_location(self, id, population_id, component, x, y, z):
-        self.printLocationInformation(id, population_id, component, x, y, z)
-        
-        exec('self.POP_%s.positions[0][%s] = %s'%(population_id,id,x))
-        exec('self.POP_%s.positions[1][%s] = %s'%(population_id,id,y))
-        exec('self.POP_%s.positions[2][%s] = %s'%(population_id,id,z))
-
-
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
 
         synInfo=""

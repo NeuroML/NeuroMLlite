@@ -60,10 +60,10 @@ class DefaultNetworkHandler:
     #
     #  Should be overridden
     #  
-    '''def handle_document_end(self, id):
+    def finalise_document(self):
             
         print_v("Document: %s ended..."%id)
-    '''
+    
 
     #
     #  Should be overridden to create network
@@ -101,6 +101,9 @@ class DefaultNetworkHandler:
         self.print_location_information(id, population_id, component, x, y, z)
         
 
+    def finalise_population(self, population_id):
+            
+        pass
 
     #
     #  Should be overridden to create population array
