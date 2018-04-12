@@ -1,5 +1,6 @@
 {
     "Example6_PyNN": {
+        "version": "NeuroMLlite v0.1.2", 
         "notes": "Another network for PyNN - work in progress...", 
         "cells": [
             {

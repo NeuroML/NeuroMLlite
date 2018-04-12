@@ -344,6 +344,22 @@ def generate_and_run(simulation, network, simulator):
         generate_network(network, nrn_handler)
 
 
+
+    elif simulator.lower() == 'sonata': # Will not "run" obviously...
+        
+        
+        from neuromllite.SonataHandler import SonataHandler
+        
+        sonata_handler = SonataHandler()
+        
+        generate_network(network, sonata_handler)
+        
+        sonata_handler.write()
+        
+        print_v("Done with Sonata...")
+        
+        
+
     elif simulator.startswith('PyNN'):
         
         #_generate_neuron_files_from_neuroml(network)

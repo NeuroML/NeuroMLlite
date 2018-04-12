@@ -11,7 +11,7 @@ class Base(object):
         self.__dict__['children'] = collections.OrderedDict()
 
         for name, value in kwargs.items():       
-            print( ' - Init of %s:  %s = %s'%(self.get_type(),name, value))
+            #print( ' - Init of %s:  %s = %s'%(self.get_type(),name, value))
             
             if name in self.allowed_fields:
                 

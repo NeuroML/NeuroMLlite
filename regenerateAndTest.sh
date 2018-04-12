@@ -18,6 +18,7 @@ python Example3.py
 python Example3.py -netpyne
 python Example3.py -jnmlnrn
 python Example3.py -jnmlnetpyne
+python Example3.py -sonata
 
 echo
 echo "**** Running Example 4 ****"
@@ -41,6 +42,8 @@ python Example6.py
 echo
 echo "**** Running Example 7 ****"
 python Example7.py
+python Example7.py -jnmlnrn
+python Example7.py -jnml
 
 
 jnml -validate *nml

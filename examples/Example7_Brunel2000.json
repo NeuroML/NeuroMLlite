@@ -1,6 +1,8 @@
 {
     "Example7_Brunel2000": {
+        "version": "NeuroMLlite v0.1.2", 
         "parameters": {
+            "fractionE": 0.8, 
             "N": 100
         }, 
         "notes": "Example 7: based on network of Brunel 2000", 
@@ -51,14 +53,14 @@
         ], 
         "populations": [
             {
-                "E": {
-                    "size": "int(N*0.8)", 
+                "Epop": {
+                    "size": "int(N*fractionE)", 
                     "component": "ifcell"
                 }
             }, 
             {
-                "I": {
-                    "size": "int(N*0.2)", 
+                "Ipop": {
+                    "size": "N - int(N*fractionE)", 
                     "component": "ifcell"
                 }
             }
@@ -66,8 +68,8 @@
         "projections": [
             {
                 "projEe": {
-                    "presynaptic": "E", 
-                    "postsynaptic": "E", 
+                    "presynaptic": "Epop", 
+                    "postsynaptic": "Epop", 
                     "synapse": "ampa", 
                     "delay": 2.0, 
                     "weight": 0.02, 
@@ -78,8 +80,8 @@
             }, 
             {
                 "projEI": {
-                    "presynaptic": "E", 
-                    "postsynaptic": "I", 
+                    "presynaptic": "Epop", 
+                    "postsynaptic": "Ipop", 
                     "synapse": "ampa", 
                     "delay": 2.0, 
                     "weight": 0.02, 
@@ -90,8 +92,8 @@
             }, 
             {
                 "projIE": {
-                    "presynaptic": "I", 
-                    "postsynaptic": "E", 
+                    "presynaptic": "Ipop", 
+                    "postsynaptic": "Epop", 
                     "synapse": "gaba", 
                     "delay": 2.0, 
                     "weight": 0.02, 
@@ -105,7 +107,7 @@
             {
                 "stim": {
                     "input_source": "iclamp0", 
-                    "population": "E", 
+                    "population": "Epop", 
                     "percentage": 50.0
                 }
             }

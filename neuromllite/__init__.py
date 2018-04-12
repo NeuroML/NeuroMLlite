@@ -23,10 +23,13 @@ class Network(BaseWithId):
                                  ('projections',('The projections...',Projection)),
                                  ('inputs',('The inputs to apply...',Input))])
                                  
-        self.allowed_fields = collections.OrderedDict([('parameters',('Dict of global parameters for the network',dict)),
+        self.allowed_fields = collections.OrderedDict([('version',('Information on verson of NeuroMLlite',str)),
+                                                       ('parameters',('Dict of global parameters for the network',dict)),
                                                        ('network_reader',('Can read in network',NetworkReader))])
                         
         super(Network, self).__init__(**kwargs)
+        
+        self.version = 'NeuroMLlite v%s'%__version__
           
   
 class Cell(BaseWithId):

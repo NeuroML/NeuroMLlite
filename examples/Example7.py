@@ -9,7 +9,7 @@ import sys
 
 net = Network(id='Example7_Brunel2000')
 net.notes = 'Example 7: based on network of Brunel 2000'
-net.parameters = { "N": 100 }
+net.parameters = { 'N': 100, 'fractionE': 0.8 }
 
 cell = Cell(id='ifcell', pynn_cell='IF_cond_alpha')
 cell.parameters = { "tau_refrac":5, "i_offset":.1 }
@@ -23,8 +23,8 @@ input_source = InputSource(id='iclamp0',
 net.input_sources.append(input_source)
 
 
-pE = Population(id='E', size='int(N*0.8)', component=cell.id)
-pI = Population(id='I', size='int(N*0.2)', component=cell.id)
+pE = Population(id='Epop', size='int(N*fractionE)', component=cell.id)
+pI = Population(id='Ipop', size='N - int(N*fractionE)', component=cell.id)
 
 net.populations.append(pE)
 net.populations.append(pI)
@@ -67,6 +67,7 @@ net.inputs.append(Input(id='stim',
                         population=pE.id,
                         percentage=50))
 
+print(net)
 print(net.to_json())
 net.to_json_file('%s.json'%net.id)
 

@@ -53,9 +53,17 @@ class DefaultNetworkHandler:
     #  
     def handle_document_start(self, id, notes):
             
-        print_v("Document: %s"%id)
+        print_v("Document: %s started..."%id)
         if notes:
             print_v("  Notes: "+notes)
+            
+    #
+    #  Should be overridden
+    #  
+    '''def handle_document_end(self, id):
+            
+        print_v("Document: %s ended..."%id)
+    '''
 
     #
     #  Should be overridden to create network
