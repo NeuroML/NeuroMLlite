@@ -49,7 +49,13 @@ class PyNNHandler(DefaultNetworkHandler):
         if notes:
             print_v("  Notes: "+notes)
 
-    def handle_population(self, population_id, component, size=-1, component_obj=None):
+
+    def handle_population(self, 
+                          population_id, 
+                          component, size=-1, 
+                          component_obj=None, 
+                          properties={}):
+        
         sizeInfo = " as yet unspecified size"
         if size>=0:
             sizeInfo = ", size: "+ str(size)+ " cells"

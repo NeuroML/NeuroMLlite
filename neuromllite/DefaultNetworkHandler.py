@@ -88,7 +88,7 @@ class DefaultNetworkHandler:
         else:
             compInfo=""
         propsInfo=''
-        if len(properties)>0:
+        if properties and len(properties)>0:
             propsInfo+='; %s'%properties
             
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+propsInfo)

@@ -13,3 +13,5 @@ examples/test_files/x86_64
 /neuromllite.egg-info
 *py.class
 /test2.sh
+/examples/*.gv
+/examples/*gv.pdf

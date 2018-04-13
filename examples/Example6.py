@@ -1,6 +1,7 @@
 from neuromllite import Network, Cell, Population, Simulation, Synapse
 from neuromllite import Projection, RandomConnectivity, OneToOneConnector
 from neuromllite.NetworkGenerator import generate_and_run
+import sys
 
 ################################################################################
 ###   Build new network
@@ -40,8 +41,8 @@ net.synapses.append(i_syn)
 
 
 scale = 0.1
-l23e = Population(id='L23_E', size=int(100*scale), component=cell.id)
-l23i = Population(id='L23_I', size=int(100*scale), component=cell.id)
+l23e = Population(id='L23_E', size=int(100*scale), component=cell.id, properties={'color':'.8 0 0'})
+l23i = Population(id='L23_I', size=int(100*scale), component=cell.id, properties={'color':'0 0 0.8'})
 l23ei = Population(id='L23_E_input', size=int(100*scale), component=input_cell.id)
 l23ii = Population(id='L23_I_input', size=int(100*scale), component=input_cell.id)
 
@@ -109,10 +110,30 @@ sim.to_json_file()
 ################################################################################
 ###   Run in some simulators
 
-print("**** Generating and running in NeuroML ****")
 
-generate_and_run(sim, net, simulator='PyNN_NeuroML')
-generate_and_run(sim, net, simulator='PyNN_NEURON')
+if '-pynnnest' in sys.argv:
+    generate_and_run(sim, net, simulator='PyNN_NEST')
+    
+elif '-pynnnrn' in sys.argv:
+    generate_and_run(sim, net, simulator='PyNN_NEURON')
+    
+elif '-pynnbrian' in sys.argv:
+    generate_and_run(sim, net, simulator='PyNN_Brian')
+    
+elif '-jnml' in sys.argv:
+    generate_and_run(sim, net, simulator='jNeuroML')
+    
+elif '-jnmlnrn' in sys.argv:
+    generate_and_run(sim, net, simulator='jNeuroML_NEURON')
+    
+elif '-jnmlnetpyne' in sys.argv:
+    generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
+    
+elif '-graph' in sys.argv:
+    generate_and_run(sim, net, simulator='Graph') # Will not "run" obviously...
+    
+else:
+    generate_and_run(sim, net, simulator='PyNN_NeuroML')
 
 '''
 generate_and_run(sim, net, simulator='PyNN_NEST')

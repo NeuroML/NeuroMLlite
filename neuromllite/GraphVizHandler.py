@@ -1,35 +1,24 @@
 #
 #
-#   A class to write to the Sonata format...
+#   A class to write to the GraphViz format...
 #
 #
 
 from neuromllite.utils import print_v
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
-import h5py
-import numpy as np
+from graphviz import Digraph
 
 
 
-class SonataHandler(DefaultNetworkHandler):
+class GraphVizHandler(DefaultNetworkHandler):
         
     positions = {}
     pop_indices = {}
     
     def __init__(self):
-        print_v("Initiating Sonata handler")
+        print_v("Initiating GraphViz handler")
     
-    '''
-    def set_cells(self, cells):
-        self.cells = cells
-        
-    def set_receptor_types(self, receptor_types):
-        self.receptor_types = receptor_types
-        
-    def add_input_source(self, input_source):
-        input_params = input_source.parameters if input_source.parameters else {}
-        exec('self.input_sources["%s"] = self.sim.%s(**input_params)'%(input_source.id,input_source.pynn_input))'''
 
     def handle_document_start(self, id, notes):
             
@@ -38,26 +27,18 @@ class SonataHandler(DefaultNetworkHandler):
     def finalise_document(self):
         
         print_v("Writing file...: %s"%id)
-        self.sonata_nodes.close()
+        #self.sonata_nodes.close()
+        self.f.view()
         
 
     def handle_network(self, network_id, notes, temperature=None):
             
         print_v("Network: %s"%network_id)
-        if temperature:
-            print_v("  Temperature: "+temperature)
-        if notes:
-            print_v("  Notes: "+notes)
             
             
-        self.sonata_nodes = h5py.File("%s_nodes.sonata.h5"%network_id, "w")
+        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine='dot')
 
-    def handle_population(self, 
-                          population_id, 
-                          component, size=-1, 
-                          component_obj=None, 
-                          properties={}):
-        
+    def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}):
         sizeInfo = " as yet unspecified size"
         if size>=0:
             sizeInfo = ", size: "+ str(size)+ " cells"
@@ -66,46 +47,36 @@ class SonataHandler(DefaultNetworkHandler):
         else:
             compInfo=""
             
-        print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo)
-        
-        self.sonata_nodes.create_group("nodes/%s"%population_id)
-        self.sonata_nodes.create_group("nodes/%s/0"%population_id)
+        print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
+        color = 'lightgrey' 
+        if properties and 'color' in properties:
+            rgb = properties['color'].split()
+            color = '#'
+            for a in rgb:
+                color = color+'%02x'%int(float(a)*256)
+                
+            print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
+            
+        self.f.node(population_id, color=color)
         
  
     def handle_location(self, id, population_id, component, x, y, z):
-        
+        '''
         if not population_id in self.positions:
             self.positions[population_id] = np.array([[x,y,z]])
             self.pop_indices[population_id] = np.array([id])
         else:
             self.positions[population_id] = np.concatenate((self.positions[population_id], [[x,y,z]]))
             self.pop_indices[population_id] = np.concatenate((self.pop_indices[population_id], [id]))
+        '''
+        pass
         
-        
-    def finalise_population(self, population_id):
-        
-        self.sonata_nodes.create_dataset("nodes/%s/0/positions"%population_id, data=self.positions[population_id])
-        self.sonata_nodes.create_dataset("nodes/%s/node_group_index"%population_id, data=self.pop_indices[population_id])
-        self.sonata_nodes.create_dataset("nodes/%s/node_id"%population_id, data=self.pop_indices[population_id])
 
-'''
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
 
-        synInfo=""
-        if synapse_obj:
-            synInfo += " (syn: %s)"%synapse_obj.__class__.__name__
-            
-        if pre_synapse_obj:
-            synInfo += " (pre comp: %s)"%pre_synapse_obj.__class__.__name__
-
-        print_v("Projection: "+projName+" ("+type+") from "+prePop+" to "+postPop+" with syn: "+synapse+synInfo)
-        
-        exec('self.projection__%s_conns = []'%(projName))
+        self.f.edge(prePop, postPop)
 
 
-    #
-    #  Should be overridden to handle network connection
-    #  
     def handle_connection(self, projName, id, prePop, postPop, synapseType, \
                                                     preCellId, \
                                                     postCellId, \
@@ -116,13 +87,9 @@ class SonataHandler(DefaultNetworkHandler):
                                                     delay = 0, \
                                                     weight = 1):
         
-        self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
-        print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
-         
-        import random
-        exec('self.projection__%s_conns.append((%s,%s,float(%s),float(%s)))'%(projName,preCellId,postCellId,weight,delay))
+        pass
 
-        
+    '''      
     #
     #  Should be overridden to handle end of network connection
     #  

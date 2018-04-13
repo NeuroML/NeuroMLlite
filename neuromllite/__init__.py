@@ -72,7 +72,7 @@ class Population(BaseWithId):
         
         self.allowed_fields = collections.OrderedDict([('size',('Size of population',EvaluableExpression)),
                                ('component',('Type of cell to use in population',str)),
-                               ('color',('Optional color to use for visualizing population',str)),
+                               ('properties',('Dict of properties (metadata) for the population',dict)),
                                ('random_layout',('Layout in random region',RandomLayout))])
                                
                       

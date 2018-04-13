@@ -21,29 +21,29 @@
     <Simulation id="Sim_Example6_PyNN" length="100.0ms" step="0.025ms" target="Example6_PyNN" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
         
         <Display id="L23_I_v" title="L23_I v" timeScale="1ms" xmin="-10.0" xmax="110.0" ymin="-70" ymax="10">
-            <Line id="L23_I v: cell 64" quantity="L23_I/2/IF_curr_exp_L23_I/v" scale="1mV" color="#e8a787" timeScale="1ms"/>
-            <Line id="L23_I v: cell 65" quantity="L23_I/3/IF_curr_exp_L23_I/v" scale="1mV" color="#062d08" timeScale="1ms"/>
-            <Line id="L23_I v: cell 66" quantity="L23_I/4/IF_curr_exp_L23_I/v" scale="1mV" color="#909a19" timeScale="1ms"/>
-            <Line id="L23_I v: cell 67" quantity="L23_I/5/IF_curr_exp_L23_I/v" scale="1mV" color="#cebaa0" timeScale="1ms"/>
-            <Line id="L23_I v: cell 68" quantity="L23_I/6/IF_curr_exp_L23_I/v" scale="1mV" color="#94db2e" timeScale="1ms"/>
-            <Line id="L23_I v: cell 69" quantity="L23_I/7/IF_curr_exp_L23_I/v" scale="1mV" color="#844008" timeScale="1ms"/>
-            <Line id="L23_I v: cell 70" quantity="L23_I/8/IF_curr_exp_L23_I/v" scale="1mV" color="#5734d2" timeScale="1ms"/>
-            <Line id="L23_I v: cell 71" quantity="L23_I/9/IF_curr_exp_L23_I/v" scale="1mV" color="#4bbbc2" timeScale="1ms"/>
-            <Line id="L23_I v: cell 62" quantity="L23_I/0/IF_curr_exp_L23_I/v" scale="1mV" color="#9efabe" timeScale="1ms"/>
-            <Line id="L23_I v: cell 63" quantity="L23_I/1/IF_curr_exp_L23_I/v" scale="1mV" color="#8a0b3a" timeScale="1ms"/>
+            <Line id="L23_I v: cell 64" quantity="L23_I/2/IF_curr_exp_L23_I/v" scale="1mV" color="#525c45" timeScale="1ms"/>
+            <Line id="L23_I v: cell 65" quantity="L23_I/3/IF_curr_exp_L23_I/v" scale="1mV" color="#b823b6" timeScale="1ms"/>
+            <Line id="L23_I v: cell 66" quantity="L23_I/4/IF_curr_exp_L23_I/v" scale="1mV" color="#bd7741" timeScale="1ms"/>
+            <Line id="L23_I v: cell 67" quantity="L23_I/5/IF_curr_exp_L23_I/v" scale="1mV" color="#08b654" timeScale="1ms"/>
+            <Line id="L23_I v: cell 68" quantity="L23_I/6/IF_curr_exp_L23_I/v" scale="1mV" color="#1f64a4" timeScale="1ms"/>
+            <Line id="L23_I v: cell 69" quantity="L23_I/7/IF_curr_exp_L23_I/v" scale="1mV" color="#d53579" timeScale="1ms"/>
+            <Line id="L23_I v: cell 70" quantity="L23_I/8/IF_curr_exp_L23_I/v" scale="1mV" color="#dec755" timeScale="1ms"/>
+            <Line id="L23_I v: cell 71" quantity="L23_I/9/IF_curr_exp_L23_I/v" scale="1mV" color="#c53dbd" timeScale="1ms"/>
+            <Line id="L23_I v: cell 62" quantity="L23_I/0/IF_curr_exp_L23_I/v" scale="1mV" color="#39759b" timeScale="1ms"/>
+            <Line id="L23_I v: cell 63" quantity="L23_I/1/IF_curr_exp_L23_I/v" scale="1mV" color="#19e3b0" timeScale="1ms"/>
         </Display>
         
         <Display id="L23_E_v" title="L23_E v" timeScale="1ms" xmin="-10.0" xmax="110.0" ymin="-70" ymax="10">
-            <Line id="L23_E v: cell 42" quantity="L23_E/0/IF_curr_exp_L23_E/v" scale="1mV" color="#43348a" timeScale="1ms"/>
-            <Line id="L23_E v: cell 43" quantity="L23_E/1/IF_curr_exp_L23_E/v" scale="1mV" color="#a8996e" timeScale="1ms"/>
-            <Line id="L23_E v: cell 44" quantity="L23_E/2/IF_curr_exp_L23_E/v" scale="1mV" color="#b0236f" timeScale="1ms"/>
-            <Line id="L23_E v: cell 45" quantity="L23_E/3/IF_curr_exp_L23_E/v" scale="1mV" color="#fc8b85" timeScale="1ms"/>
-            <Line id="L23_E v: cell 46" quantity="L23_E/4/IF_curr_exp_L23_E/v" scale="1mV" color="#a0e377" timeScale="1ms"/>
-            <Line id="L23_E v: cell 47" quantity="L23_E/5/IF_curr_exp_L23_E/v" scale="1mV" color="#b02f1e" timeScale="1ms"/>
-            <Line id="L23_E v: cell 48" quantity="L23_E/6/IF_curr_exp_L23_E/v" scale="1mV" color="#d397ac" timeScale="1ms"/>
-            <Line id="L23_E v: cell 49" quantity="L23_E/7/IF_curr_exp_L23_E/v" scale="1mV" color="#2edb88" timeScale="1ms"/>
-            <Line id="L23_E v: cell 50" quantity="L23_E/8/IF_curr_exp_L23_E/v" scale="1mV" color="#e554b4" timeScale="1ms"/>
-            <Line id="L23_E v: cell 51" quantity="L23_E/9/IF_curr_exp_L23_E/v" scale="1mV" color="#fc3a6f" timeScale="1ms"/>
+            <Line id="L23_E v: cell 42" quantity="L23_E/0/IF_curr_exp_L23_E/v" scale="1mV" color="#167fd9" timeScale="1ms"/>
+            <Line id="L23_E v: cell 43" quantity="L23_E/1/IF_curr_exp_L23_E/v" scale="1mV" color="#29de30" timeScale="1ms"/>
+            <Line id="L23_E v: cell 44" quantity="L23_E/2/IF_curr_exp_L23_E/v" scale="1mV" color="#7f4c81" timeScale="1ms"/>
+            <Line id="L23_E v: cell 45" quantity="L23_E/3/IF_curr_exp_L23_E/v" scale="1mV" color="#a8de9c" timeScale="1ms"/>
+            <Line id="L23_E v: cell 46" quantity="L23_E/4/IF_curr_exp_L23_E/v" scale="1mV" color="#049931" timeScale="1ms"/>
+            <Line id="L23_E v: cell 47" quantity="L23_E/5/IF_curr_exp_L23_E/v" scale="1mV" color="#26b50e" timeScale="1ms"/>
+            <Line id="L23_E v: cell 48" quantity="L23_E/6/IF_curr_exp_L23_E/v" scale="1mV" color="#c20fae" timeScale="1ms"/>
+            <Line id="L23_E v: cell 49" quantity="L23_E/7/IF_curr_exp_L23_E/v" scale="1mV" color="#967c6b" timeScale="1ms"/>
+            <Line id="L23_E v: cell 50" quantity="L23_E/8/IF_curr_exp_L23_E/v" scale="1mV" color="#f07b1a" timeScale="1ms"/>
+            <Line id="L23_E v: cell 51" quantity="L23_E/9/IF_curr_exp_L23_E/v" scale="1mV" color="#0c0c21" timeScale="1ms"/>
         </Display>
         
         <OutputFile id="OF_L23_I_v" fileName="L23_I_v.dat">

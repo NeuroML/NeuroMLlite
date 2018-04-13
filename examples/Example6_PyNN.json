@@ -52,7 +52,10 @@
             {
                 "L23_E": {
                     "size": 10, 
-                    "component": "CorticalCell"
+                    "component": "CorticalCell", 
+                    "properties": {
+                        "color": ".8 0 0"
+                    }
                 }
             }, 
             {
@@ -64,7 +67,10 @@
             {
                 "L23_I": {
                     "size": 10, 
-                    "component": "CorticalCell"
+                    "component": "CorticalCell", 
+                    "properties": {
+                        "color": "0 0 0.8"
+                    }
                 }
             }, 
             {

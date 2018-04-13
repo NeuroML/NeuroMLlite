@@ -100,6 +100,9 @@ elif '-jnmlnrn' in sys.argv:
 elif '-jnmlnetpyne' in sys.argv:
     generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
     
+elif '-graph' in sys.argv:
+    generate_and_run(sim, net, simulator='Graph') # Will not "run" obviously...
+    
 else:
     generate_and_run(sim, net, simulator='PyNN_NeuroML')
 

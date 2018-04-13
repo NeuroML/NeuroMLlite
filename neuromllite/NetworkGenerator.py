@@ -66,7 +66,8 @@ def generate_network(nl_model, handler, seed=1234):
         handler.handle_population(p.id, 
                                  p.component, 
                                  size, 
-                                 cell_objects[p.component] if p.component in cell_objects else None)
+                                 cell_objects[p.component] if p.component in cell_objects else None,
+                                 p.properties if p.properties else {})
                                  
         pop_locations[p.id] = np.zeros((size,3))
         
@@ -352,7 +353,6 @@ def generate_and_run(simulation, network, simulator):
 
     elif simulator.lower() == 'sonata': # Will not "run" obviously...
         
-        
         from neuromllite.SonataHandler import SonataHandler
         
         sonata_handler = SonataHandler()
@@ -360,6 +360,17 @@ def generate_and_run(simulation, network, simulator):
         generate_network(network, sonata_handler)
     
         print_v("Done with Sonata...")
+
+
+    elif simulator.lower().startswith('graph'): # Will not "run" obviously...
+        
+        from neuromllite.GraphVizHandler import GraphVizHandler
+        
+        handler = GraphVizHandler()
+        
+        generate_network(network, handler)
+    
+        print_v("Done with GraphViz...")
         
         
 
