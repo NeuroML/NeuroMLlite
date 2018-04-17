@@ -1,6 +1,6 @@
 {
     "Example4_PyNN": {
-        "version": "NeuroMLlite v0.1.2", 
+        "version": "NeuroMLlite v0.1.3", 
         "notes": "Example 4: a network with PyNN cells & inputs", 
         "cells": [
             {
@@ -82,7 +82,7 @@
                     "presynaptic": "pop0", 
                     "postsynaptic": "pop1", 
                     "synapse": "ampa", 
-                    "delay": 2.0, 
+                    "delay": 2, 
                     "weight": 0.02, 
                     "random_connectivity": {
                         "probability": 1.0
@@ -94,7 +94,7 @@
                     "presynaptic": "pop0", 
                     "postsynaptic": "pop2", 
                     "synapse": "gaba", 
-                    "delay": 2.0, 
+                    "delay": 2, 
                     "weight": 0.02, 
                     "random_connectivity": {
                         "probability": 1.0

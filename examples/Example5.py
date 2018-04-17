@@ -49,7 +49,7 @@ from neuromllite import Simulation
 sim = Simulation(id='SimExample5',
                  duration='500',
                  dt='0.025',
-                 recordTraces='all')
+                 recordTraces={'all':'*'})
                                
                                
 from neuromllite.NetworkGenerator import generate_and_run

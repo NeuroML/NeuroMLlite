@@ -7,13 +7,14 @@ from neuromllite.utils import print_v
 
 
 def evaluate(expr, globals={}):
+    #print_v('Exaluating: [%s]...'%expr)
     try:
-        return int(expr)
-    except:
-        try:
+        if int(expr)==expr:
+            return int(expr)
+        else: # will have failed if not number
             return float(expr)
-        except:
-            return eval(expr, globals)
+    except:
+        return eval(expr, globals)
         
 
 
@@ -112,27 +113,27 @@ def generate_network(nl_model, handler, seed=1234):
                                          preFract = 0.5, \
                                          postSegId = 0, \
                                          postFract = 0.5, \
-                                         delay = delay, \
-                                         weight = weight)
+                                         delay = evaluate(delay, nl_model.parameters), \
+                                         weight = evaluate(weight, nl_model.parameters))
                         conn_count+=1
                         
         if p.one_to_one_connector:
             for i in range(min(len(pop_locations[p.presynaptic]),len(pop_locations[p.postsynaptic]))):
-                
-                        handler.handle_connection(p.id, 
-                                         conn_count, 
-                                         p.presynaptic, 
-                                         p.postsynaptic, 
-                                         p.synapse, \
-                                         i, \
-                                         i, \
-                                         preSegId = 0, \
-                                         preFract = 0.5, \
-                                         postSegId = 0, \
-                                         postFract = 0.5, \
-                                         delay = delay, \
-                                         weight = weight)
-                        conn_count+=1
+                print i
+                handler.handle_connection(p.id, 
+                                 conn_count, 
+                                 p.presynaptic, 
+                                 p.postsynaptic, 
+                                 p.synapse, \
+                                 i, \
+                                 i, \
+                                 preSegId = 0, \
+                                 preFract = 0.5, \
+                                 postSegId = 0, \
+                                 postFract = 0.5, \
+                                 delay = evaluate(delay, nl_model.parameters), \
+                                 weight = evaluate(weight, nl_model.parameters))
+                conn_count+=1
         
         handler.finalise_projection(p.id, 
                                  p.presynaptic, 
@@ -210,8 +211,11 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
                 
         if c.pynn_cell:
             import pyNN.neuroml
-            cell_params = c.parameters if i.parameters else {}
-
+            cell_params = c.parameters if c.parameters else {}
+            print('%s: %s'%(c, cell_params))
+            for p in cell_params:
+                cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
+            print('%s: %s'%(c, cell_params))
             for proj in nl_model.projections:
 
                 synapse = nl_model.get_child(proj.synapse,'synapses')
@@ -431,7 +435,7 @@ def generate_and_run(simulation, network, simulator):
         
         for pid in pynn_handler.populations:
             pop = pynn_handler.populations[pid]
-            if simulation.recordTraces=='all':
+            if 'all' in simulation.recordTraces or pop.id in simulation.recordTraces:
                 if pop.can_record('v'):
                     pop.record('v')
         
@@ -445,7 +449,7 @@ def generate_and_run(simulation, network, simulator):
             for pid in pynn_handler.populations:
                 pop = pynn_handler.populations[pid]
 
-                if simulation.recordTraces=='all':
+                if 'all' in simulation.recordTraces or pop.id in simulation.recordTraces:
                     for i in range(len(pop)):
                         if pop.can_record('v'):
                             filename = "%s_%s_v.dat"%(pop.label,i)
@@ -486,9 +490,10 @@ def generate_and_run(simulation, network, simulator):
         
         simConfig.recordCells = ['all'] 
         simConfig.recordTraces = {}
-        if simulation.recordTraces=='all':
         
-            for pop in netpyne_handler.popParams.values():
+
+        for pop in netpyne_handler.popParams.values():
+            if 'all' in simulation.recordTraces or pop.id in simulation.recordTraces:
                 for i in pop['cellsList']:
                     id = pop['pop']
                     index = i['cellLabel']
@@ -572,6 +577,10 @@ def generate_and_run(simulation, network, simulator):
                 included_files.append(s.neuroml2_source_file)'''
                 
         print_v("Generating LEMS file prior to running in %s"%simulator)
+        pops_plot_save = []
+        for p in network.populations:
+            if 'all' in simulation.recordTraces or p.id in simulation.recordTraces:
+                pops_plot_save.append(p.id)
 
         generate_lems_file_for_neuroml(simulation.id, 
                                nml_file_name, 
@@ -582,13 +591,13 @@ def generate_and_run(simulation, network, simulator):
                                '.',
                                nml_doc = nml_doc,  # Use this if the nml doc has already been loaded (to avoid delay in reload)
                                include_extra_files = included_files,
-                               gen_plots_for_all_v = True,
+                               gen_plots_for_all_v = False,
                                plot_all_segments = False,
                                gen_plots_for_quantities = {},   # Dict with displays vs lists of quantity paths
-                               gen_plots_for_only_populations = [],   # List of populations, all pops if = []
-                               gen_saves_for_all_v = simulation.recordTraces=='all',
+                               gen_plots_for_only_populations = pops_plot_save,   # List of populations, all pops if = []
+                               gen_saves_for_all_v = False,
                                save_all_segments = False,
-                               gen_saves_for_only_populations = [],  # List of populations, all pops if = []
+                               gen_saves_for_only_populations = pops_plot_save,  # List of populations, all pops if = []
                                gen_saves_for_quantities = {},   # Dict with file names vs lists of quantity paths
                                gen_spike_saves_for_all_somas = False,
                                gen_spike_saves_for_only_populations = [],  # List of populations, all pops if = []

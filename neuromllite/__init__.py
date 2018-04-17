@@ -1,10 +1,11 @@
 import collections
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
 from neuromllite.BaseTypes import NetworkReader
+
 
 class EvaluableExpression(str):
     
@@ -96,8 +97,8 @@ class Projection(BaseWithId):
         self.allowed_fields = collections.OrderedDict([('presynaptic',('Presynaptic population',str)),
                                ('postsynaptic',('Postsynaptic population',str)),
                                ('synapse',('Synapse to use',str)),
-                               ('delay',('Delay to use',float)),
-                               ('weight',('Weight to use',float)),
+                               ('delay',('Delay to use',EvaluableExpression)),
+                               ('weight',('Weight to use',EvaluableExpression)),
                                ('random_connectivity',('Use random connectivity',RandomConnectivity)),
                                ('one_to_one_connector',('Connect cell index i in pre pop to cell index i in post pop for all i',OneToOneConnector))])
 
@@ -149,7 +150,7 @@ class Simulation(BaseWithId):
         
         self.allowed_fields = collections.OrderedDict([('duration',('Duration of simulation (ms)',float)),
                                ('dt',('Timestep of simulation (ms)',float)),
-                               ('recordTraces',('Record traces?',str))])
+                               ('recordTraces',('Record traces?',dict))])
                         
         super(Simulation, self).__init__(**kwargs)
     

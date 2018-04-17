@@ -1,6 +1,6 @@
 {
     "Example6_PyNN": {
-        "version": "NeuroMLlite v0.1.2", 
+        "version": "NeuroMLlite v0.1.3", 
         "notes": "Another network for PyNN - work in progress...", 
         "cells": [
             {
@@ -86,8 +86,8 @@
                     "presynaptic": "L23_E_input", 
                     "postsynaptic": "L23_E", 
                     "synapse": "ampa", 
-                    "delay": 2.0, 
-                    "weight": 10.0, 
+                    "delay": 2, 
+                    "weight": 10, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -96,8 +96,8 @@
                     "presynaptic": "L23_I_input", 
                     "postsynaptic": "L23_I", 
                     "synapse": "ampa", 
-                    "delay": 2.0, 
-                    "weight": 10.0, 
+                    "delay": 2, 
+                    "weight": 10, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -106,8 +106,8 @@
                     "presynaptic": "L23_E", 
                     "postsynaptic": "L23_E", 
                     "synapse": "ampa", 
-                    "delay": 1.0, 
-                    "weight": 1.0, 
+                    "delay": 1, 
+                    "weight": 1, 
                     "random_connectivity": {
                         "probability": 0.1009
                     }
@@ -118,8 +118,8 @@
                     "presynaptic": "L23_E", 
                     "postsynaptic": "L23_I", 
                     "synapse": "ampa", 
-                    "delay": 1.0, 
-                    "weight": 1.0, 
+                    "delay": 1, 
+                    "weight": 1, 
                     "random_connectivity": {
                         "probability": 0.1346
                     }
@@ -130,8 +130,8 @@
                     "presynaptic": "L23_I", 
                     "postsynaptic": "L23_E", 
                     "synapse": "gaba", 
-                    "delay": 1.0, 
-                    "weight": -1.0, 
+                    "delay": 1, 
+                    "weight": -1, 
                     "random_connectivity": {
                         "probability": 0.1689
                     }
@@ -142,8 +142,8 @@
                     "presynaptic": "L23_I", 
                     "postsynaptic": "L23_I", 
                     "synapse": "gaba", 
-                    "delay": 1.0, 
-                    "weight": -1.0, 
+                    "delay": 1, 
+                    "weight": -1, 
                     "random_connectivity": {
                         "probability": 0.1371
                     }

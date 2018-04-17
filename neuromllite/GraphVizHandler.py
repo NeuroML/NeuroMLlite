@@ -57,7 +57,8 @@ class GraphVizHandler(DefaultNetworkHandler):
                 
             print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
             
-        self.f.node(population_id, color=color)
+        self.f.attr('node', color=color)
+        self.f.node(population_id, _attributes={})
         
  
     def handle_location(self, id, population_id, component, x, y, z):
@@ -74,7 +75,18 @@ class GraphVizHandler(DefaultNetworkHandler):
 
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
 
-        self.f.edge(prePop, postPop)
+        shape = 'normal'
+        '''
+        if synapse_obj:
+            print 4444
+            print synapse_obj.erev
+            shape = 'dot'
+            
+        if synapse=='gaba':
+            shape = 'dot''''
+            
+            
+        self.f.edge(prePop, postPop, arrowhead=shape)
 
 
     def handle_connection(self, projName, id, prePop, postPop, synapseType, \

@@ -20,7 +20,7 @@ net.to_json_file()
 sim = Simulation(id='SimExample3',
                  duration='1000',
                  dt='0.025',
-                 recordTraces='all')
+                 recordTraces={'all':'*'})
                  
 sim.to_json_file()
 

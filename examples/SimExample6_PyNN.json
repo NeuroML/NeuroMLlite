@@ -2,6 +2,8 @@
     "SimExample6_PyNN": {
         "duration": 100.0, 
         "dt": 0.025, 
-        "recordTraces": "all"
+        "recordTraces": {
+            "all": "*"
+        }
     }
 }
