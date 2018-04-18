@@ -1,9 +1,9 @@
 <neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="BBP_5percent">
     <notes>Network read in from BBP connectome: /home/padraig/NeuroMLlite/examples/test_files/cons_locs_pathways_mc0_Column.h5</notes>
-    <include href="test_files/inputs.nml"></include>
-    <include href="test_files/hhcell.cell.nml"></include>
-    <include href="test_files/ampa.synapse.nml"></include>
-    <include href="test_files/gaba.synapse.nml"></include>
+    <include href="test_files/inputs.nml"/>
+    <include href="test_files/hhcell.cell.nml"/>
+    <include href="test_files/ampa.synapse.nml"/>
+    <include href="test_files/gaba.synapse.nml"/>
     <network id="BBP_5percent">
         <notes>Network read in from BBP connectome: /home/padraig/NeuroMLlite/examples/test_files/cons_locs_pathways_mc0_Column.h5</notes>
         <population id="L1_DAC" component="hhcell" size="2" type="populationList">

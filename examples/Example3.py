@@ -25,34 +25,12 @@ sim = Simulation(id='SimExample3',
 sim.to_json_file()
 
 
+
 ################################################################################
 ###   Run in some simulators
 
-if '-netpyne' in sys.argv:
-    generate_and_run(sim, net, simulator='NetPyNE')
-    
-elif '-jnmlnrn' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML_NEURON')
-    
-elif '-jnmlnetpyne' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
-    
-elif '-sonata' in sys.argv:
-    generate_and_run(sim, net, simulator='Sonata') # Will not "run" obviously...
-    
-elif '-graph' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph') # Will not "run" obviously...
-    
-else:
-    
-    generate_and_run(sim, net, simulator='jNeuroML')
+from neuromllite.NetworkGenerator import check_to_generate_or_run
+import sys
 
-
-#generate_and_run(sim, net, simulator='NEURON')
-
-
-
-
-
-
+check_to_generate_or_run(sys.argv, sim, net)
 

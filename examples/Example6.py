@@ -1,8 +1,6 @@
 from neuromllite import Network, Cell, Population, Simulation, Synapse
 from neuromllite import RectangularRegion, RandomLayout
 from neuromllite import Projection, RandomConnectivity, OneToOneConnector
-from neuromllite.NetworkGenerator import generate_and_run
-import sys
 
 ################################################################################
 ###   Build new network
@@ -171,57 +169,9 @@ sim.to_json_file()
 ################################################################################
 ###   Run in some simulators
 
+from neuromllite.NetworkGenerator import check_to_generate_or_run
+import sys
 
-if '-pynnnest' in sys.argv:
-    generate_and_run(sim, net, simulator='PyNN_NEST')
-    
-elif '-pynnnrn' in sys.argv:
-    generate_and_run(sim, net, simulator='PyNN_NEURON')
-    
-elif '-pynnbrian' in sys.argv:
-    generate_and_run(sim, net, simulator='PyNN_Brian')
-    
-elif '-jnml' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML')
-    
-elif '-jnmlnrn' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML_NEURON')
-    
-elif '-jnmlnetpyne' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
-    
-elif '-graph0' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph0') # Will not "run" obviously...
-    
-elif '-graph1' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph1') # Will not "run" obviously...
-    
-elif '-graph2' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph2') # Will not "run" obviously...
-    
-elif '-pynnneuroml' in sys.argv:
-    generate_and_run(sim, net, simulator='PyNN_NeuroML')
-
-'''
-generate_and_run(sim, net, simulator='PyNN_NEST')
-generate_and_run(sim, net, simulator='PyNN_Brian')
-
-generate_and_run(sim, net, simulator='PyNN_NEST')
-generate_and_run(sim, net, simulator='PyNN_NeuroML')
-generate_and_run(sim, net, simulator='PyNN_NEURON')
-print("**** Generating and running in NEURON ****")
-
-
-print("**** Generating and running in NEST ****")
-
-generate_and_run(sim, net, simulator='PyNN_NEST')
-
-print("**** Generating and running in Brian ****")
-'''
-
-
-
-
-
+check_to_generate_or_run(sys.argv, sim, net)
 
 

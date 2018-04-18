@@ -16,8 +16,8 @@ net.notes = "A simple network with 2 populations & projection between them. "+ \
 ################################################################################
 ###   Add some elements to the network & save new JSON
 
-r1 = RectangularRegion(id='r1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
-r2 = RectangularRegion(id='r2', x=0,y=200,z=0,width=1000,height=100,depth=1000)
+r1 = RectangularRegion(id='region1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
+r2 = RectangularRegion(id='region2', x=0,y=200,z=0,width=1000,height=100,depth=1000)
 net.regions.append(r1)
 net.regions.append(r2)
 

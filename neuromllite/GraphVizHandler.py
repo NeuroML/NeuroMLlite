@@ -64,7 +64,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                 color = color+'%02x'%int(float(a)*255)
             
             # https://stackoverflow.com/questions/3942878
-            if (float(rgb[0])*0.299 + float(rgb[1])*0.587 + float(rgb[2])*0.114) > .6:
+            if (float(rgb[0])*0.299 + float(rgb[1])*0.587 + float(rgb[2])*0.114) > .4:
                 fcolor= '#000000'
             else:
                 fcolor= '#ffffff'

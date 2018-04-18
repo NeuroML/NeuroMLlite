@@ -29,7 +29,7 @@ def _parse_attributes(json, to_build):
     for g in json:
         value = json[g]
         
-        print("  Setting %s=%s (%s) in %s"%(g, value, type(value), to_build))
+        #print("  Setting %s=%s (%s) in %s"%(g, value, type(value), to_build))
         if type(to_build)==dict:
             to_build[g]=value
         elif type(value)==str or type(value)==int or type(value)==float:

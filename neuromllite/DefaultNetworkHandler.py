@@ -28,14 +28,14 @@ class DefaultNetworkHandler:
     #
     def print_location_information(self, id, population_id, component, x, y, z):
         position = "(%s, %s, %s)" % (x, y, z)
-        print_v("Location "+str(id)+" of population: "+population_id+", component: "+component+": "+position)
+        print_v("  Location "+str(id)+" of population: "+population_id+", component: "+component+": "+position)
         
 
     #
     #  Internal info method, can be reused in overriding classes for debugging
     #        
     def print_connection_information(self,  projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight):
-        print_v("Connection "+str(id)+" of: "+projName+": cell "+str(preCellId)+" in "+prePop \
+        print_v("  Connection "+str(id)+" of: "+projName+": cell "+str(preCellId)+" in "+prePop \
                               +" -> cell "+str(postCellId)+" in "+postPop+", syn: "+ str(synapseType)+", weight: "+str(weight))
         
          
@@ -162,7 +162,7 @@ class DefaultNetworkHandler:
     #  
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
         
-        print_v("Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,cellId,segId,fract,weight))
+        print_v("  Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,cellId,segId,fract,weight))
         
         
     #

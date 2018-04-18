@@ -1,13 +1,13 @@
 <neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example3_Network">
     <notes>Generated network</notes>
-    <include href="test_files/inputs.nml"></include>
-    <include href="test_files/hhcell.cell.nml"></include>
+    <include href="test_files/inputs.nml"/>
+    <include href="test_files/hhcell.cell.nml"/>
     <expTwoSynapse id="ampa" gbase="2nS" erev="0mV" tauDecay="2ms" tauRise="1ms"/>
     <network id="Example3_Network">
         <notes>Example 3: simple network with 2 populations of NeuroML2 cells, a projection between them and spiking input.</notes>
         <population id="pop0" component="hhcell" size="5" type="populationList">
             <property tag="color" value="1 0 0"/>
-            <property tag="region" value="r1"/>
+            <property tag="region" value="region1"/>
             <instance id="0">
                 <location x="966.453535692138757" y="44.073259917535268" z="7.491470058587191"/>
             </instance>
@@ -26,7 +26,7 @@
         </population>
         <population id="pop1" component="hhcell" size="10" type="populationList">
             <property tag="color" value="0 1 0"/>
-            <property tag="region" value="r2"/>
+            <property tag="region" value="region2"/>
             <instance id="0">
                 <location x="148.55463870828757" y="218.309064740993165" z="114.412969688687639"/>
             </instance>

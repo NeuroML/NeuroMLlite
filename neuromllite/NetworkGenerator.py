@@ -155,6 +155,38 @@ def generate_network(nl_model, handler, seed=1234):
         
         
         
+    
+def check_to_generate_or_run(argv, sim, net):
+    
+    if '-pynnnest' in argv:
+        generate_and_run(sim, net, simulator='PyNN_NEST')
+
+    elif '-pynnnrn' in argv:
+        generate_and_run(sim, net, simulator='PyNN_NEURON')
+
+    elif '-pynnbrian' in argv:
+        generate_and_run(sim, net, simulator='PyNN_Brian')
+
+    elif '-jnml' in argv:
+        generate_and_run(sim, net, simulator='jNeuroML')
+
+    elif '-jnmlnrn' in argv:
+        generate_and_run(sim, net, simulator='jNeuroML_NEURON')
+
+    elif '-jnmlnetpyne' in argv:
+        generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
+
+    elif '-graph0' in argv:
+        generate_and_run(sim, net, simulator='Graph0') # Will not "run" obviously...
+
+    elif '-graph1' in argv:
+        generate_and_run(sim, net, simulator='Graph1') # Will not "run" obviously...
+
+    elif '-graph2' in argv:
+        generate_and_run(sim, net, simulator='Graph2') # Will not "run" obviously...
+
+    elif '-pynnneuroml' in argv:
+        generate_and_run(sim, net, simulator='PyNN_NeuroML')
         
         
 def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=True, seed=1234, format='xml'):
