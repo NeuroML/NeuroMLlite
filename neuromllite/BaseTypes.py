@@ -205,6 +205,7 @@ class BaseWithId(Base):
         f.write(self.to_json())
         f.close()
         print("Written to: %s"%file_name)
+        return file_name
         
         
 class NetworkReader():

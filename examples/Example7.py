@@ -69,13 +69,14 @@ net.inputs.append(Input(id='stim',
 
 print(net)
 print(net.to_json())
-net.to_json_file('%s.json'%net.id)
+new_file = net.to_json_file('%s.json'%net.id)
 
 
 ################################################################################
 ###   Build Simulation object & save as JSON
 
 sim = Simulation(id='SimExample7',
+                 network=new_file,
                  duration='1000',
                  dt='0.025',
                  recordTraces={'all':'*'})
@@ -83,35 +84,12 @@ sim = Simulation(id='SimExample7',
 sim.to_json_file()
 
 
+
 ################################################################################
 ###   Run in some simulators
 
-print("**** Generating and running ****")
+from neuromllite.NetworkGenerator import check_to_generate_or_run
+import sys
 
-
-if '-pynnnest' in sys.argv:
-    generate_and_run(sim, net, simulator='PyNN_NEST')
-    
-elif '-pynnnrn' in sys.argv:
-    generate_and_run(sim, net, simulator='PyNN_NEURON')
-    
-elif '-pynnbrian' in sys.argv:
-    generate_and_run(sim, net, simulator='PyNN_Brian')
-    
-elif '-jnml' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML')
-    
-elif '-jnmlnrn' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML_NEURON')
-    
-elif '-jnmlnetpyne' in sys.argv:
-    generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
-    
-#else:
-#    generate_and_run(sim, net, simulator='PyNN_NeuroML')
-
-else:
-
-    generate_neuroml2_from_network(net, 
-                               nml_file_name='%s.net.nml'%net.id)
+check_to_generate_or_run(sys.argv, sim)
 

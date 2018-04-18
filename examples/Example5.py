@@ -32,7 +32,7 @@ for pop in ['L4_PC']:
                             population=pop,
                             percentage=80))
 
-net.to_json_file('%s.json'%net.id)
+new_file = net.to_json_file('%s.json'%net.id)
 
 
 ################################################################################
@@ -47,24 +47,17 @@ generate_neuroml2_from_network(net,
 from neuromllite import Simulation
 
 sim = Simulation(id='SimExample5',
+                 network=new_file,
                  duration='500',
                  dt='0.025',
                  recordTraces={'all':'*'})
                                
                                
-from neuromllite.NetworkGenerator import generate_and_run
-#generate_and_run(sim, net, simulator='jNeuroML_NEURON')
 
-if '-netpyne' in sys.argv:
-    generate_and_run(sim, net, simulator='NetPyNE')
-    
-elif '-graph0' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph0') # Will not "run" obviously...
-    
-elif '-graph2' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph2') # Will not "run" obviously...
-    
-'''                    
-#generate_and_run(sim, net, simulator='NEURON')
-generate_and_run(sim, net, simulator='PyNN_NeuroML')
-#generate_and_run(sim, net, simulator='PyNN_NEURON')'''
+################################################################################
+###   Run in some simulators
+
+from neuromllite.NetworkGenerator import check_to_generate_or_run
+import sys
+
+check_to_generate_or_run(sys.argv, sim)

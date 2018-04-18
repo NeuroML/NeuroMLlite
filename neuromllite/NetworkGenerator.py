@@ -3,7 +3,7 @@ import numpy as np
 import os
 import copy
 
-from neuromllite.utils import print_v, evaluate
+from neuromllite.utils import print_v, evaluate, load_network_json
 
 
 def generate_network(nl_model, handler, seed=1234):
@@ -113,7 +113,6 @@ def generate_network(nl_model, handler, seed=1234):
                         
         if p.one_to_one_connector:
             for i in range(min(len(pop_locations[p.presynaptic]),len(pop_locations[p.postsynaptic]))):
-                print i
                 handler.handle_connection(p.id, 
                                  conn_count, 
                                  p.presynaptic, 
@@ -156,37 +155,38 @@ def generate_network(nl_model, handler, seed=1234):
         
         
     
-def check_to_generate_or_run(argv, sim, net):
+def check_to_generate_or_run(argv, sim):
+    
     
     if '-pynnnest' in argv:
-        generate_and_run(sim, net, simulator='PyNN_NEST')
+        generate_and_run(sim, simulator='PyNN_NEST')
 
     elif '-pynnnrn' in argv:
-        generate_and_run(sim, net, simulator='PyNN_NEURON')
+        generate_and_run(sim, simulator='PyNN_NEURON')
 
     elif '-pynnbrian' in argv:
-        generate_and_run(sim, net, simulator='PyNN_Brian')
+        generate_and_run(sim, simulator='PyNN_Brian')
 
     elif '-jnml' in argv:
-        generate_and_run(sim, net, simulator='jNeuroML')
+        generate_and_run(sim, simulator='jNeuroML')
 
     elif '-jnmlnrn' in argv:
-        generate_and_run(sim, net, simulator='jNeuroML_NEURON')
+        generate_and_run(sim, simulator='jNeuroML_NEURON')
 
     elif '-jnmlnetpyne' in argv:
-        generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
+        generate_and_run(sim, simulator='jNeuroML_NetPyNE')
 
     elif '-graph0' in argv:
-        generate_and_run(sim, net, simulator='Graph0') # Will not "run" obviously...
+        generate_and_run(sim, simulator='Graph0') # Will not "run" obviously...
 
     elif '-graph1' in argv:
-        generate_and_run(sim, net, simulator='Graph1') # Will not "run" obviously...
+        generate_and_run(sim, simulator='Graph1') # Will not "run" obviously...
 
     elif '-graph2' in argv:
-        generate_and_run(sim, net, simulator='Graph2') # Will not "run" obviously...
+        generate_and_run(sim, simulator='Graph2') # Will not "run" obviously...
 
     elif '-pynnneuroml' in argv:
-        generate_and_run(sim, net, simulator='PyNN_NeuroML')
+        generate_and_run(sim, simulator='PyNN_NeuroML')
         
         
 def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=True, seed=1234, format='xml'):
@@ -360,8 +360,10 @@ def _generate_neuron_files_from_neuroml(network):
             print_v("Failed to load mod file mechanisms...")
 
 
-def generate_and_run(simulation, network, simulator):
+def generate_and_run(simulation, simulator):
 
+    network = load_network_json(simulation.network)
+    
     print_v("Generating network %s and running in simulator: %s..."%(network.id, simulator))
     
     if simulator=='NEURON':

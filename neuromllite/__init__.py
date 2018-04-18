@@ -168,12 +168,14 @@ class Simulation(BaseWithId):
 
     def __init__(self, **kwargs):
         
-        self.allowed_fields = collections.OrderedDict([('duration',('Duration of simulation (ms)',float)),
+        self.allowed_fields = collections.OrderedDict([('version',('Information on verson of NeuroMLlite',str)),
+                               ('network',('File name of network to simulate',str)),
+                               ('duration',('Duration of simulation (ms)',float)),
                                ('dt',('Timestep of simulation (ms)',float)),
                                ('recordTraces',('Record traces?',dict))])
                         
         super(Simulation, self).__init__(**kwargs)
-    
-                                   
+     
+        self.version = 'NeuroMLlite v%s'%__version__       
             
         

@@ -107,7 +107,7 @@
                 "stim": {
                     "input_source": "iclamp0", 
                     "population": "pop0", 
-                    "percentage": 70.0
+                    "percentage": 50.0
                 }
             }
         ]

@@ -62,7 +62,7 @@ class DefaultNetworkHandler:
     #  
     def finalise_document(self):
             
-        print_v("Document: %s ended..."%id)
+        print_v("Document ended...")
     
 
     #

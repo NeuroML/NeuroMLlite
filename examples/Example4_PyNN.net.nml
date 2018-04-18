@@ -21,8 +21,7 @@
             <connectionWD id="1" preCellId="../pop0[1]" postCellId="../pop2[0]" weight="0.02" delay="2ms"/>
         </projection>
         <inputList id="stim" population="pop0" component="iclamp0">
-            <input id="0" target="../pop0[0]" destination="synapses"/>
-            <input id="1" target="../pop0[1]" destination="synapses"/>
+            <input id="0" target="../pop0[1]" destination="synapses"/>
         </inputList>
     </network>
 </neuroml>

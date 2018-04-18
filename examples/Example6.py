@@ -152,13 +152,14 @@ for pre_i in range(len(pops)):
 
 
 print(net.to_json())
-net.to_json_file('%s.json'%net.id)
+new_file = net.to_json_file('%s.json'%net.id)
 
 ################################################################################
 ###   Build Simulation object & save as JSON
 
 
 sim = Simulation(id='Sim%s'%net.id,
+                 network=new_file,
                  duration='100',
                  dt='0.025',
                  recordTraces={'all':'*'})
@@ -172,6 +173,6 @@ sim.to_json_file()
 from neuromllite.NetworkGenerator import check_to_generate_or_run
 import sys
 
-check_to_generate_or_run(sys.argv, sim, net)
+check_to_generate_or_run(sys.argv, sim)
 
 
