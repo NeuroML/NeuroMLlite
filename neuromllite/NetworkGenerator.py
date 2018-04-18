@@ -3,19 +3,7 @@ import numpy as np
 import os
 import copy
 
-from neuromllite.utils import print_v
-
-
-def evaluate(expr, globals={}):
-    #print_v('Exaluating: [%s]...'%expr)
-    try:
-        if int(expr)==expr:
-            return int(expr)
-        else: # will have failed if not number
-            return float(expr)
-    except:
-        return eval(expr, globals)
-        
+from neuromllite.utils import print_v, evaluate
 
 
 def generate_network(nl_model, handler, seed=1234):
@@ -64,19 +52,25 @@ def generate_network(nl_model, handler, seed=1234):
     for p in nl_model.populations:
         
         size = evaluate(p.size, nl_model.parameters)
+        properties = p.properties if p.properties else {}
+        if p.random_layout:
+            properties['region'] = p.random_layout.region
+            
         handler.handle_population(p.id, 
                                  p.component, 
                                  size, 
                                  cell_objects[p.component] if p.component in cell_objects else None,
-                                 p.properties if p.properties else {})
+                                 properties = properties)
                                  
         pop_locations[p.id] = np.zeros((size,3))
         
         for i in range(size):
             if p.random_layout:
-                x = rng.random()*p.random_layout.width
-                y = rng.random()*p.random_layout.height
-                z = rng.random()*p.random_layout.depth
+                region = nl_model.get_child(p.random_layout.region,'regions')
+                
+                x = region.x + rng.random()*region.width
+                y = region.y + rng.random()*region.height
+                z = region.z + rng.random()*region.depth
                 pop_locations[p.id][i]=(x,y,z)
 
                 handler.handle_location(i, p.id, p.component, x, y, z)
@@ -370,7 +364,9 @@ def generate_and_run(simulation, network, simulator):
         
         from neuromllite.GraphVizHandler import GraphVizHandler
         
-        handler = GraphVizHandler()
+        level = int(simulator[5:])
+        
+        handler = GraphVizHandler(level, network)
         
         generate_network(network, handler)
     

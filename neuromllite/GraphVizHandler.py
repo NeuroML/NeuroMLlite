@@ -7,8 +7,9 @@
 from neuromllite.utils import print_v
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
-from graphviz import Digraph
+from graphviz import Digraph, Graph
 
+from neuromllite.utils import evaluate
 
 
 class GraphVizHandler(DefaultNetworkHandler):
@@ -16,8 +17,10 @@ class GraphVizHandler(DefaultNetworkHandler):
     positions = {}
     pop_indices = {}
     
-    def __init__(self):
+    def __init__(self, level=10, nl_network=None):
         print_v("Initiating GraphViz handler")
+        self.nl_network = nl_network
+        self.level = level
     
 
     def handle_document_start(self, id, notes):
@@ -34,9 +37,12 @@ class GraphVizHandler(DefaultNetworkHandler):
     def handle_network(self, network_id, notes, temperature=None):
             
         print_v("Network: %s"%network_id)
+        engine = 'dot'
+        #if self.level<=2:
+        #    engine = 'neato'
             
-            
-        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine='dot')
+        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=engine)
+        
 
     def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}):
         sizeInfo = " as yet unspecified size"
@@ -49,16 +55,34 @@ class GraphVizHandler(DefaultNetworkHandler):
             
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
         color = 'lightgrey' 
+        fcolor= '#ffffff'
+        
         if properties and 'color' in properties:
             rgb = properties['color'].split()
             color = '#'
             for a in rgb:
-                color = color+'%02x'%int(float(a)*256)
+                color = color+'%02x'%int(float(a)*255)
+            
+            # https://stackoverflow.com/questions/3942878
+            if (float(rgb[0])*0.299 + float(rgb[1])*0.587 + float(rgb[2])*0.114) > .6:
+                fcolor= '#000000'
+            else:
+                fcolor= '#ffffff'
                 
             print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
             
-        self.f.attr('node', color=color)
-        self.f.node(population_id, _attributes={})
+        
+        if properties and 'region' in properties:
+            
+            with self.f.subgraph(name='cluster_%s'%properties['region']) as c:
+                c.attr(color='darkgrey')
+                c.attr('node', color=color, style='filled', fontcolor = fcolor)
+                c.node(population_id)
+                c.attr(label=properties['region'])
+    
+        else:
+            self.f.attr('node', color=color, style='filled', fontcolor = fcolor)
+            self.f.node(population_id, _attributes={})
         
  
     def handle_location(self, id, population_id, component, x, y, z):
@@ -78,15 +102,38 @@ class GraphVizHandler(DefaultNetworkHandler):
         shape = 'normal'
         '''
         if synapse_obj:
-            print 4444
             print synapse_obj.erev
-            shape = 'dot'
+            shape = 'dot'''
             
-        if synapse=='gaba':
-            shape = 'dot''''
+        weight = 1
+        
+        if self.nl_network:
+            #print synapse
+            #print self.nl_network.synapses
+            syn = self.nl_network.get_child(synapse,'synapses')
+            if syn:
+                #print syn
+                if syn.parameters:
+                    #print syn.parameters
+                    if 'e_rev' in syn.parameters and syn.parameters['e_rev']<-50:
+                        shape = 'dot'
             
+            proj = self.nl_network.get_child(projName,'projections')  
+            if proj:
+                if proj.weight:
+                    proj_weight = evaluate(proj.weight, self.nl_network.parameters)
+                    if proj_weight<0:
+                        shape = 'dot'
+                    weight = abs(proj_weight)
+                if proj.random_connectivity:
+                    weight *= proj.random_connectivity.probability
+                #print 'w: %s'%weight
+                        
             
-        self.f.edge(prePop, postPop, arrowhead=shape)
+        if self.level>=2:
+            #self.f.attr('edge', penwidth=random())
+            self.f.attr('edge', arrowhead=shape, arrowsize='%s'%(max(.5,1*weight)), penwidth='%s'%(max(.5,3*weight)))
+            self.f.edge(prePop, postPop)
 
 
     def handle_connection(self, projName, id, prePop, postPop, synapseType, \

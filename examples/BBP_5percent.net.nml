@@ -8,6 +8,7 @@
         <notes>Network read in from BBP connectome: /home/padraig/NeuroMLlite/examples/test_files/cons_locs_pathways_mc0_Column.h5</notes>
         <population id="L1_DAC" component="hhcell" size="2" type="populationList">
             <property tag="type" value="I"/>
+            <property tag="region" value="L1"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="374.685900000000004" y="2031.048688999999968" z="399.490193999999974"/>
@@ -18,6 +19,7 @@
         </population>
         <population id="L1_DLAC" component="hhcell" size="1" type="populationList">
             <property tag="type" value="I"/>
+            <property tag="region" value="L1"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="357.926033000000018" y="2010.226840999999922" z="286.579939000000024"/>
@@ -25,6 +27,7 @@
         </population>
         <population id="L1_HAC" component="hhcell" size="4" type="populationList">
             <property tag="type" value="I"/>
+            <property tag="region" value="L1"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="481.576149999999984" y="1939.091098000000102" z="281.655613000000017"/>
@@ -41,6 +44,7 @@
         </population>
         <population id="L1_NGC_DA" component="hhcell" size="3" type="populationList">
             <property tag="type" value="I"/>
+            <property tag="region" value="L1"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="289.973220000000026" y="1974.828068999999914" z="113.720095999999998"/>
@@ -54,6 +58,7 @@
         </population>
         <population id="L1_NGC_SA" component="hhcell" size="2" type="populationList">
             <property tag="type" value="I"/>
+            <property tag="region" value="L1"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="339.661774999999977" y="2011.560083999999961" z="49.800105000000002"/>
@@ -64,6 +69,7 @@
         </population>
         <population id="L1_SLAC" component="hhcell" size="2" type="populationList">
             <property tag="type" value="I"/>
+            <property tag="region" value="L1"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="384.374782999999979" y="1943.241635000000088" z="297.676189000000022"/>
@@ -75,6 +81,7 @@
         <population id="L23_BP" component="hhcell" size="1" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="213.492079999999987" y="1905.544951000000083" z="331.515402999999992"/>
@@ -83,6 +90,7 @@
         <population id="L23_BTC" component="hhcell" size="5" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="356.236337999999989" y="1792.841529000000037" z="21.168126999999998"/>
@@ -103,6 +111,7 @@
         <population id="L23_ChC" component="hhcell" size="3" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="459.893173999999988" y="1801.600995999999896" z="136.349621000000013"/>
@@ -117,6 +126,7 @@
         <population id="L23_DBC" component="hhcell" size="8" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="196.658643000000012" y="1832.851582000000008" z="115.746105999999997"/>
@@ -146,6 +156,7 @@
         <population id="L23_LBC" component="hhcell" size="22" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="241.599814000000009" y="1820.348322999999937" z="158.950753999999989"/>
@@ -217,6 +228,7 @@
         <population id="L23_MC" component="hhcell" size="16" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="375.624229000000014" y="1794.0024370000001" z="186.224415999999991"/>
@@ -270,6 +282,7 @@
         <population id="L23_NBC" component="hhcell" size="13" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="237.848330000000004" y="1791.852521999999908" z="73.395139"/>
@@ -314,6 +327,7 @@
         <population id="L23_NGC" component="hhcell" size="2" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="411.346142999999984" y="1890.424731000000065" z="128.259465000000006"/>
@@ -325,6 +339,7 @@
         <population id="L23_PC" component="hhcell" size="293" type="populationList">
             <property tag="color" value="0.6 0 0"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="367.868552000000022" y="1815.695946999999933" z="194.611066999999991"/>
@@ -1209,6 +1224,7 @@
         <population id="L23_SBC" component="hhcell" size="8" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L23"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="435.83981399999999" y="1837.213183999999956" z="9.738761999999999"/>
@@ -1238,6 +1254,7 @@
         <population id="L4_BTC" component="hhcell" size="1" type="populationList">
             <property tag="color" value="0.8 0.7 1"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="244.521604999999994" y="1391.841265999999905" z="36.850551000000003"/>
@@ -1246,6 +1263,7 @@
         <population id="L4_DBC" component="hhcell" size="1" type="populationList">
             <property tag="color" value="0.8 0.7 1"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="367.003579000000002" y="1322.186574000000064" z="386.770015999999998"/>
@@ -1254,6 +1272,7 @@
         <population id="L4_LBC" component="hhcell" size="6" type="populationList">
             <property tag="color" value="0.8 0.7 1"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="190.790134999999992" y="1399.200133000000051" z="332.861484000000019"/>
@@ -1277,6 +1296,7 @@
         <population id="L4_MC" component="hhcell" size="5" type="populationList">
             <property tag="color" value="0.8 0.7 1"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="401.96072700000002" y="1389.573437999999896" z="178.71651"/>
@@ -1297,6 +1317,7 @@
         <population id="L4_NBC" component="hhcell" size="4" type="populationList">
             <property tag="color" value="0.8 0.7 1"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="425.633422999999993" y="1228.141168999999991" z="169.713805000000008"/>
@@ -1314,6 +1335,7 @@
         <population id="L4_PC" component="hhcell" size="134" type="populationList">
             <property tag="color" value="0 0.25 0.5"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="413.076017999999976" y="1330.332239000000072" z="196.098367999999994"/>
@@ -1721,6 +1743,7 @@
         <population id="L4_SBC" component="hhcell" size="3" type="populationList">
             <property tag="color" value="0.8 0.7 1"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="409.354291999999987" y="1361.572715000000017" z="26.371962"/>
@@ -1735,6 +1758,7 @@
         <population id="L4_SP" component="hhcell" size="54" type="populationList">
             <property tag="color" value="0 0.25 0.5"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="347.197268000000008" y="1377.725198000000091" z="120.294461999999996"/>
@@ -1902,6 +1926,7 @@
         <population id="L4_SS" component="hhcell" size="20" type="populationList">
             <property tag="color" value="0 0.25 0.5"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L4"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="285.59619600000002" y="1229.62219899999991" z="193.900806999999986"/>
@@ -1967,6 +1992,7 @@
         <population id="L5_BP" component="hhcell" size="1" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="351.007454999999993" y="1078.201186000000007" z="46.18045"/>
@@ -1975,6 +2001,7 @@
         <population id="L5_BTC" component="hhcell" size="3" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="492.928704999999979" y="782.857266999999979" z="282.579043000000013"/>
@@ -1989,6 +2016,7 @@
         <population id="L5_DBC" component="hhcell" size="4" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="453.085173999999995" y="944.886221999999975" z="335.806241999999997"/>
@@ -2006,6 +2034,7 @@
         <population id="L5_LBC" component="hhcell" size="10" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="327.473118999999997" y="838.234251999999969" z="28.599463"/>
@@ -2041,6 +2070,7 @@
         <population id="L5_MC" component="hhcell" size="19" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="275.976283000000024" y="757.219774000000029" z="229.408652999999987"/>
@@ -2103,6 +2133,7 @@
         <population id="L5_NBC" component="hhcell" size="10" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="459.779368999999974" y="1002.31420700000001" z="40.237119999999997"/>
@@ -2138,6 +2169,7 @@
         <population id="L5_SBC" component="hhcell" size="1" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="268.11137100000002" y="975.779402000000005" z="272.535715999999979"/>
@@ -2146,6 +2178,7 @@
         <population id="L5_STPC" component="hhcell" size="15" type="populationList">
             <property tag="color" value="0 0.4 0"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="370.752257999999983" y="1134.603671000000077" z="284.254276000000004"/>
@@ -2196,6 +2229,7 @@
         <population id="L5_TTPC1" component="hhcell" size="120" type="populationList">
             <property tag="color" value="0 0.4 0"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="326.708333999999979" y="1101.787679999999909" z="199.996375"/>
@@ -2561,6 +2595,7 @@
         <population id="L5_TTPC2" component="hhcell" size="99" type="populationList">
             <property tag="color" value="0 0.4 0"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="373.583489999999983" y="970.523716000000036" z="142.660046999999992"/>
@@ -2863,6 +2898,7 @@
         <population id="L5_UTPC" component="hhcell" size="17" type="populationList">
             <property tag="color" value="0 0.4 0"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L5"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="348.870520999999997" y="797.21426299999996" z="57.424773999999999"/>
@@ -2919,6 +2955,7 @@
         <population id="L6_BP" component="hhcell" size="3" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="340.274628000000007" y="103.237971000000002" z="305.776336000000015"/>
@@ -2933,6 +2970,7 @@
         <population id="L6_BPC" component="hhcell" size="158" type="populationList">
             <property tag="color" value="1 0.6 0.2"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="375.063679999999977" y="566.965114999999969" z="189.017955000000001"/>
@@ -3412,6 +3450,7 @@
         <population id="L6_BTC" component="hhcell" size="2" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="461.951059999999984" y="650.750624000000016" z="217.829340000000002"/>
@@ -3423,6 +3462,7 @@
         <population id="L6_DBC" component="hhcell" size="1" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="379.46898299999998" y="600.821299999999951" z="377.521579999999972"/>
@@ -3431,6 +3471,7 @@
         <population id="L6_IPC" component="hhcell" size="173" type="populationList">
             <property tag="color" value="1 0.6 0.2"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="315.930915000000027" y="413.757326999999975" z="251.266482999999994"/>
@@ -3955,6 +3996,7 @@
         <population id="L6_LBC" component="hhcell" size="23" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="251.828866000000005" y="692.814370000000054" z="188.071368000000007"/>
@@ -4029,6 +4071,7 @@
         <population id="L6_MC" component="hhcell" size="16" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="316.079556000000025" y="249.606125999999989" z="176.094437999999997"/>
@@ -4082,6 +4125,7 @@
         <population id="L6_NBC" component="hhcell" size="9" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="311.787162000000023" y="546.446215000000052" z="344.92715800000002"/>
@@ -4114,6 +4158,7 @@
         <population id="L6_SBC" component="hhcell" size="3" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="type" value="I"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="5"/>
             <instance id="0">
                 <location x="339.651177000000018" y="237.636766999999992" z="385.059740999999974"/>
@@ -4128,6 +4173,7 @@
         <population id="L6_TPC_L1" component="hhcell" size="82" type="populationList">
             <property tag="color" value="1 0.6 0.2"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="353.219891000000018" y="391.870499999999993" z="192.746363000000002"/>
@@ -4379,6 +4425,7 @@
         <population id="L6_TPC_L4" component="hhcell" size="72" type="populationList">
             <property tag="color" value="1 0.6 0.2"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="361.452079000000026" y="205.832471999999996" z="230.672573999999997"/>
@@ -4600,6 +4647,7 @@
         <population id="L6_UTPC" component="hhcell" size="86" type="populationList">
             <property tag="color" value="1 0.6 0.2"/>
             <property tag="type" value="E"/>
+            <property tag="region" value="L6"/>
             <property tag="radius" value="10"/>
             <instance id="0">
                 <location x="360.022277999999972" y="698.28607599999998" z="169.744769999999988"/>

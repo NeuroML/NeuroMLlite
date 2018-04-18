@@ -20,6 +20,7 @@ class Network(BaseWithId):
         self.allowed_children = collections.OrderedDict([('cells',('The cell definitions...',Cell)),
                                  ('synapses',('The synapse definitions...',Synapse)),
                                  ('input_sources',('The input definitions...',InputSource)),
+                                 ('regions',('The regions...',RectangularRegion)),
                                  ('populations',('The populations...',Population)),
                                  ('projections',('The projections...',Projection)),
                                  ('inputs',('The inputs to apply...',Input))])
@@ -66,6 +67,27 @@ class InputSource(BaseWithId):
                       
         super(InputSource, self).__init__(**kwargs)
     
+'''
+class Region(BaseWithId):
+
+    def __init__(self, **kwargs):
+                         
+        super(Region, self).__init__(**kwargs)'''
+
+ 
+class RectangularRegion(BaseWithId):
+
+    def __init__(self, **kwargs):
+        
+        self.allowed_fields = collections.OrderedDict([('x',('x coordinate of corner',float)),
+                               ('y',('y coordinate of corner',float)),
+                               ('z',('z coordinate of corner',float)),
+                               ('width',('Width of rectangular region',float)),
+                               ('height',('Height of rectangular region',float)),
+                               ('depth',('Depth of rectangular region',float))])
+                               
+        super(RectangularRegion, self).__init__(**kwargs)
+    
     
 class Population(BaseWithId):
 
@@ -84,9 +106,7 @@ class RandomLayout(Base):
 
     def __init__(self, **kwargs):
         
-        self.allowed_fields = collections.OrderedDict([('width',('Width of rectangular region',float)),
-                               ('height',('Height of rectangular region',float)),
-                               ('depth',('Depth of rectangular region',float))])
+        self.allowed_fields = collections.OrderedDict([('region',('Region in which to place population',str))])
                                
         super(RandomLayout, self).__init__(**kwargs)
 

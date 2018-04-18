@@ -23,15 +23,38 @@
                 }
             }
         ], 
+        "regions": [
+            {
+                "r1": {
+                    "x": 0.0, 
+                    "y": 0.0, 
+                    "z": 0.0, 
+                    "width": 1000.0, 
+                    "height": 100.0, 
+                    "depth": 1000.0
+                }
+            }, 
+            {
+                "r2": {
+                    "x": 0.0, 
+                    "y": 200.0, 
+                    "z": 0.0, 
+                    "width": 1000.0, 
+                    "height": 100.0, 
+                    "depth": 1000.0
+                }
+            }
+        ], 
         "populations": [
             {
                 "pop0": {
                     "size": 5, 
                     "component": "hhcell", 
+                    "properties": {
+                        "color": "1 0 0"
+                    }, 
                     "random_layout": {
-                        "width": 1000.0, 
-                        "height": 100.0, 
-                        "depth": 1000.0
+                        "region": "r1"
                     }
                 }
             }, 
@@ -39,10 +62,11 @@
                 "pop1": {
                     "size": 10, 
                     "component": "hhcell", 
+                    "properties": {
+                        "color": "0 1 0"
+                    }, 
                     "random_layout": {
-                        "width": 1000.0, 
-                        "height": 1000.0, 
-                        "depth": 1000.0
+                        "region": "r2"
                     }
                 }
             }

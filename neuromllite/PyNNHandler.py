@@ -75,7 +75,7 @@ class PyNNHandler(DefaultNetworkHandler):
     #  Should be overridden to create specific cell instance
     #    
     def handle_location(self, id, population_id, component, x, y, z):
-        self.printLocationInformation(id, population_id, component, x, y, z)
+        #self.printLocationInformation(id, population_id, component, x, y, z)
         
         exec('self.POP_%s.positions[0][%s] = %s'%(population_id,id,x))
         exec('self.POP_%s.positions[1][%s] = %s'%(population_id,id,y))

@@ -29,8 +29,10 @@ def _parse_attributes(json, to_build):
     for g in json:
         value = json[g]
         
-        #print("  Setting %s=%s (%s) in %s"%(g, value, type(value), to_build))
-        if type(value)==str or type(value)==int or type(value)==float:
+        print("  Setting %s=%s (%s) in %s"%(g, value, type(value), to_build))
+        if type(to_build)==dict:
+            to_build[g]=value
+        elif type(value)==str or type(value)==int or type(value)==float:
             to_build.__setattr__(g, value)
         elif type(value)==list:
             type_to_use = to_build.allowed_children[g][1]
@@ -56,13 +58,21 @@ def load_network_json(filename):
         
         data = json.load(f, object_hook=ascii_encode_dict)
         
-    #print data
         
     print_v("Loaded network specification from %s"%filename)
     
     net = Network()
     net = _parse_element(data, net)
     
-        
-    
     return net
+
+
+def evaluate(expr, globals={}):
+    #print_v('Exaluating: [%s]...'%expr)
+    try:
+        if int(expr)==expr:
+            return int(expr)
+        else: # will have failed if not number
+            return float(expr)
+    except:
+        return eval(expr, globals)

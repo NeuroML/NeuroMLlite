@@ -58,8 +58,11 @@ from neuromllite.NetworkGenerator import generate_and_run
 if '-netpyne' in sys.argv:
     generate_and_run(sim, net, simulator='NetPyNE')
     
-elif '-graph' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph') # Will not "run" obviously...
+elif '-graph0' in sys.argv:
+    generate_and_run(sim, net, simulator='Graph0') # Will not "run" obviously...
+    
+elif '-graph2' in sys.argv:
+    generate_and_run(sim, net, simulator='Graph2') # Will not "run" obviously...
     
 '''                    
 #generate_and_run(sim, net, simulator='NEURON')

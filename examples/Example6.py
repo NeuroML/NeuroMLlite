@@ -1,4 +1,5 @@
 from neuromllite import Network, Cell, Population, Simulation, Synapse
+from neuromllite import RectangularRegion, RandomLayout
 from neuromllite import Projection, RandomConnectivity, OneToOneConnector
 from neuromllite.NetworkGenerator import generate_and_run
 import sys
@@ -7,6 +8,10 @@ import sys
 ###   Build new network
 
 net = Network(id='Example6_PyNN', notes = 'Another network for PyNN - work in progress...')
+net.parameters = { 'N_scaling': 0.005,
+                   'layer_height': 400,
+                   'width': 100,
+                   'depth': 100}
 
 cell = Cell(id='CorticalCell', pynn_cell='IF_curr_exp')
 cell.parameters = {
@@ -39,19 +44,74 @@ i_syn = Synapse(id='gaba',
                 parameters={'tau_syn':0.5})
 net.synapses.append(i_syn)
 
+N_full = {
+  'L23': {'E': 20683, 'I': 5834},
+  'L4' : {'E': 21915, 'I': 5479},
+  'L5' : {'E': 4850, 'I': 1065},
+  'L6' : {'E': 14395, 'I': 2948}
+}
 
 scale = 0.1
-l23e = Population(id='L23_E', size=int(100*scale), component=cell.id, properties={'color':'.8 0 0'})
-l23i = Population(id='L23_I', size=int(100*scale), component=cell.id, properties={'color':'0 0 0.8'})
-l23ei = Population(id='L23_E_input', size=int(100*scale), component=input_cell.id)
-l23ii = Population(id='L23_I_input', size=int(100*scale), component=input_cell.id)
 
-net.populations.append(l23e)
-net.populations.append(l23ei)
-net.populations.append(l23i)
-net.populations.append(l23ii)
+pops = []
 
-pops = [l23e.id, l23i.id]
+layers = ['L23','L4','L5','L6']
+
+for l in layers:
+    
+    i = 3-layers.index(l)
+    r = RectangularRegion(id=l, 
+                          x=0,
+                          y=i*net.parameters['layer_height'],
+                          z=0,
+                          width=net.parameters['width'],
+                          height=net.parameters['layer_height'],
+                          depth=net.parameters['depth'])
+    net.regions.append(r)                     
+    
+    for t in ['E','I']:
+        
+        try:
+            import opencortex.utils.color as occ
+            if l == 'L23':
+                if t=='E': color = occ.L23_PRINCIPAL_CELL
+                if t=='I': color = occ.L23_INTERNEURON
+            if l == 'L4':
+                if t=='E': color = occ.L4_PRINCIPAL_CELL
+                if t=='I': color = occ.L4_INTERNEURON
+            if l == 'L5':
+                if t=='E': color = occ.L5_PRINCIPAL_CELL
+                if t=='I': color = occ.L5_INTERNEURON
+            if l == 'L6':
+                if t=='E': color = occ.L6_PRINCIPAL_CELL
+                if t=='I': color = occ.L6_INTERNEURON
+
+        except:
+            color = '.8 0 0' if t=='E' else '0 0 1'
+        
+        pop_id = '%s_%s'%(l,t)
+        pops.append(pop_id)
+        ref = 'l%s%s'%(l[1:],t.lower())
+        exec(ref + " = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color})")
+        exec("%s.random_layout = RandomLayout(region = r.id)"%ref)
+        exec("net.populations.append(%s)"%ref)
+        
+        color = '.8 .8 .8'
+        input_id = '%s_%s_input'%(l,t)
+        input_ref = 'l%s%s_i'%(l[1:],t.lower())
+        exec(input_ref + " = Population(id=input_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color})")
+        exec("%s.random_layout = RandomLayout(region = r.id)"%input_ref)
+        exec("net.populations.append(%s)"%input_ref)
+        
+    #l23i = Population(id='L23_I', size=int(100*scale), component=cell.id, properties={'color':})
+    #l23ei = Population(id='L23_E_input', size=int(100*scale), component=input_cell.id)
+    #l23ii = Population(id='L23_I_input', size=int(100*scale), component=input_cell.id)
+
+#net.populations.append(l23e)
+#net.populations.append(l23ei)
+#net.populations.append(l23i)
+#net.populations.append(l23ii)
+
 
 conn_probs = [[0.1009,  0.1689, 0.0437, 0.0818, 0.0323, 0.,     0.0076, 0.    ],
              [0.1346,   0.1371, 0.0316, 0.0515, 0.0755, 0.,     0.0042, 0.    ],
@@ -68,7 +128,7 @@ for p in pops:
                     postsynaptic=p,
                     synapse=e_syn.id,
                     delay=2,
-                    weight=10)
+                    weight=1)
     proj.one_to_one_connector=OneToOneConnector()
     net.projections.append(proj)
     
@@ -79,17 +139,18 @@ for pre_i in range(len(pops)):
         prob = conn_probs[post_i][pre_i]   #######   TODO: check!!!!
         weight = 1
         syn = e_syn
-        if 'I'in pre:
-            weight = -1
-            syn = i_syn
-        proj = Projection(id='proj_%s_%s'%(pre,post),
-                        presynaptic=pre, 
-                        postsynaptic=post,
-                        synapse=syn.id,
-                        delay=1,
-                        weight=weight)
-        proj.random_connectivity=RandomConnectivity(probability=prob)
-        net.projections.append(proj)
+        if prob>0:
+            if 'I'in pre:
+                weight = -1
+                syn = i_syn
+            proj = Projection(id='proj_%s_%s'%(pre,post),
+                            presynaptic=pre, 
+                            postsynaptic=post,
+                            synapse=syn.id,
+                            delay=1,
+                            weight=weight)
+            proj.random_connectivity=RandomConnectivity(probability=prob)
+            net.projections.append(proj)
 
 
 print(net.to_json())
@@ -129,10 +190,16 @@ elif '-jnmlnrn' in sys.argv:
 elif '-jnmlnetpyne' in sys.argv:
     generate_and_run(sim, net, simulator='jNeuroML_NetPyNE')
     
-elif '-graph' in sys.argv:
-    generate_and_run(sim, net, simulator='Graph') # Will not "run" obviously...
+elif '-graph0' in sys.argv:
+    generate_and_run(sim, net, simulator='Graph0') # Will not "run" obviously...
     
-else:
+elif '-graph1' in sys.argv:
+    generate_and_run(sim, net, simulator='Graph1') # Will not "run" obviously...
+    
+elif '-graph2' in sys.argv:
+    generate_and_run(sim, net, simulator='Graph2') # Will not "run" obviously...
+    
+elif '-pynnneuroml' in sys.argv:
     generate_and_run(sim, net, simulator='PyNN_NeuroML')
 
 '''

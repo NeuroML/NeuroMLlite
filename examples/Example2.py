@@ -1,4 +1,4 @@
-from neuromllite import RandomLayout, Cell, Synapse, InputSource, Input
+from neuromllite import RandomLayout, Cell, Synapse, InputSource, Input, RectangularRegion
 from neuromllite.NetworkGenerator import generate_network
 from neuromllite.NetworkGenerator import generate_neuroml2_from_network
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
@@ -16,11 +16,19 @@ net.notes = "A simple network with 2 populations & projection between them. "+ \
 ################################################################################
 ###   Add some elements to the network & save new JSON
 
-net.populations[0].random_layout = RandomLayout(width=1000,height=100,depth=1000)
-net.populations[1].random_layout = RandomLayout(width=1000,height=1000,depth=1000)
+r1 = RectangularRegion(id='r1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
+r2 = RectangularRegion(id='r2', x=0,y=200,z=0,width=1000,height=100,depth=1000)
+net.regions.append(r1)
+net.regions.append(r2)
+
+net.populations[0].random_layout = RandomLayout(region=r1.id)
+net.populations[1].random_layout = RandomLayout(region=r2.id)
 
 net.populations[0].component = 'hhcell'
 net.populations[1].component = 'hhcell'
+
+net.populations[0].properties={'color':'1 0 0'}
+net.populations[1].properties={'color':'0 1 0'}
 
 net.cells.append(Cell(id='hhcell', neuroml2_source_file='test_files/hhcell.cell.nml'))
 net.synapses.append(Synapse(id='ampa', neuroml2_source_file='test_files/ampa.synapse.nml'))

@@ -6,6 +6,8 @@
     <network id="TestNetwork">
         <notes>A simple network with 2 populations &amp; projection between them. Cells are specified to be NeuroML 2 HH cell models &amp; pre population is given a spiking input.</notes>
         <population id="pop0" component="hhcell" size="5" type="populationList">
+            <property tag="color" value="1 0 0"/>
+            <property tag="region" value="r1"/>
             <instance id="0">
                 <location x="966.453535692138757" y="44.073259917535268" z="7.491470058587191"/>
             </instance>
@@ -23,35 +25,37 @@
             </instance>
         </population>
         <population id="pop1" component="hhcell" size="10" type="populationList">
+            <property tag="color" value="0 1 0"/>
+            <property tag="region" value="r2"/>
             <instance id="0">
-                <location x="148.55463870828757" y="183.090647409931648" z="114.412969688687639"/>
+                <location x="148.55463870828757" y="218.309064740993165" z="114.412969688687639"/>
             </instance>
             <instance id="1">
-                <location x="14.618780486909122" y="486.751540604758361" z="964.901560916215658"/>
+                <location x="14.618780486909122" y="248.675154060475847" z="964.901560916215658"/>
             </instance>
             <instance id="2">
-                <location x="64.562280977186077" y="541.088185551130209" z="465.898559008309576"/>
+                <location x="64.562280977186077" y="254.108818555113032" z="465.898559008309576"/>
             </instance>
             <instance id="3">
-                <location x="601.463449561051448" y="88.928829990662322" z="579.002686187366521"/>
+                <location x="601.463449561051448" y="208.892882999066217" z="579.002686187366521"/>
             </instance>
             <instance id="4">
-                <location x="269.585503819448263" y="556.432560556215549" z="644.634234178282668"/>
+                <location x="269.585503819448263" y="255.643256055621549" z="644.634234178282668"/>
             </instance>
             <instance id="5">
-                <location x="481.036371366518438" y="355.239147442983324" z="249.152121361208998"/>
+                <location x="481.036371366518438" y="235.523914744298338" z="249.152121361208998"/>
             </instance>
             <instance id="6">
-                <location x="933.515498042346735" y="453.388019476493525" z="530.161206911590284"/>
+                <location x="933.515498042346735" y="245.338801947649358" z="530.161206911590284"/>
             </instance>
             <instance id="7">
-                <location x="19.299566309716852" y="508.101925779792168" z="5.780237417743139"/>
+                <location x="19.299566309716852" y="250.810192577979223" z="5.780237417743139"/>
             </instance>
             <instance id="8">
-                <location x="143.768427595595369" y="472.826925347406359" z="377.347440772596428"/>
+                <location x="143.768427595595369" y="247.282692534740647" z="377.347440772596428"/>
             </instance>
             <instance id="9">
-                <location x="54.175198646142839" y="587.52850813106943" z="164.003223741961193"/>
+                <location x="54.175198646142839" y="258.752850813106932" z="164.003223741961193"/>
             </instance>
         </population>
         <projection id="proj0" presynapticPopulation="pop0" postsynapticPopulation="pop1" synapse="ampa">

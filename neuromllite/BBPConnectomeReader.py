@@ -109,6 +109,7 @@ class BBPConnectomeReader(NetworkReader):
                 properties['type'] = type
                     
                 layer = self.current_population.split('_')[0]
+                properties['region'] = layer
                 try:
                     import opencortex.utils.color as occ
                     if layer == 'L23':
