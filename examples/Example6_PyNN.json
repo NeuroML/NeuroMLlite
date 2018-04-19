@@ -297,7 +297,7 @@
                     "postsynaptic": "L23_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -307,7 +307,7 @@
                     "postsynaptic": "L23_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -317,7 +317,7 @@
                     "postsynaptic": "L4_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -327,7 +327,7 @@
                     "postsynaptic": "L4_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -337,7 +337,7 @@
                     "postsynaptic": "L5_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -347,7 +347,7 @@
                     "postsynaptic": "L5_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -357,7 +357,7 @@
                     "postsynaptic": "L6_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -367,7 +367,7 @@
                     "postsynaptic": "L6_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 1, 
+                    "weight": 0.1, 
                     "one_to_one_connector": {}
                 }
             }, 

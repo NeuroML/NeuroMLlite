@@ -7,7 +7,7 @@
      -->
     
     <!-- Specify which component to run -->
-    <Target component="SimExample3"/>
+    <Target component="SimExample3" reportFile="report.SimExample3.txt"/>
 
     <!-- Include core NeuroML2 ComponentType definitions -->
     <Include file="Cells.xml"/>

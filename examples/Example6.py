@@ -126,7 +126,7 @@ for p in pops:
                     postsynaptic=p,
                     synapse=e_syn.id,
                     delay=2,
-                    weight=1)
+                    weight=0.1)
     proj.one_to_one_connector=OneToOneConnector()
     net.projections.append(proj)
     

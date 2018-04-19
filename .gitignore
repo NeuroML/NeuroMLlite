@@ -18,3 +18,9 @@ examples/test_files/x86_64
 /examples/*.png
 /examples/*.pov
 /examples/*.ini
+/examples/*_pynn.py
+/examples/*_main.json
+/examples/*.synapse.json
+/examples/*_celldefinition.py
+/examples/*_inputdefinition.py
+/examples/report*.txt

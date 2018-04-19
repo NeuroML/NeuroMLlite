@@ -23,9 +23,9 @@ input_source = InputSource(id='iclamp0',
 net.input_sources.append(input_source)
 
 
-p0 = Population(id='pop0', size=2, component=cell.id)
-p1 = Population(id='pop1', size=2, component=cell2.id)
-p2 = Population(id='pop2', size=1, component=cell2.id)
+p0 = Population(id='pop0', size=2, component=cell.id, properties={'color':'1 0 0'})
+p1 = Population(id='pop1', size=2, component=cell2.id, properties={'color':'0 1 0'})
+p2 = Population(id='pop2', size=1, component=cell2.id, properties={'color':'0 0 1'})
 
 net.populations.append(p0)
 net.populations.append(p1)
@@ -53,7 +53,7 @@ net.projections.append(Projection(id='proj1',
                                   postsynaptic=p2.id,
                                   synapse='gaba',
                                   delay=2,
-                                  weight=0.02))
+                                  weight=0.01))
 net.projections[1].random_connectivity=RandomConnectivity(probability=1)
 
 net.inputs.append(Input(id='stim',

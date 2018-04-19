@@ -17,8 +17,8 @@
             <connectionWD id="3" preCellId="../pop0[1]" postCellId="../pop1[1]" weight="0.02" delay="2ms"/>
         </projection>
         <projection id="proj1" presynapticPopulation="pop0" postsynapticPopulation="pop2" synapse="gaba">
-            <connectionWD id="0" preCellId="../pop0[0]" postCellId="../pop2[0]" weight="0.02" delay="2ms"/>
-            <connectionWD id="1" preCellId="../pop0[1]" postCellId="../pop2[0]" weight="0.02" delay="2ms"/>
+            <connectionWD id="0" preCellId="../pop0[0]" postCellId="../pop2[0]" weight="0.01" delay="2ms"/>
+            <connectionWD id="1" preCellId="../pop0[1]" postCellId="../pop2[0]" weight="0.01" delay="2ms"/>
         </projection>
         <inputList id="stim" population="pop0" component="iclamp0">
             <input id="0" target="../pop0[1]" destination="synapses"/>

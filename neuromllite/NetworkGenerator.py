@@ -56,6 +56,14 @@ def generate_network(nl_model, handler, seed=1234):
         if p.random_layout:
             properties['region'] = p.random_layout.region
             
+        if not p.random_layout:
+            
+            # If there are no positions (abstract network), and <property>
+            # is added to <population>, jLems doesn't like it... (it has difficulty 
+            # interpreting pop0[0]/v, etc.)
+            # So better not to give propoerties...
+            properties = {} 
+            
         handler.handle_population(p.id, 
                                  p.component, 
                                  size, 
@@ -74,6 +82,7 @@ def generate_network(nl_model, handler, seed=1234):
                 pop_locations[p.id][i]=(x,y,z)
 
                 handler.handle_location(i, p.id, p.component, x, y, z)
+                
                 
         if hasattr(handler,'finalise_population'):
             handler.finalise_population(p.id)
@@ -157,6 +166,7 @@ def generate_network(nl_model, handler, seed=1234):
     
 def check_to_generate_or_run(argv, sim):
     
+    print_v("Checking arguments: %s to see whether anything should be run..."%argv)
     
     if '-pynnnest' in argv:
         generate_and_run(sim, simulator='PyNN_NEST')
@@ -184,6 +194,9 @@ def check_to_generate_or_run(argv, sim):
 
     elif '-graph2' in argv:
         generate_and_run(sim, simulator='Graph2') # Will not "run" obviously...
+
+    elif '-graph3' in argv:
+        generate_and_run(sim, simulator='Graph3') # Will not "run" obviously...
 
     elif '-pynnneuroml' in argv:
         generate_and_run(sim, simulator='PyNN_NeuroML')
@@ -438,14 +451,18 @@ def generate_and_run(simulation, simulator):
         cells = {}
         for c in network.cells:
             if c.pynn_cell:
-                cell_params = copy.deepcopy(c.parameters) if c.parameters else {}
+                cell_params = {}
+                if c.parameters: 
+                    for p in c.parameters:
+                        cell_params[p] = evaluate(c.parameters[p], network.parameters)
                 
                 dont_set_here = ['tau_syn_E', 'e_rev_E','tau_syn_I', 'e_rev_I']
                 for d in dont_set_here:
                     if d in c.parameters:
-                        raise Exception('Synaptic parameters like %s should be set under synapses'%d)
+                        raise Exception('Synaptic parameters like %s should be set in individual synapses, not in the list of parameters associated with the cell'%d)
                 if c.id in syn_cell_params:
                     cell_params.update(syn_cell_params[c.id])
+                print_v("Creating cell with params: %s"%cell_params)
                 exec('cells["%s"] = pynn_handler.sim.%s(**cell_params)'%(c.id,c.pynn_cell))
                 
         pynn_handler.set_cells(cells)
@@ -465,7 +482,7 @@ def generate_and_run(simulation, simulator):
         
         for pid in pynn_handler.populations:
             pop = pynn_handler.populations[pid]
-            if 'all' in simulation.recordTraces or pop.id in simulation.recordTraces:
+            if 'all' in simulation.recordTraces or pop.label in simulation.recordTraces:
                 if pop.can_record('v'):
                     pop.record('v')
         
@@ -479,19 +496,26 @@ def generate_and_run(simulation, simulator):
             for pid in pynn_handler.populations:
                 pop = pynn_handler.populations[pid]
 
-                if 'all' in simulation.recordTraces or pop.id in simulation.recordTraces:
+                if 'all' in simulation.recordTraces or pop.label in simulation.recordTraces:
+                    
+                    filename = "%s.%s.v.dat"%(simulation.id,pop.label)
+                    all_columns = []
+                    print_v("Writing data for %s to %s"%(pop.label,filename))
                     for i in range(len(pop)):
                         if pop.can_record('v'):
-                            filename = "%s_%s_v.dat"%(pop.label,i)
-                            print("Writing data for %s[%s]"%(pop,i))
                             data =  pop.get_data('v', gather=False)
                             for segment in data.segments:
                                 vm = segment.analogsignals[0].transpose()[i]
-                                tt = np.array([t*simulation.dt/1000. for t in range(len(vm))])
-                                times_vm = np.array([tt, vm/1000.]).transpose()
-                                np.savetxt(filename, times_vm , delimiter = '\t', fmt='%s')
-                            #filename = "%s.spikes"%(pop.label)
-                            #io = PyNNTextIO(filename=filename)
+                                
+                                if len(all_columns)==0:
+                                    tt = np.array([t*simulation.dt/1000. for t in range(len(vm))])
+                                    all_columns.append(tt)
+                                all_columns.append(vm/1000.)
+                                
+                            times_vm = np.array(all_columns).transpose()
+                                
+                    np.savetxt(filename, times_vm , delimiter = '\t', fmt='%s')
+          
         
 
     elif simulator=='NetPyNE':
@@ -635,6 +659,7 @@ def generate_and_run(simulation, simulator):
                                spike_time_format='ID_TIME',
                                copy_neuroml = True,
                                lems_file_generate_seed=12345,
+                               report_file_name = 'report.%s.txt'%simulation.id,
                                simulation_seed=12345)
               
               

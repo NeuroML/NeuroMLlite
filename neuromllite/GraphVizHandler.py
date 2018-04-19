@@ -17,6 +17,16 @@ class GraphVizHandler(DefaultNetworkHandler):
     positions = {}
     pop_indices = {}
     
+    pop_colors = {}
+    
+    proj_weights = {}
+    proj_shapes = {}
+    proj_pre_pops = {}
+    proj_post_pops = {}
+    
+    max_weight = -1e100
+    min_weight = 1e100
+    
     def __init__(self, level=10, nl_network=None):
         print_v("Initiating GraphViz handler")
         self.nl_network = nl_network
@@ -29,8 +39,39 @@ class GraphVizHandler(DefaultNetworkHandler):
         
     def finalise_document(self):
         
+        for projName in self.proj_weights:
+            
+            if self.max_weight==self.min_weight:
+                fweight = 1
+                lweight = 1
+            else:
+                fweight = (self.proj_weights[projName]-self.min_weight)/(self.max_weight-self.min_weight)
+                lweight = 0.5 + fweight*2.0
+
+            if self.level>=2:
+                print("%s: weight %s -> %s; fw: %s; lw: %s"%(projName, self.max_weight,self.min_weight,fweight,lweight))
+                self.f.attr('edge', 
+                            arrowhead = self.proj_shapes[projName], 
+                            arrowsize = '%s'%(min(1,lweight)), 
+                            penwidth = '%s'%(lweight), 
+                            color=self.pop_colors[self.proj_pre_pops[projName]],
+                            fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
+
+                if self.level>=3:
+                    label='<weight: %s'%self.proj_weights[projName]
+
+                    if self.nl_network:
+                        proj = self.nl_network.get_child(projName,'projections')
+                        if proj and proj.random_connectivity:
+                            label += '<br/>p: %s>'%proj.random_connectivity.probability
+                        else:
+                            label += '>'
+                    
+                    self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
+                else:
+                    self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
+        
         print_v("Writing file...: %s"%id)
-        #self.sonata_nodes.close()
         self.f.view()
         
 
@@ -54,7 +95,7 @@ class GraphVizHandler(DefaultNetworkHandler):
             compInfo=""
             
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
-        color = 'lightgrey' 
+        color = '#444444' 
         fcolor= '#ffffff'
         
         if properties and 'color' in properties:
@@ -71,18 +112,25 @@ class GraphVizHandler(DefaultNetworkHandler):
                 
             print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
             
+        self.pop_colors[population_id] = color
         
+        label = population_id
+        if self.level>=3:
+            label = '<%s<br/><i>%s cell%s</i>>'%(population_id, size, '' if size==1 else 's')
+            
+        
+            
         if properties and 'region' in properties:
             
             with self.f.subgraph(name='cluster_%s'%properties['region']) as c:
-                c.attr(color='darkgrey')
-                c.attr('node', color=color, style='filled', fontcolor = fcolor)
-                c.node(population_id)
+                c.attr(color='#444444', fontcolor = '#444444')
                 c.attr(label=properties['region'])
+                c.attr('node', color=color, style='filled', fontcolor = fcolor)
+                c.node(population_id, label=label)
     
         else:
             self.f.attr('node', color=color, style='filled', fontcolor = fcolor)
-            self.f.node(population_id, _attributes={})
+            self.f.node(population_id, label=label)
         
  
     def handle_location(self, id, population_id, component, x, y, z):
@@ -105,7 +153,9 @@ class GraphVizHandler(DefaultNetworkHandler):
             print synapse_obj.erev
             shape = 'dot'''
             
-        weight = 1
+        weight = 1.0
+        self.proj_pre_pops[projName] = prePop
+        self.proj_post_pops[projName] = postPop
         
         if self.nl_network:
             #print synapse
@@ -129,11 +179,11 @@ class GraphVizHandler(DefaultNetworkHandler):
                     weight *= proj.random_connectivity.probability
                 #print 'w: %s'%weight
                         
-            
-        if self.level>=2:
-            #self.f.attr('edge', penwidth=random())
-            self.f.attr('edge', arrowhead=shape, arrowsize='%s'%(max(.5,1*weight)), penwidth='%s'%(max(.5,3*weight)))
-            self.f.edge(prePop, postPop)
+        self.max_weight = max(self.max_weight, weight)
+        self.min_weight = min(self.min_weight, weight)
+        
+        self.proj_weights[projName] = weight
+        self.proj_shapes[projName] = shape
 
 
     def handle_connection(self, projName, id, prePop, postPop, synapseType, \
@@ -148,27 +198,14 @@ class GraphVizHandler(DefaultNetworkHandler):
         
         pass
 
-    '''      
-    #
-    #  Should be overridden to handle end of network connection
-    #  
+  
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
         print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
-        
-        #exec('print(self.projection__%s_conns)'%projName)
-        exec('self.projection__%s_connector = self.sim.FromListConnector(self.projection__%s_conns, column_names=["weight", "delay"])'%(projName,projName))
 
-        exec('self.projections["%s"] = self.sim.Projection(self.populations["%s"],self.populations["%s"], ' % (projName,prePop,postPop) + \
-                                                          'connector=self.projection__%s_connector, ' % projName + \
-                                                          'synapse_type=self.sim.StaticSynapse(weight=%s, delay=%s), ' % (1,5) + \
-                                                          'receptor_type="%s", ' % (self.receptor_types[synapse]) + \
-                                                          'label="%s")'%projName)
-        
-        #exec('print(self.projections["%s"].describe())'%projName)
-        
 
         
+    '''      
     #
     #  Should be overridden to create input source array
     #  

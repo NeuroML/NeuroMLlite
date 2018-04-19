@@ -175,6 +175,8 @@ class Base(object):
         return s
     
     def get_child(self, id, type):
+        if not type in self.children:
+            return None
         for c in self.children[type]:
             if c.id == id:
                 return c

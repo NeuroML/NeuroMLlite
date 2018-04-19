@@ -60,19 +60,28 @@
             {
                 "pop0": {
                     "size": 2, 
-                    "component": "testcell"
+                    "component": "testcell", 
+                    "properties": {
+                        "color": "1 0 0"
+                    }
                 }
             }, 
             {
                 "pop1": {
                     "size": 2, 
-                    "component": "testcell2"
+                    "component": "testcell2", 
+                    "properties": {
+                        "color": "0 1 0"
+                    }
                 }
             }, 
             {
                 "pop2": {
                     "size": 1, 
-                    "component": "testcell2"
+                    "component": "testcell2", 
+                    "properties": {
+                        "color": "0 0 1"
+                    }
                 }
             }
         ], 
@@ -95,7 +104,7 @@
                     "postsynaptic": "pop2", 
                     "synapse": "gaba", 
                     "delay": 2, 
-                    "weight": 0.02, 
+                    "weight": 0.01, 
                     "random_connectivity": {
                         "probability": 1.0
                     }
