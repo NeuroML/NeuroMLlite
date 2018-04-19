@@ -12,7 +12,7 @@ def generate_network(nl_model, handler, seed=1234):
     cell_objects = {}
     synapse_objects = {}
     
-    print_v("Starting net generation...")
+    print_v("Starting net generation for %s..."%nl_model)
     rng = random.Random(seed)
     
     
@@ -186,6 +186,9 @@ def check_to_generate_or_run(argv, sim):
     elif '-jnmlnetpyne' in argv:
         generate_and_run(sim, simulator='jNeuroML_NetPyNE')
 
+    elif '-netpyne' in argv:
+        generate_and_run(sim, simulator='NetPyNE')
+
     elif '-graph0' in argv:
         generate_and_run(sim, simulator='Graph0') # Will not "run" obviously...
 
@@ -200,6 +203,11 @@ def check_to_generate_or_run(argv, sim):
 
     elif '-pynnneuroml' in argv:
         generate_and_run(sim, simulator='PyNN_NeuroML')
+        
+    elif '-nml' in argv:
+        
+        network = load_network_json(sim.network)
+        generate_neuroml2_from_network(network)
         
         
 def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=True, seed=1234, format='xml'):

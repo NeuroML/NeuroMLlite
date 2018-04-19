@@ -1,7 +1,7 @@
 # Script for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
 
-target: ../LEMS_SimExample4.xml 
-engine: jNeuroML
+target: test_ex4_pynn.py  
+engine: PyNN_Nest 
 mep: .test.ex4.mep
 experiments:
   v0:
@@ -14,7 +14,7 @@ experiments:
         spike detection: 
           method: threshold
           threshold: -64
-        tolerance: 0.00035447683389635914
+        tolerance: 0.008722082727633224
 
   v1:
     observables:
@@ -26,4 +26,4 @@ experiments:
         spike detection: 
           method: threshold
           threshold: -69
-        tolerance: 0.0002719276859891263
+        tolerance: 0.006440855293271335

@@ -2,7 +2,7 @@ set -e
 
 cd examples
 
-rm -rf *dat *json *nml LEMS* x86_64 *mod *hoc
+rm -rf *dat *nml LEMS* x86_64 *mod *hoc
 
 echo
 echo "**** Running Example 1 ****"
@@ -38,12 +38,13 @@ python Example5.py
 echo
 echo "**** Running Example 6 ****"
 python Example6.py
+python Example6.py -nml
 
 echo
 echo "**** Running Example 7 ****"
 python Example7.py
 python Example7.py -jnmlnrn
-python Example7.py -jnml
+#python Example7.py -jnml
 
 
 jnml -validate *nml

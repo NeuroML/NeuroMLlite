@@ -17,7 +17,7 @@
     <Include file="PyNN.xml"/>
     <Include file="Example4_PyNN.net.nml"/>
    
-    <Simulation id="SimExample4" length="1000.0ms" step="0.025ms" target="Example4_PyNN" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
+    <Simulation id="SimExample4" length="1000.0ms" step="0.01ms" target="Example4_PyNN" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
         
         <Display id="DispPop__pop0" title="Membrane potentials of cells in pop0" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-90" ymax="50">
             <Line id="pop0[0]: v" quantity="pop0[0]/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
