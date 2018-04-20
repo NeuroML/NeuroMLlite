@@ -12,7 +12,7 @@ def generate_network(nl_model, handler, seed=1234):
     cell_objects = {}
     synapse_objects = {}
     
-    print_v("Starting net generation for %s..."%nl_model)
+    print_v("Starting net generation for %s..."%nl_model.id)
     rng = random.Random(seed)
     
     
@@ -39,6 +39,12 @@ def generate_network(nl_model, handler, seed=1234):
             nml2_doc = pynml.read_neuroml2_file(c.neuroml2_source_file, 
                                                 include_includes=True)
             cell_objects[c.id] = nml2_doc.get_by_id(c.id)
+        if c.pynn_cell:
+            from pyNN.neuroml.populations import Population
+            
+            #exec('from pyNN.neuroml import %s'%c.pynn_cell)
+            #exec('temp_pynn_pop = Population(1, %s())'%c.pynn_cell)
+            #print temp_pynn_pop
             
     for s in nl_model.synapses:
         if s.neuroml2_source_file:
