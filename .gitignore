@@ -27,3 +27,4 @@ examples/test_files/x86_64
 /examples/LEMS_SimExample6_PyNN.xml
 /examples/test_files/tests.log
 /examples/LEMS_SimExample7.xml
+/.DS_Store

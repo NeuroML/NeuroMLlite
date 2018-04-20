@@ -7,7 +7,7 @@
 from neuromllite.utils import print_v
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
-from graphviz import Digraph, Graph
+from graphviz import Digraph
 
 from neuromllite.utils import evaluate
 
@@ -23,6 +23,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     proj_shapes = {}
     proj_pre_pops = {}
     proj_post_pops = {}
+    proj_conns = {}
     
     max_weight = -1e100
     min_weight = 1e100
@@ -57,15 +58,22 @@ class GraphVizHandler(DefaultNetworkHandler):
                             color=self.pop_colors[self.proj_pre_pops[projName]],
                             fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
 
-                if self.level>=3:
-                    label='<weight: %s'%self.proj_weights[projName]
+                if self.level>=4:
+                    label='<'
+                    if self.proj_weights[projName]!=1.0:
+                        label+='weight: %s<br/>'%self.proj_weights[projName]
 
                     if self.nl_network:
                         proj = self.nl_network.get_child(projName,'projections')
                         if proj and proj.random_connectivity:
-                            label += '<br/>p: %s>'%proj.random_connectivity.probability
-                        else:
-                            label += '>'
+                            label += 'p: %s<br/>'%proj.random_connectivity.probability
+                        
+                    if self.proj_conns[projName]>0:
+                        label += '%s conns'%self.proj_conns[projName]
+                        
+                            
+                    if not label[-1]=='>':
+                        label += '>'
                     
                     self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
                 else:
@@ -184,6 +192,7 @@ class GraphVizHandler(DefaultNetworkHandler):
         
         self.proj_weights[projName] = weight
         self.proj_shapes[projName] = shape
+        self.proj_conns[projName] = 0
 
 
     def handle_connection(self, projName, id, prePop, postPop, synapseType, \
@@ -196,7 +205,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                                                     delay = 0, \
                                                     weight = 1):
         
-        pass
+        self.proj_conns[projName]+=1
 
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):

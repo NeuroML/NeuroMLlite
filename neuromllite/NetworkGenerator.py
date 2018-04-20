@@ -207,6 +207,9 @@ def check_to_generate_or_run(argv, sim):
     elif '-graph3' in argv:
         generate_and_run(sim, simulator='Graph3') # Will not "run" obviously...
 
+    elif '-graph4' in argv:
+        generate_and_run(sim, simulator='Graph4') # Will not "run" obviously...
+
     elif '-pynnneuroml' in argv:
         generate_and_run(sim, simulator='PyNN_NeuroML')
         
