@@ -18,6 +18,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     pop_indices = {}
     
     pop_colors = {}
+    pop_types = {}
     
     proj_weights = {}
     proj_shapes = {}
@@ -119,14 +120,34 @@ class GraphVizHandler(DefaultNetworkHandler):
                 fcolor= '#ffffff'
                 
             print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
+        
+        if properties and 'type' in properties:
+            self.pop_types[population_id] = properties['type']
             
         self.pop_colors[population_id] = color
         
-        label = population_id
+        label = '<%s'%population_id
         if self.level>=3:
-            label = '<%s<br/><i>%s cell%s</i>>'%(population_id, size, '' if size==1 else 's')
+            label += '<br/><i>%s cell%s</i>'%( size, '' if size==1 else 's')
+        if self.level>=4:
             
-        
+            from neuroml import SpikeSourcePoisson
+            from pyneuroml.pynml import convert_to_units
+            
+            if component_obj and isinstance(component_obj,SpikeSourcePoisson):
+                start = convert_to_units(component_obj.start, 'ms')
+                if start == int(start): start = int(start)
+                duration = convert_to_units(component_obj.duration,'ms')
+                if duration == int(duration): duration = int(duration)
+                rate = convert_to_units(component_obj.rate,'Hz')
+                if rate == int(rate): rate = int(rate)
+                    
+                label += '<br/>Spikes %s-%sms @ %sHz'%(start,start+duration, rate)
+                
+            else:
+                label += '<br/>%s'%(component)
+            
+        label += '>'
             
         if properties and 'region' in properties:
             
@@ -165,6 +186,10 @@ class GraphVizHandler(DefaultNetworkHandler):
         self.proj_pre_pops[projName] = prePop
         self.proj_post_pops[projName] = postPop
         
+        if prePop in self.pop_types:
+            if 'I' in self.pop_types[prePop]:
+                shape = 'dot'
+                
         if self.nl_network:
             #print synapse
             #print self.nl_network.synapses
