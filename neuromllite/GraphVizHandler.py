@@ -10,10 +10,13 @@ from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 from graphviz import Digraph
 
 from neuromllite.utils import evaluate
-
+            
+from pyneuroml.pynml import convert_to_units
 
 class GraphVizHandler(DefaultNetworkHandler):
         
+    CUTOFF_INH_SYN_MV = -50 # erev below -50mV => inhibitory, above => excitatory
+    
     positions = {}
     pop_indices = {}
     
@@ -22,6 +25,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     
     proj_weights = {}
     proj_shapes = {}
+    proj_lines = {}
     proj_pre_pops = {}
     proj_post_pops = {}
     proj_conns = {}
@@ -51,8 +55,9 @@ class GraphVizHandler(DefaultNetworkHandler):
                 lweight = 0.5 + fweight*2.0
 
             if self.level>=2:
-                print("%s: weight %s -> %s; fw: %s; lw: %s"%(projName, self.max_weight,self.min_weight,fweight,lweight))
+                #print("%s: weight %s -> %s; fw: %s; lw: %s"%(projName, self.max_weight,self.min_weight,fweight,lweight))
                 self.f.attr('edge', 
+                            style = self.proj_lines[projName], 
                             arrowhead = self.proj_shapes[projName], 
                             arrowsize = '%s'%(min(1,lweight)), 
                             penwidth = '%s'%(lweight), 
@@ -119,7 +124,7 @@ class GraphVizHandler(DefaultNetworkHandler):
             else:
                 fcolor= '#ffffff'
                 
-            print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
+            #print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
         
         if properties and 'type' in properties:
             self.pop_types[population_id] = properties['type']
@@ -132,7 +137,6 @@ class GraphVizHandler(DefaultNetworkHandler):
         if self.level>=4:
             
             from neuroml import SpikeSourcePoisson
-            from pyneuroml.pynml import convert_to_units
             
             if component_obj and isinstance(component_obj,SpikeSourcePoisson):
                 start = convert_to_units(component_obj.start, 'ms')
@@ -177,10 +181,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
 
         shape = 'normal'
-        '''
-        if synapse_obj:
-            print synapse_obj.erev
-            shape = 'dot'''
+        line = 'normal'
             
         weight = 1.0
         self.proj_pre_pops[projName] = prePop
@@ -190,15 +191,20 @@ class GraphVizHandler(DefaultNetworkHandler):
             if 'I' in self.pop_types[prePop]:
                 shape = 'dot'
                 
+        if type=='electricalProjection':
+                shape = 'none'
+                line = 'dashed'
+            
+        if synapse_obj:
+            
+            if hasattr(synapse_obj,'erev') and convert_to_units(synapse_obj.erev,'mV')<self.CUTOFF_INH_SYN_MV:
+                shape = 'dot'
+                
         if self.nl_network:
-            #print synapse
-            #print self.nl_network.synapses
             syn = self.nl_network.get_child(synapse,'synapses')
             if syn:
-                #print syn
                 if syn.parameters:
-                    #print syn.parameters
-                    if 'e_rev' in syn.parameters and syn.parameters['e_rev']<-50:
+                    if 'e_rev' in syn.parameters and syn.parameters['e_rev']<self.CUTOFF_INH_SYN_MV:
                         shape = 'dot'
             
             proj = self.nl_network.get_child(projName,'projections')  
@@ -210,13 +216,13 @@ class GraphVizHandler(DefaultNetworkHandler):
                     weight = abs(proj_weight)
                 if proj.random_connectivity:
                     weight *= proj.random_connectivity.probability
-                #print 'w: %s'%weight
                         
         self.max_weight = max(self.max_weight, weight)
         self.min_weight = min(self.min_weight, weight)
         
         self.proj_weights[projName] = weight
         self.proj_shapes[projName] = shape
+        self.proj_lines[projName] = line
         self.proj_conns[projName] = 0
 
 
@@ -237,9 +243,7 @@ class GraphVizHandler(DefaultNetworkHandler):
    
         print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
 
-
         
-    '''      
     #
     #  Should be overridden to create input source array
     #  
@@ -251,8 +255,54 @@ class GraphVizHandler(DefaultNetworkHandler):
             self.log.error("Error! Need a size attribute in sites element to create spike source!")
             return
              
-        self.input_info[inputListId] = (population_id, component)
+        if self.level>=2:
+
+            label = '<%s'%inputListId
+            if self.level>=3:
+                label += '<br/><i>%s input%s</i>'%( size, '' if size==1 else 's')
+            if self.level>=4:
+            
+                from neuroml import PulseGenerator
+                from neuroml import TransientPoissonFiringSynapse
+                from neuroml import PoissonFiringSynapse
+                from pyneuroml.pynml import convert_to_units
+
+                if input_comp_obj and isinstance(input_comp_obj,PulseGenerator):
+                    start = convert_to_units(input_comp_obj.delay, 'ms')
+                    if start == int(start): start = int(start)
+                    duration = convert_to_units(input_comp_obj.duration,'ms')
+                    if duration == int(duration): duration = int(duration)
+                    amplitude = convert_to_units(input_comp_obj.amplitude,'pA')
+                    if amplitude == int(amplitude): amplitude = int(amplitude)
+
+                    label += '<br/>Pulse %s-%sms @ %spA'%(start,start+duration, amplitude)
+                    
+                if input_comp_obj and isinstance(input_comp_obj,PoissonFiringSynapse):
+                        
+                    average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
+                    if average_rate == int(average_rate): average_rate = int(average_rate)
+
+                    label += '<br/>Syn: %s @ %sHz'%(input_comp_obj.synapse, average_rate)
+                    
+                if input_comp_obj and isinstance(input_comp_obj,TransientPoissonFiringSynapse):
+
+                    start = convert_to_units(input_comp_obj.delay, 'ms')
+                    if start == int(start): start = int(start)
+                    duration = convert_to_units(input_comp_obj.duration,'ms')
+                    if duration == int(duration): duration = int(duration)
+                    average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
+                    if average_rate == int(average_rate): average_rate = int(average_rate)
+
+                    label += '<br/>Syn: %s %s-%sms @ %sHz'%(input_comp_obj.synapse,start,start+duration, average_rate)
+                    
+            label += '>'
+            
+            self.f.attr('node', color='#444444', style='', fontcolor = '#444444')
+            self.f.node(inputListId, label=label)
+            self.f.edge(inputListId, population_id, arrowhead='empty')
+            
         
+    '''          
     #
     #  Should be overridden to to connect each input to the target cell
     #  
