@@ -119,7 +119,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                 color = color+'%02x'%int(float(a)*255)
             
             # https://stackoverflow.com/questions/3942878
-            if (float(rgb[0])*0.299 + float(rgb[1])*0.587 + float(rgb[2])*0.114) > .4:
+            if (float(rgb[0])*0.299 + float(rgb[1])*0.587 + float(rgb[2])*0.2) > .25:
                 fcolor= '#000000'
             else:
                 fcolor= '#ffffff'
@@ -146,7 +146,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                 rate = convert_to_units(component_obj.rate,'Hz')
                 if rate == int(rate): rate = int(rate)
                     
-                label += '<br/>Spikes %s-%sms @ %sHz'%(start,start+duration, rate)
+                label += '<br/>Spikes %s-%sms@%sHz'%(start,start+duration, rate)
                 
             else:
                 label += '<br/>%s'%(component)
@@ -275,7 +275,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                     amplitude = convert_to_units(input_comp_obj.amplitude,'pA')
                     if amplitude == int(amplitude): amplitude = int(amplitude)
 
-                    label += '<br/>Pulse %s-%sms @ %spA'%(start,start+duration, amplitude)
+                    label += '<br/>Pulse %s-%sms@%spA'%(start,start+duration, amplitude)
                     
                 if input_comp_obj and isinstance(input_comp_obj,PoissonFiringSynapse):
                         
@@ -293,7 +293,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                     average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
                     if average_rate == int(average_rate): average_rate = int(average_rate)
 
-                    label += '<br/>Syn: %s %s-%sms @ %sHz'%(input_comp_obj.synapse,start,start+duration, average_rate)
+                    label += '<br/>Syn: %s<br/>%s-%sms @ %sHz'%(input_comp_obj.synapse,start,start+duration, average_rate)
                     
             label += '>'
             
@@ -302,31 +302,11 @@ class GraphVizHandler(DefaultNetworkHandler):
             self.f.edge(inputListId, population_id, arrowhead='empty')
             
         
-    '''          
-    #
-    #  Should be overridden to to connect each input to the target cell
-    #  
+
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
         
-        print_v("Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,cellId,segId,fract,weight))
-        
-        population_id, component = self.input_info[inputListId]
-        
-        #exec('print  self.POP_%s'%(population_id))
-        #exec('print  self.POP_%s[%s]'%(population_id,cellId))
-       
-        exec('self.POP_%s[%s].inject(self.input_sources[component]) '%(population_id,cellId))
-        #exec('self.input_sources[component].inject_into(self.populations["%s"])'%(population_id))
-        
-        #exec('pulse = self.sim.DCSource(amplitude=0.9, start=19, stop=89)')
-        #pulse.inject_into(pop_pre)
-        #exec('self.populations["pop0"][0].inject(pulse)')
+        pass
 
-        
-    #
-    #  Should be overridden to to connect each input to the target cell
-    #  
     def finalise_input_source(self, inputName):
-        print_v("Input : %s completed" % inputName)
         
-'''
+        pass
