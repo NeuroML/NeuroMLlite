@@ -1,13 +1,41 @@
+# Framework for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
+
+dist: trusty
+sudo: false  
+
+
+addons:
+  apt:
+    packages:
+       # Requirements for Brian & NEST
+    - python-numpy 
+    - python-scipy 
+    - python-matplotlib 
+    - python-sympy
+    - python-tables 
+    - python-tornado
+    - libreadline6-dev 
+    - libncurses5-dev 
+    - libgsl0-dev
+    - cython
+    
+    
 language: python
+
 
 python: 
   - "2.7"
   - "3.4"
-  
+
+virtualenv:
+system_site_packages: true
+
+
 install:
     - pip install pyneuroml
     - pip install tables
     - pip install . 
+    
     
 script:
     
@@ -21,7 +49,14 @@ script:
     - if [ ${TRAVIS_PYTHON_VERSION:O:1} == "3" ]; then exit 0 ; fi
     
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
-    - omv install PyNN
     
-    - omv all -V
+    # Standard PyNN install...
+    - omv install PyNN
+    - git clone https://github.com/pgleeson/PyNN.git
+    - cd PyNN
+    - python setup.py install  # Install from pgleeson, with some recent changes
+    - cd ..
+    
+    - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
+    
     - omv list-engines
