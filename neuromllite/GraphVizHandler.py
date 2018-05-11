@@ -17,6 +17,15 @@ class GraphVizHandler(DefaultNetworkHandler):
         
     CUTOFF_INH_SYN_MV = -50 # erev below -50mV => inhibitory, above => excitatory
     
+    DEFAULT_POP_SHAPE = 'ellipse'
+    EXC_POP_SHAPE = 'ellipse'
+    INH_POP_SHAPE = 'ellipse'
+    
+    EXC_CONN_ARROW_SHAPE = 'normal'
+    INH_CONN_ARROW_SHAPE = 'dot'
+    GAP_CONN_ARROW_SHAPE = 'tee'
+    INPUT_ARROW_SHAPE = 'empty'
+    
     positions = {}
     pop_indices = {}
     
@@ -30,13 +39,16 @@ class GraphVizHandler(DefaultNetworkHandler):
     proj_post_pops = {}
     proj_conns = {}
     
+    
+    
     max_weight = -1e100
     min_weight = 1e100
     
-    def __init__(self, level=10, nl_network=None):
+    def __init__(self, level=10, engine='dot', nl_network=None):
         print_v("Initiating GraphViz handler")
         self.nl_network = nl_network
         self.level = level
+        self.engine = engine
     
 
     def handle_document_start(self, id, notes):
@@ -86,17 +98,15 @@ class GraphVizHandler(DefaultNetworkHandler):
                     self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
         
         print_v("Writing file...: %s"%id)
+        
         self.f.view()
         
 
     def handle_network(self, network_id, notes, temperature=None):
             
         print_v("Network: %s"%network_id)
-        engine = 'dot'
-        #if self.level<=2:
-        #    engine = 'neato'
             
-        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=engine)
+        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=self.engine, format='png')
         
 
     def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}):
@@ -111,6 +121,7 @@ class GraphVizHandler(DefaultNetworkHandler):
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
         color = '#444444' 
         fcolor= '#ffffff'
+        shape = self.DEFAULT_POP_SHAPE
         
         if properties and 'color' in properties:
             rgb = properties['color'].split()
@@ -128,6 +139,10 @@ class GraphVizHandler(DefaultNetworkHandler):
         
         if properties and 'type' in properties:
             self.pop_types[population_id] = properties['type']
+            if properties['type']=='E':
+                shape = self.EXC_POP_SHAPE
+            if properties['type']=='I':
+                shape = self.INH_POP_SHAPE
             
         self.pop_colors[population_id] = color
         
@@ -158,11 +173,11 @@ class GraphVizHandler(DefaultNetworkHandler):
             with self.f.subgraph(name='cluster_%s'%properties['region']) as c:
                 c.attr(color='#444444', fontcolor = '#444444')
                 c.attr(label=properties['region'])
-                c.attr('node', color=color, style='filled', fontcolor = fcolor)
+                c.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
                 c.node(population_id, label=label)
     
         else:
-            self.f.attr('node', color=color, style='filled', fontcolor = fcolor)
+            self.f.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
             self.f.node(population_id, label=label)
         
  
@@ -180,8 +195,8 @@ class GraphVizHandler(DefaultNetworkHandler):
 
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
 
-        shape = 'normal'
-        line = 'normal'
+        shape = self.EXC_CONN_ARROW_SHAPE
+        line = 'solid'
             
         weight = 1.0
         self.proj_pre_pops[projName] = prePop
@@ -189,30 +204,30 @@ class GraphVizHandler(DefaultNetworkHandler):
         
         if prePop in self.pop_types:
             if 'I' in self.pop_types[prePop]:
-                shape = 'dot'
+                shape = self.INH_CONN_ARROW_SHAPE
                 
         if type=='electricalProjection':
-                shape = 'none'
+                shape = self.GAP_CONN_ARROW_SHAPE
                 line = 'dashed'
             
         if synapse_obj:
             
             if hasattr(synapse_obj,'erev') and convert_to_units(synapse_obj.erev,'mV')<self.CUTOFF_INH_SYN_MV:
-                shape = 'dot'
+                shape = self.INH_CONN_ARROW_SHAPE
                 
         if self.nl_network:
             syn = self.nl_network.get_child(synapse,'synapses')
             if syn:
                 if syn.parameters:
                     if 'e_rev' in syn.parameters and syn.parameters['e_rev']<self.CUTOFF_INH_SYN_MV:
-                        shape = 'dot'
+                        shape = self.INH_CONN_ARROW_SHAPE
             
             proj = self.nl_network.get_child(projName,'projections')  
             if proj:
                 if proj.weight:
                     proj_weight = evaluate(proj.weight, self.nl_network.parameters)
                     if proj_weight<0:
-                        shape = 'dot'
+                        shape = self.INH_CONN_ARROW_SHAPE
                     weight = abs(proj_weight)
                 if proj.random_connectivity:
                     weight *= proj.random_connectivity.probability
@@ -243,7 +258,10 @@ class GraphVizHandler(DefaultNetworkHandler):
    
         print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
 
-        
+    sizes_ils = {}
+    pops_ils = {}
+    input_comp_obj_ils = {}
+    
     #
     #  Should be overridden to create input source array
     #  
@@ -251,21 +269,32 @@ class GraphVizHandler(DefaultNetworkHandler):
         
         self.print_input_information(inputListId, population_id, component, size)
         
-        if size<0:
-            self.log.error("Error! Need a size attribute in sites element to create spike source!")
-            return
-             
+        self.sizes_ils[inputListId] = 0
+        self.pops_ils[inputListId] = population_id
+        self.input_comp_obj_ils[inputListId] = input_comp_obj
+            
+        
+
+    def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
+        self.sizes_ils[inputListId]+=1
+
+    def finalise_input_source(self, inputListId):
+        
         if self.level>=2:
 
             label = '<%s'%inputListId
             if self.level>=3:
+                size = self.sizes_ils[inputListId]
                 label += '<br/><i>%s input%s</i>'%( size, '' if size==1 else 's')
+                
             if self.level>=4:
             
                 from neuroml import PulseGenerator
                 from neuroml import TransientPoissonFiringSynapse
                 from neuroml import PoissonFiringSynapse
                 from pyneuroml.pynml import convert_to_units
+                
+                input_comp_obj = self.input_comp_obj_ils[inputListId]
 
                 if input_comp_obj and isinstance(input_comp_obj,PulseGenerator):
                     start = convert_to_units(input_comp_obj.delay, 'ms')
@@ -299,14 +328,4 @@ class GraphVizHandler(DefaultNetworkHandler):
             
             self.f.attr('node', color='#444444', style='', fontcolor = '#444444')
             self.f.node(inputListId, label=label)
-            self.f.edge(inputListId, population_id, arrowhead='empty')
-            
-        
-
-    def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
-        
-        pass
-
-    def finalise_input_source(self, inputName):
-        
-        pass
+            self.f.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE)

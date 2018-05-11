@@ -23,8 +23,8 @@ input_source = InputSource(id='iclamp0',
 net.input_sources.append(input_source)
 
 
-pE = Population(id='Epop', size='int(N*fractionE)', component=cell.id)
-pI = Population(id='Ipop', size='N - int(N*fractionE)', component=cell.id)
+pE = Population(id='Epop', size='int(N*fractionE)', component=cell.id, properties={'color':'1 0 0'})
+pI = Population(id='Ipop', size='N - int(N*fractionE)', component=cell.id, properties={'color':'0 0 1'})
 
 net.populations.append(pE)
 net.populations.append(pI)

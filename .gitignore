@@ -28,3 +28,4 @@ examples/test_files/x86_64
 /examples/test_files/tests.log
 /examples/LEMS_SimExample7.xml
 /.DS_Store
+/test3.sh

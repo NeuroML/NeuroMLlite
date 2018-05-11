@@ -1,4 +1,5 @@
 from neuromllite import *
+import sys
     
 def print_(text, print_it=False):
     prefix = "neuromllite >>> "
@@ -13,7 +14,7 @@ def print_v(text):
     print_(text, True)
     
 def ascii_encode_dict(data):
-    ascii_encode = lambda x: x.encode('ascii') if isinstance(x, unicode) else x
+    ascii_encode = lambda x: x.encode('ascii') if (sys.version_info[0]==2 and isinstance(x, unicode)) else x
     return dict(map(ascii_encode, pair) for pair in data.items()) 
     
 def _parse_element(json, to_build):

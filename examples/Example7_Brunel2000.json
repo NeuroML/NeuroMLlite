@@ -55,13 +55,19 @@
             {
                 "Epop": {
                     "size": "int(N*fractionE)", 
-                    "component": "ifcell"
+                    "component": "ifcell", 
+                    "properties": {
+                        "color": "1 0 0"
+                    }
                 }
             }, 
             {
                 "Ipop": {
                     "size": "N - int(N*fractionE)", 
-                    "component": "ifcell"
+                    "component": "ifcell", 
+                    "properties": {
+                        "color": "0 0 1"
+                    }
                 }
             }
         ], 

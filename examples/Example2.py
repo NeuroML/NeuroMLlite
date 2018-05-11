@@ -27,9 +27,6 @@ net.populations[1].random_layout = RandomLayout(region=r2.id)
 net.populations[0].component = 'hhcell'
 net.populations[1].component = 'hhcell'
 
-net.populations[0].properties={'color':'1 0 0'}
-net.populations[1].properties={'color':'0 1 0'}
-
 net.cells.append(Cell(id='hhcell', neuroml2_source_file='test_files/hhcell.cell.nml'))
 net.synapses.append(Synapse(id='ampa', neuroml2_source_file='test_files/ampa.synapse.nml'))
 

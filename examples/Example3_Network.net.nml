@@ -6,7 +6,7 @@
     <network id="Example3_Network">
         <notes>Example 3: simple network with 2 populations of NeuroML2 cells, a projection between them and spiking input.</notes>
         <population id="pop0" component="hhcell" size="5" type="populationList">
-            <property tag="color" value="1 0 0"/>
+            <property tag="color" value="0 .8 0"/>
             <property tag="region" value="region1"/>
             <instance id="0">
                 <location x="966.453535692138757" y="44.073259917535268" z="7.491470058587191"/>
@@ -25,7 +25,7 @@
             </instance>
         </population>
         <population id="pop1" component="hhcell" size="10" type="populationList">
-            <property tag="color" value="0 1 0"/>
+            <property tag="color" value="0 0 .8"/>
             <property tag="region" value="region2"/>
             <instance id="0">
                 <location x="148.55463870828757" y="218.309064740993165" z="114.412969688687639"/>

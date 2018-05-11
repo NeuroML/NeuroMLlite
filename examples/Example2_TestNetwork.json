@@ -51,7 +51,7 @@
                     "size": 5, 
                     "component": "hhcell", 
                     "properties": {
-                        "color": "1 0 0"
+                        "color": "0 .8 0"
                     }, 
                     "random_layout": {
                         "region": "region1"
@@ -63,7 +63,7 @@
                     "size": 10, 
                     "component": "hhcell", 
                     "properties": {
-                        "color": "0 1 0"
+                        "color": "0 0 .8"
                     }, 
                     "random_layout": {
                         "region": "region2"

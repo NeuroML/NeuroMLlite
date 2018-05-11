@@ -6,7 +6,7 @@ import copy
 from neuromllite.utils import print_v, evaluate, load_network_json
 
 
-def generate_network(nl_model, handler, seed=1234):
+def generate_network(nl_model, handler, seed=1234, always_include_props=False):
     
     pop_locations = {}
     cell_objects = {}
@@ -62,7 +62,7 @@ def generate_network(nl_model, handler, seed=1234):
         if p.random_layout:
             properties['region'] = p.random_layout.region
             
-        if not p.random_layout:
+        if not p.random_layout and not always_include_props:
             
             # If there are no positions (abstract network), and <property>
             # is added to <population>, jLems doesn't like it... (it has difficulty 
@@ -163,6 +163,8 @@ def generate_network(nl_model, handler, seed=1234):
             if flip*100.<input.percentage:
                 handler.handle_single_input(input.id, input_count, i)
                 input_count+=1
+                
+        handler.finalise_input_source(input.id)
             
     if hasattr(handler,'finalise_document'):
         handler.finalise_document()
@@ -195,21 +197,6 @@ def check_to_generate_or_run(argv, sim):
     elif '-netpyne' in argv:
         generate_and_run(sim, simulator='NetPyNE')
 
-    elif '-graph0' in argv:
-        generate_and_run(sim, simulator='Graph0') # Will not "run" obviously...
-
-    elif '-graph1' in argv:
-        generate_and_run(sim, simulator='Graph1') # Will not "run" obviously...
-
-    elif '-graph2' in argv:
-        generate_and_run(sim, simulator='Graph2') # Will not "run" obviously...
-
-    elif '-graph3' in argv:
-        generate_and_run(sim, simulator='Graph3') # Will not "run" obviously...
-
-    elif '-graph4' in argv:
-        generate_and_run(sim, simulator='Graph4') # Will not "run" obviously...
-
     elif '-pynnneuroml' in argv:
         generate_and_run(sim, simulator='PyNN_NeuroML')
         
@@ -217,6 +204,11 @@ def check_to_generate_or_run(argv, sim):
         
         network = load_network_json(sim.network)
         generate_neuroml2_from_network(network)
+        
+    else:
+        for a in argv:
+            if 'graph' in a:
+                generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
         
         
 def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=True, seed=1234, format='xml'):
@@ -409,7 +401,7 @@ def generate_and_run(simulation, simulator):
                 src_dir = os.path.dirname(os.path.abspath(c.neuroml2_source_file))
                 nrn_handler.executeHoc('load_file("%s/%s.hoc")'%(src_dir,c.id))
                 
-        generate_network(network, nrn_handler)
+        generate_network(network, nrn_handler,generate_network)
 
 
 
@@ -419,20 +411,33 @@ def generate_and_run(simulation, simulator):
         
         sonata_handler = SonataHandler()
         
-        generate_network(network, sonata_handler)
+        generate_network(network, sonata_handler, always_include_props=True)
     
         print_v("Done with Sonata...")
 
 
     elif simulator.lower().startswith('graph'): # Will not "run" obviously...
         
+        engines = {'d':'dot',
+                   'c':'circo',
+                   'n':'neato',
+                   't':'twopi',
+                   'f':'fdp',
+                   's':'sfdp',
+                   'p':'patchwork'}
+                   
         from neuromllite.GraphVizHandler import GraphVizHandler
         
-        level = int(simulator[5:])
+        if len(simulator)==7:
+            engine = engines[simulator[6:]]
+        else:
+            engine = 'dot'
+            
+        level = int(simulator[5:6])
         
-        handler = GraphVizHandler(level, network)
+        handler = GraphVizHandler(level, engine=engine, nl_network=network)
         
-        generate_network(network, handler)
+        generate_network(network, handler, always_include_props=True)
     
         print_v("Done with GraphViz...")
         
@@ -495,7 +500,7 @@ def generate_and_run(simulation, simulator):
             if input_source.pynn_input:
                 pynn_handler.add_input_source(input_source)
         
-        generate_network(network, pynn_handler)
+        generate_network(network, pynn_handler, always_include_props=True)
         
         for pid in pynn_handler.populations:
             pop = pynn_handler.populations[pid]

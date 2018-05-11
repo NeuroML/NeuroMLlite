@@ -6,13 +6,19 @@
             {
                 "pop0": {
                     "size": 5, 
-                    "component": "iaf"
+                    "component": "iaf", 
+                    "properties": {
+                        "color": "0 .8 0"
+                    }
                 }
             }, 
             {
                 "pop1": {
                     "size": 10, 
-                    "component": "iaf"
+                    "component": "iaf", 
+                    "properties": {
+                        "color": "0 0 .8"
+                    }
                 }
             }
         ], 
