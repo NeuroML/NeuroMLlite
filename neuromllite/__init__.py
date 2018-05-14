@@ -1,6 +1,6 @@
 import collections
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId

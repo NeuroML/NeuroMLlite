@@ -13,6 +13,14 @@ from neuromllite.utils import evaluate
             
 from pyneuroml.pynml import convert_to_units
 
+engines = {'d':'dot',
+           'c':'circo',
+           'n':'neato',
+           't':'twopi',
+           'f':'fdp',
+           's':'sfdp',
+           'p':'patchwork'}
+
 class GraphVizHandler(DefaultNetworkHandler):
         
     CUTOFF_INH_SYN_MV = -50 # erev below -50mV => inhibitory, above => excitatory
@@ -27,8 +35,8 @@ class GraphVizHandler(DefaultNetworkHandler):
     INPUT_ARROW_SHAPE = 'empty'
     
     positions = {}
-    pop_indices = {}
     
+    pop_sizes = {}
     pop_colors = {}
     pop_types = {}
     
@@ -38,6 +46,8 @@ class GraphVizHandler(DefaultNetworkHandler):
     proj_pre_pops = {}
     proj_post_pops = {}
     proj_conns = {}
+    proj_tot_weight = {}
+    proj_syn_objs = {}
     
     
     
@@ -45,10 +55,10 @@ class GraphVizHandler(DefaultNetworkHandler):
     min_weight = 1e100
     
     def __init__(self, level=10, engine='dot', nl_network=None):
-        print_v("Initiating GraphViz handler")
         self.nl_network = nl_network
         self.level = level
         self.engine = engine
+        print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
     
 
     def handle_document_start(self, id, notes):
@@ -78,16 +88,54 @@ class GraphVizHandler(DefaultNetworkHandler):
 
                 if self.level>=4:
                     label='<'
+                    
+                    if self.level>=5:
+                        if projName in self.proj_syn_objs:
+                            syn = self.proj_syn_objs[projName]
+                            label+='%s<br/> '%syn.id
+                        
                     if self.proj_weights[projName]!=1.0:
-                        label+='weight: %s<br/>'%self.proj_weights[projName]
+                        label+='weight: %s<br/> '%self.proj_weights[projName]
+                       
+                    if self.proj_tot_weight[projName]>0:
+                        avg_weight = float(float(self.proj_tot_weight[projName])/self.proj_conns[projName])
+                        label+='avg weight: %s<br/> '%avg_weight
 
                     if self.nl_network:
                         proj = self.nl_network.get_child(projName,'projections')
                         if proj and proj.random_connectivity:
-                            label += 'p: %s<br/>'%proj.random_connectivity.probability
+                            label += 'p: %s<br/> '%proj.random_connectivity.probability
                         
                     if self.proj_conns[projName]>0:
-                        label += '%s conns'%self.proj_conns[projName]
+                        label += '%s conns<br/> '%self.proj_conns[projName]
+                        
+                    if self.level>=5:
+                        
+                        if self.proj_conns[projName]>0:
+                            
+                            pre_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_pre_pops[projName]]
+                            
+                            if pre_avg==int(pre_avg): 
+                                pre_avg=int(pre_avg)
+                                if pre_avg!=1: pre_avg=' ~%s'%pre_avg
+                            else:
+                                pre_avg=' ~%.3f'%pre_avg
+                                
+                            post_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_post_pops[projName]]
+                            post_avg_f = post_avg
+                            
+                            if post_avg==int(post_avg): 
+                                post_avg=int(post_avg)
+                                if post_avg!=1: post_avg='~%s'%post_avg
+                            else:
+                                post_avg='~%.3f'%post_avg
+                                
+                            label+=' %s/pre &#8594; %s/post<br/> '%(pre_avg, post_avg)
+                            
+                            if projName in self.proj_syn_objs:
+                                syn = self.proj_syn_objs[projName]
+                                gbase_si = convert_to_units(syn.gbase, 'nS')
+                                label+='%s*%s*%s = %s nS<br/> '%(post_avg_f, avg_weight, syn.gbase, (post_avg_f*avg_weight*gbase_si))
                         
                             
                     if not label[-1]=='>':
@@ -111,12 +159,16 @@ class GraphVizHandler(DefaultNetworkHandler):
 
     def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}):
         sizeInfo = " as yet unspecified size"
+        
         if size>=0:
             sizeInfo = ", size: "+ str(size)+ " cells"
+            
         if component_obj:
             compInfo = " (%s)"%component_obj.__class__.__name__
         else:
             compInfo=""
+            
+        self.pop_sizes[population_id] = size
             
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
         color = '#444444' 
@@ -182,14 +234,7 @@ class GraphVizHandler(DefaultNetworkHandler):
         
  
     def handle_location(self, id, population_id, component, x, y, z):
-        '''
-        if not population_id in self.positions:
-            self.positions[population_id] = np.array([[x,y,z]])
-            self.pop_indices[population_id] = np.array([id])
-        else:
-            self.positions[population_id] = np.concatenate((self.positions[population_id], [[x,y,z]]))
-            self.pop_indices[population_id] = np.concatenate((self.pop_indices[population_id], [id]))
-        '''
+        
         pass
         
 
@@ -211,7 +256,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                 line = 'dashed'
             
         if synapse_obj:
-            
+            self.proj_syn_objs[projName] = synapse_obj
             if hasattr(synapse_obj,'erev') and convert_to_units(synapse_obj.erev,'mV')<self.CUTOFF_INH_SYN_MV:
                 shape = self.INH_CONN_ARROW_SHAPE
                 
@@ -229,8 +274,6 @@ class GraphVizHandler(DefaultNetworkHandler):
                     if proj_weight<0:
                         shape = self.INH_CONN_ARROW_SHAPE
                     weight = abs(proj_weight)
-                if proj.random_connectivity:
-                    weight *= proj.random_connectivity.probability
                         
         self.max_weight = max(self.max_weight, weight)
         self.min_weight = min(self.min_weight, weight)
@@ -239,6 +282,7 @@ class GraphVizHandler(DefaultNetworkHandler):
         self.proj_shapes[projName] = shape
         self.proj_lines[projName] = line
         self.proj_conns[projName] = 0
+        self.proj_tot_weight[projName] = 0
 
 
     def handle_connection(self, projName, id, prePop, postPop, synapseType, \
@@ -252,6 +296,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                                                     weight = 1):
         
         self.proj_conns[projName]+=1
+        self.proj_tot_weight[projName]+=weight
 
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
@@ -260,6 +305,7 @@ class GraphVizHandler(DefaultNetworkHandler):
 
     sizes_ils = {}
     pops_ils = {}
+    weights_ils = {}
     input_comp_obj_ils = {}
     
     #
@@ -267,18 +313,22 @@ class GraphVizHandler(DefaultNetworkHandler):
     #  
     def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
         
-        self.print_input_information(inputListId, population_id, component, size)
+        self.print_input_information('INIT:  '+inputListId, population_id, component, size)
         
         self.sizes_ils[inputListId] = 0
         self.pops_ils[inputListId] = population_id
         self.input_comp_obj_ils[inputListId] = input_comp_obj
+        self.weights_ils[inputListId] = 0
             
-        
 
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
         self.sizes_ils[inputListId]+=1
+        self.weights_ils[inputListId]+=weight
+        
 
     def finalise_input_source(self, inputListId):
+        
+        self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
         
         if self.level>=2:
 
@@ -328,4 +378,22 @@ class GraphVizHandler(DefaultNetworkHandler):
             
             self.f.attr('node', color='#444444', style='', fontcolor = '#444444')
             self.f.node(inputListId, label=label)
-            self.f.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE)
+            
+            label = None
+            if self.level>=5:
+                label='<'
+                if self.sizes_ils[inputListId]>0:
+                    percent = 100*float(self.sizes_ils[inputListId])/self.pop_sizes[self.pops_ils[inputListId]]
+                    
+                    if percent<=100:
+                        label+='%s%s%% of population<br/> '%(' ' if percent!=100 else '', percent)
+                    else:
+                        label+='%s%s per cell<br/> '%(' ', percent/100)
+                        
+                    avg_weight = float(self.weights_ils[inputListId])/self.sizes_ils[inputListId]
+                    label+='avg weight: %s%s<br/> '%(' ~' if avg_weight!=1 else '', avg_weight)
+
+                if not label[-1]=='>':
+                    label += '>'
+            
+            self.f.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE, label=label)

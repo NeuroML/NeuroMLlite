@@ -417,16 +417,8 @@ def generate_and_run(simulation, simulator):
 
 
     elif simulator.lower().startswith('graph'): # Will not "run" obviously...
-        
-        engines = {'d':'dot',
-                   'c':'circo',
-                   'n':'neato',
-                   't':'twopi',
-                   'f':'fdp',
-                   's':'sfdp',
-                   'p':'patchwork'}
-                   
-        from neuromllite.GraphVizHandler import GraphVizHandler
+                           
+        from neuromllite.GraphVizHandler import GraphVizHandler, engines
         
         if len(simulator)==7:
             engine = engines[simulator[6:]]
