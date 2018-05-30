@@ -39,6 +39,7 @@ class Cell(BaseWithId):
     def __init__(self, **kwargs):
         
         self.allowed_fields = collections.OrderedDict([('neuroml2_source_file',('File name of NeuroML2 file',str)),
+                               ('lems_source_file',('File name of LEMS file',str)),
                                ('pynn_cell',('Name of standard PyNN cell type',str)),
                                ('parameters',('Dict of parameters for the cell',dict))])
                       
@@ -172,7 +173,8 @@ class Simulation(BaseWithId):
                                ('network',('File name of network to simulate',str)),
                                ('duration',('Duration of simulation (ms)',float)),
                                ('dt',('Timestep of simulation (ms)',float)),
-                               ('recordTraces',('Record traces?',dict))])
+                               ('recordTraces',('Record traces?',dict)),
+                               ('recordRates',('Record rates?',dict))])
                         
         super(Simulation, self).__init__(**kwargs)
      

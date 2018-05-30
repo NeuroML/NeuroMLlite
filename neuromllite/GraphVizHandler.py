@@ -65,6 +65,19 @@ class GraphVizHandler(DefaultNetworkHandler):
             
         print_v("Document: %s"%id)
         
+        
+    def format_float(self, f, d=3, approx=False):
+        if int(f)==f:
+            return int(f)
+        
+        template = '%%.%if' % d # e.g. '%.2f'
+        
+        ff = float(template%f)
+        if f==ff:
+            return '%s'%ff
+        return '%s%s'%('~' if approx else '',ff)
+        
+        
     def finalise_document(self):
         
         for projName in self.proj_weights:
@@ -95,11 +108,11 @@ class GraphVizHandler(DefaultNetworkHandler):
                             label+='%s<br/> '%syn.id
                         
                     if self.proj_weights[projName]!=1.0:
-                        label+='weight: %s<br/> '%self.proj_weights[projName]
+                        label+='weight: %s<br/> '%self.format_float(self.proj_weights[projName])
                        
                     if self.proj_tot_weight[projName]>0:
                         avg_weight = float(float(self.proj_tot_weight[projName])/self.proj_conns[projName])
-                        label+='avg weight: %s<br/> '%avg_weight
+                        label+='avg weight: %s<br/> '%self.format_float(avg_weight, approx=True)
 
                     if self.nl_network:
                         proj = self.nl_network.get_child(projName,'projections')
@@ -114,30 +127,15 @@ class GraphVizHandler(DefaultNetworkHandler):
                         if self.proj_conns[projName]>0:
                             
                             pre_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_pre_pops[projName]]
-                            
-                            if pre_avg==int(pre_avg): 
-                                pre_avg=int(pre_avg)
-                                if pre_avg!=1: pre_avg=' ~%s'%pre_avg
-                            else:
-                                pre_avg=' ~%.3f'%pre_avg
-                                
                             post_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_post_pops[projName]]
-                            post_avg_f = post_avg
                             
-                            if post_avg==int(post_avg): 
-                                post_avg=int(post_avg)
-                                if post_avg!=1: post_avg='~%s'%post_avg
-                            else:
-                                post_avg='~%.3f'%post_avg
-                                
-                            label+=' %s/pre &#8594; %s/post<br/> '%(pre_avg, post_avg)
+                            label+=' %s/pre &#8594; %s/post<br/> '%(self.format_float(pre_avg,approx=True), self.format_float(post_avg,approx=True))
                             
                             if projName in self.proj_syn_objs:
                                 syn = self.proj_syn_objs[projName]
                                 gbase_si = convert_to_units(syn.gbase, 'nS')
-                                label+='%s*%s*%s = %s nS<br/> '%(post_avg_f, avg_weight, syn.gbase, (post_avg_f*avg_weight*gbase_si))
+                                label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), syn.gbase, self.format_float(post_avg*avg_weight*gbase_si))
                         
-                            
                     if not label[-1]=='>':
                         label += '>'
                     
@@ -308,9 +306,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     weights_ils = {}
     input_comp_obj_ils = {}
     
-    #
-    #  Should be overridden to create input source array
-    #  
+    
     def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
         
         self.print_input_information('INIT:  '+inputListId, population_id, component, size)
@@ -386,12 +382,12 @@ class GraphVizHandler(DefaultNetworkHandler):
                     percent = 100*float(self.sizes_ils[inputListId])/self.pop_sizes[self.pops_ils[inputListId]]
                     
                     if percent<=100:
-                        label+='%s%s%% of population<br/> '%(' ' if percent!=100 else '', percent)
+                        label+='%s%s%% of population<br/> '%(' ' if percent!=100 else '', self.format_float(percent))
                     else:
-                        label+='%s%s per cell<br/> '%(' ', percent/100)
+                        label+='%s%s per cell<br/> '%(' ', self.format_float(percent/100))
                         
                     avg_weight = float(self.weights_ils[inputListId])/self.sizes_ils[inputListId]
-                    label+='avg weight: %s%s<br/> '%(' ~' if avg_weight!=1 else '', avg_weight)
+                    label+='avg weight: %s<br/> '%(self.format_float(avg_weight,approx=True))
 
                 if not label[-1]=='>':
                     label += '>'
