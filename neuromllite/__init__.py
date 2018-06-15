@@ -26,6 +26,7 @@ class Network(BaseWithId):
                                  ('inputs',('The inputs to apply...',Input))])
                                  
         self.allowed_fields = collections.OrderedDict([('version',('Information on verson of NeuroMLlite',str)),
+                                                       ('temperature',('Temperature at which to run network (float in deg C)',float)),
                                                        ('parameters',('Dict of global parameters for the network',dict)),
                                                        ('network_reader',('Can read in network',NetworkReader))])
                         
@@ -51,6 +52,7 @@ class Synapse(BaseWithId):
     def __init__(self, **kwargs):
         
         self.allowed_fields = collections.OrderedDict([('neuroml2_source_file',('File name of NeuroML2 file',str)),
+                                        ('lems_source_file',('File name of LEMS file',str)),
                                         ('pynn_synapse_type',("Options: 'curr_exp', 'curr_alpha', 'cond_exp', 'cond_alpha'.",str)),
                                         ('pynn_receptor_type',("Either 'excitatory' or 'inhibitory'.",str)),
                                         ('parameters',('Dict of parameters for the cell',dict))])
@@ -63,6 +65,7 @@ class InputSource(BaseWithId):
     def __init__(self, **kwargs):
         
         self.allowed_fields = collections.OrderedDict([('neuroml2_source_file',('File name of NeuroML2 file',str)),
+                               ('neuroml2_input',('Name of standard NeuroML2 input',str)),
                                ('pynn_input',('Name of standard PyNN input',str)),
                                ('parameters',('Dict of parameters for the cell',dict))])
                       
@@ -94,6 +97,8 @@ class Population(BaseWithId):
 
     def __init__(self, **kwargs):
         
+        #self.allowed_children = collections.OrderedDict([('positions',('List of explicit positions...',str))])
+        
         self.allowed_fields = collections.OrderedDict([('size',('Size of population',EvaluableExpression)),
                                ('component',('Type of cell to use in population',str)),
                                ('properties',('Dict of properties (metadata) for the population',dict)),
@@ -118,8 +123,9 @@ class Projection(BaseWithId):
         self.allowed_fields = collections.OrderedDict([('presynaptic',('Presynaptic population',str)),
                                ('postsynaptic',('Postsynaptic population',str)),
                                ('synapse',('Synapse to use',str)),
-                               ('delay',('Delay to use',EvaluableExpression)),
-                               ('weight',('Weight to use',EvaluableExpression)),
+                               ('type',('type of projection: projection (default; standard chemical, event triggered), electricalProjection (for gap junctions) or continuousProjection (for analogue/graded synapses)',str)),
+                               ('delay',('Delay to use (default: 0)',EvaluableExpression)),
+                               ('weight',('Weight to use (default: 1)',EvaluableExpression)),
                                ('random_connectivity',('Use random connectivity',RandomConnectivity)),
                                ('one_to_one_connector',('Connect cell index i in pre pop to cell index i in post pop for all i',OneToOneConnector))])
 

@@ -30,7 +30,8 @@ def generate_network(nl_model, handler, seed=1234, always_include_props=False):
         
     else:
         handler.handle_document_start(nl_model.id, "Generated network")
-        handler.handle_network(nl_model.id, nl_model.notes)
+        temperature = '%sdegC'%nl_model.temperature if nl_model.temperature else None 
+        handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
         
     
     for c in nl_model.cells:
@@ -95,11 +96,14 @@ def generate_network(nl_model, handler, seed=1234, always_include_props=False):
         
     for p in nl_model.projections:
         
+        type = p.type if p.type else 'projection'
+        
         handler.handle_projection(p.id, 
                                  p.presynaptic, 
                                  p.postsynaptic, 
                                  p.synapse,
-                                 synapse_obj=synapse_objects[p.synapse] if p.synapse in synapse_objects else None)
+                                 synapse_obj=synapse_objects[p.synapse] if p.synapse in synapse_objects else None,
+                                 type = type)
 
         delay = p.delay if p.delay else 0
         weight = p.weight if p.weight else 1
@@ -200,7 +204,7 @@ def check_to_generate_or_run(argv, sim):
     elif '-pynnneuroml' in argv:
         generate_and_run(sim, simulator='PyNN_NeuroML')
         
-    elif '-nml' in argv:
+    elif '-nml' in argv or '-neuroml' in argv:
         
         network = load_network_json(sim.network)
         generate_neuroml2_from_network(network)
@@ -213,6 +217,7 @@ def check_to_generate_or_run(argv, sim):
         
 def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=True, seed=1234, format='xml'):
 
+    import neuroml
     from neuroml.hdf5.NetworkBuilder import NetworkBuilder
 
     neuroml_handler = NetworkBuilder()
@@ -225,11 +230,28 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
         
         if nml_doc.get_by_id(i.id)==None:
             if i.neuroml2_source_file:
-                import neuroml
+                
                 incl = neuroml.IncludeType(i.neuroml2_source_file)
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)
                                         
+            if i.neuroml2_input: 
+                input_params = i.parameters if i.parameters else {}
+                #input = eval('pyNN.neuroml.%s(**input_params)'%i.pynn_input)
+                # TODO make more generic...
+                
+                if i.neuroml2_input.lower()=='pulsegenerator':
+                    input = neuroml.PulseGenerator(id=i.id)
+                    nml_doc.pulse_generators.append(input)
+
+                if i.neuroml2_input.lower()=='poissonfiringsynapse':
+                    input = neuroml.PoissonFiringSynapse(id=i.id)
+                    nml_doc.poisson_firing_synapses.append(input)
+
+                for p in input_params:
+                    exec('input.%s = "%s"'%(p,input_params[p]))
+                
+                
             if i.pynn_input:
                 import pyNN.neuroml
                 input_params = i.parameters if i.parameters else {}
@@ -241,7 +263,6 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
     for c in nl_model.cells:
         if c.neuroml2_source_file:
             
-            import neuroml
             incl = neuroml.IncludeType(c.neuroml2_source_file)
             found_cell = False
             for cell in nml_doc.cells:
@@ -287,16 +308,14 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
     for s in nl_model.synapses:
         if nml_doc.get_by_id(s.id)==None:
             if s.neuroml2_source_file:
-                import neuroml
                 incl = neuroml.IncludeType(s.neuroml2_source_file)
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl) 
-                    
+            '''
             if s.lems_source_file:
-                import neuroml
                 incl = neuroml.IncludeType(s.lems_source_file)
                 if not incl in nml_doc.includes:
-                    nml_doc.includes.append(incl)
+                    nml_doc.includes.append(incl)'''
             
             if s.pynn_synapse_type and s.pynn_receptor_type:
                 import neuroml
@@ -650,10 +669,11 @@ def generate_and_run(simulation, simulator):
         if network.cells:
             for c in network.cells:
                 included_files.append(c.neuroml2_source_file)
-
+'''
         if network.synapses:
-            for s in network.synapses:
-                included_files.append(s.neuroml2_source_file)'''
+            for s in network.synapses:  
+                if s.lems_source_file:
+                    included_files.append(s.lems_source_file)
                 
         print_v("Generating LEMS file prior to running in %s"%simulator)
         pops_plot_save = []
