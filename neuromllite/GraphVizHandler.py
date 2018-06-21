@@ -54,10 +54,16 @@ class GraphVizHandler(DefaultNetworkHandler):
     max_weight = -1e100
     min_weight = 1e100
     
-    def __init__(self, level=10, engine='dot', nl_network=None):
+    def __init__(self, 
+                 level=10, 
+                 engine='dot', 
+                 nl_network=None,
+                 include_inputs=True):
+                     
         self.nl_network = nl_network
         self.level = level
         self.engine = engine
+        self.include_inputs = include_inputs
         print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
     
 
@@ -308,88 +314,90 @@ class GraphVizHandler(DefaultNetworkHandler):
     
     
     def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
-        
-        self.print_input_information('INIT:  '+inputListId, population_id, component, size)
-        
-        self.sizes_ils[inputListId] = 0
-        self.pops_ils[inputListId] = population_id
-        self.input_comp_obj_ils[inputListId] = input_comp_obj
-        self.weights_ils[inputListId] = 0
+        if self.include_inputs:
+            self.print_input_information('INIT:  '+inputListId, population_id, component, size)
+
+            self.sizes_ils[inputListId] = 0
+            self.pops_ils[inputListId] = population_id
+            self.input_comp_obj_ils[inputListId] = input_comp_obj
+            self.weights_ils[inputListId] = 0
             
 
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
-        self.sizes_ils[inputListId]+=1
-        self.weights_ils[inputListId]+=weight
+        if self.include_inputs:
+            self.sizes_ils[inputListId]+=1
+            self.weights_ils[inputListId]+=weight
         
 
     def finalise_input_source(self, inputListId):
         
-        self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
-        
-        if self.level>=2:
+        if self.include_inputs:
+            self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
 
-            label = '<%s'%inputListId
-            if self.level>=3:
-                size = self.sizes_ils[inputListId]
-                label += '<br/><i>%s input%s</i>'%( size, '' if size==1 else 's')
-                
-            if self.level>=4:
-            
-                from neuroml import PulseGenerator
-                from neuroml import TransientPoissonFiringSynapse
-                from neuroml import PoissonFiringSynapse
-                from pyneuroml.pynml import convert_to_units
-                
-                input_comp_obj = self.input_comp_obj_ils[inputListId]
+            if self.level>=2:
 
-                if input_comp_obj and isinstance(input_comp_obj,PulseGenerator):
-                    start = convert_to_units(input_comp_obj.delay, 'ms')
-                    if start == int(start): start = int(start)
-                    duration = convert_to_units(input_comp_obj.duration,'ms')
-                    if duration == int(duration): duration = int(duration)
-                    amplitude = convert_to_units(input_comp_obj.amplitude,'pA')
-                    if amplitude == int(amplitude): amplitude = int(amplitude)
+                label = '<%s'%inputListId
+                if self.level>=3:
+                    size = self.sizes_ils[inputListId]
+                    label += '<br/><i>%s input%s</i>'%( size, '' if size==1 else 's')
 
-                    label += '<br/>Pulse %s-%sms@%spA'%(start,start+duration, amplitude)
-                    
-                if input_comp_obj and isinstance(input_comp_obj,PoissonFiringSynapse):
-                        
-                    average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
-                    if average_rate == int(average_rate): average_rate = int(average_rate)
+                if self.level>=4:
 
-                    label += '<br/>Syn: %s @ %sHz'%(input_comp_obj.synapse, average_rate)
-                    
-                if input_comp_obj and isinstance(input_comp_obj,TransientPoissonFiringSynapse):
+                    from neuroml import PulseGenerator
+                    from neuroml import TransientPoissonFiringSynapse
+                    from neuroml import PoissonFiringSynapse
+                    from pyneuroml.pynml import convert_to_units
 
-                    start = convert_to_units(input_comp_obj.delay, 'ms')
-                    if start == int(start): start = int(start)
-                    duration = convert_to_units(input_comp_obj.duration,'ms')
-                    if duration == int(duration): duration = int(duration)
-                    average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
-                    if average_rate == int(average_rate): average_rate = int(average_rate)
+                    input_comp_obj = self.input_comp_obj_ils[inputListId]
 
-                    label += '<br/>Syn: %s<br/>%s-%sms @ %sHz'%(input_comp_obj.synapse,start,start+duration, average_rate)
-                    
-            label += '>'
-            
-            self.f.attr('node', color='#444444', style='', fontcolor = '#444444')
-            self.f.node(inputListId, label=label)
-            
-            label = None
-            if self.level>=5:
-                label='<'
-                if self.sizes_ils[inputListId]>0:
-                    percent = 100*float(self.sizes_ils[inputListId])/self.pop_sizes[self.pops_ils[inputListId]]
-                    
-                    if percent<=100:
-                        label+='%s%s%% of population<br/> '%(' ' if percent!=100 else '', self.format_float(percent))
-                    else:
-                        label+='%s%s per cell<br/> '%(' ', self.format_float(percent/100))
-                        
-                    avg_weight = float(self.weights_ils[inputListId])/self.sizes_ils[inputListId]
-                    label+='avg weight: %s<br/> '%(self.format_float(avg_weight,approx=True))
+                    if input_comp_obj and isinstance(input_comp_obj,PulseGenerator):
+                        start = convert_to_units(input_comp_obj.delay, 'ms')
+                        if start == int(start): start = int(start)
+                        duration = convert_to_units(input_comp_obj.duration,'ms')
+                        if duration == int(duration): duration = int(duration)
+                        amplitude = convert_to_units(input_comp_obj.amplitude,'pA')
+                        if amplitude == int(amplitude): amplitude = int(amplitude)
 
-                if not label[-1]=='>':
-                    label += '>'
-            
-            self.f.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE, label=label)
+                        label += '<br/>Pulse %s-%sms@%spA'%(start,start+duration, amplitude)
+
+                    if input_comp_obj and isinstance(input_comp_obj,PoissonFiringSynapse):
+
+                        average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
+                        if average_rate == int(average_rate): average_rate = int(average_rate)
+
+                        label += '<br/>Syn: %s @ %sHz'%(input_comp_obj.synapse, average_rate)
+
+                    if input_comp_obj and isinstance(input_comp_obj,TransientPoissonFiringSynapse):
+
+                        start = convert_to_units(input_comp_obj.delay, 'ms')
+                        if start == int(start): start = int(start)
+                        duration = convert_to_units(input_comp_obj.duration,'ms')
+                        if duration == int(duration): duration = int(duration)
+                        average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
+                        if average_rate == int(average_rate): average_rate = int(average_rate)
+
+                        label += '<br/>Syn: %s<br/>%s-%sms @ %sHz'%(input_comp_obj.synapse,start,start+duration, average_rate)
+
+                label += '>'
+
+                self.f.attr('node', color='#444444', style='', fontcolor = '#444444')
+                self.f.node(inputListId, label=label)
+
+                label = None
+                if self.level>=5:
+                    label='<'
+                    if self.sizes_ils[inputListId]>0:
+                        percent = 100*float(self.sizes_ils[inputListId])/self.pop_sizes[self.pops_ils[inputListId]]
+
+                        if percent<=100:
+                            label+='%s%s%% of population<br/> '%(' ' if percent!=100 else '', self.format_float(percent))
+                        else:
+                            label+='%s%s per cell<br/> '%(' ', self.format_float(percent/100))
+
+                        avg_weight = float(self.weights_ils[inputListId])/self.sizes_ils[inputListId]
+                        label+='avg weight: %s<br/> '%(self.format_float(avg_weight,approx=True))
+
+                    if not label[-1]=='>':
+                        label += '>'
+
+                self.f.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE, label=label)

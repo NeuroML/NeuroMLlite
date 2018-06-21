@@ -6,7 +6,12 @@ import copy
 from neuromllite.utils import print_v, evaluate, load_network_json
 
 
-def generate_network(nl_model, handler, seed=1234, always_include_props=False):
+def generate_network(nl_model, 
+                     handler, 
+                     seed=1234, 
+                     always_include_props=False,
+                     include_connections=True,
+                     include_inputs=True):
     
     pop_locations = {}
     cell_objects = {}
@@ -94,81 +99,82 @@ def generate_network(nl_model, handler, seed=1234, always_include_props=False):
         if hasattr(handler,'finalise_population'):
             handler.finalise_population(p.id)
         
-    for p in nl_model.projections:
-        
-        type = p.type if p.type else 'projection'
-        
-        handler.handle_projection(p.id, 
-                                 p.presynaptic, 
-                                 p.postsynaptic, 
-                                 p.synapse,
-                                 synapse_obj=synapse_objects[p.synapse] if p.synapse in synapse_objects else None,
-                                 type = type)
+    if include_connections:
+        for p in nl_model.projections:
 
-        delay = p.delay if p.delay else 0
-        weight = p.weight if p.weight else 1
-        
-        conn_count = 0
-        if p.random_connectivity:
-            for pre_i in range(len(pop_locations[p.presynaptic])):
-                for post_i in range(len(pop_locations[p.postsynaptic])):
-                    flip = rng.random()
-                    #print("Is cell %i conn to %i, prob %s - %s"%(pre_i, post_i, flip, p.random_connectivity.probability))
-                    if flip<p.random_connectivity.probability:
-                        handler.handle_connection(p.id, 
-                                         conn_count, 
-                                         p.presynaptic, 
-                                         p.postsynaptic, 
-                                         p.synapse, \
-                                         pre_i, \
-                                         post_i, \
-                                         preSegId = 0, \
-                                         preFract = 0.5, \
-                                         postSegId = 0, \
-                                         postFract = 0.5, \
-                                         delay = evaluate(delay, nl_model.parameters), \
-                                         weight = evaluate(weight, nl_model.parameters))
-                        conn_count+=1
-                        
-        if p.one_to_one_connector:
-            for i in range(min(len(pop_locations[p.presynaptic]),len(pop_locations[p.postsynaptic]))):
-                handler.handle_connection(p.id, 
-                                 conn_count, 
-                                 p.presynaptic, 
-                                 p.postsynaptic, 
-                                 p.synapse, \
-                                 i, \
-                                 i, \
-                                 preSegId = 0, \
-                                 preFract = 0.5, \
-                                 postSegId = 0, \
-                                 postFract = 0.5, \
-                                 delay = evaluate(delay, nl_model.parameters), \
-                                 weight = evaluate(weight, nl_model.parameters))
-                conn_count+=1
-        
-        handler.finalise_projection(p.id, 
-                                 p.presynaptic, 
-                                 p.postsynaptic, 
-                                 p.synapse)
+            type = p.type if p.type else 'projection'
+
+            handler.handle_projection(p.id, 
+                                     p.presynaptic, 
+                                     p.postsynaptic, 
+                                     p.synapse,
+                                     synapse_obj=synapse_objects[p.synapse] if p.synapse in synapse_objects else None,
+                                     type = type)
+
+            delay = p.delay if p.delay else 0
+            weight = p.weight if p.weight else 1
+
+            conn_count = 0
+            if p.random_connectivity:
+                for pre_i in range(len(pop_locations[p.presynaptic])):
+                    for post_i in range(len(pop_locations[p.postsynaptic])):
+                        flip = rng.random()
+                        #print("Is cell %i conn to %i, prob %s - %s"%(pre_i, post_i, flip, p.random_connectivity.probability))
+                        if flip<p.random_connectivity.probability:
+                            handler.handle_connection(p.id, 
+                                             conn_count, 
+                                             p.presynaptic, 
+                                             p.postsynaptic, 
+                                             p.synapse, \
+                                             pre_i, \
+                                             post_i, \
+                                             preSegId = 0, \
+                                             preFract = 0.5, \
+                                             postSegId = 0, \
+                                             postFract = 0.5, \
+                                             delay = evaluate(delay, nl_model.parameters), \
+                                             weight = evaluate(weight, nl_model.parameters))
+                            conn_count+=1
+
+            if p.one_to_one_connector:
+                for i in range(min(len(pop_locations[p.presynaptic]),len(pop_locations[p.postsynaptic]))):
+                    handler.handle_connection(p.id, 
+                                     conn_count, 
+                                     p.presynaptic, 
+                                     p.postsynaptic, 
+                                     p.synapse, \
+                                     i, \
+                                     i, \
+                                     preSegId = 0, \
+                                     preFract = 0.5, \
+                                     postSegId = 0, \
+                                     postFract = 0.5, \
+                                     delay = evaluate(delay, nl_model.parameters), \
+                                     weight = evaluate(weight, nl_model.parameters))
+                    conn_count+=1
+
+            handler.finalise_projection(p.id, 
+                                     p.presynaptic, 
+                                     p.postsynaptic, 
+                                     p.synapse)
                                  
-                                 
-    for input in nl_model.inputs:
-        
-        handler.handle_input_list(input.id, 
-                                input.population, 
-                                input.input_source, 
-                                size=0, 
-                                input_comp_obj=None)
-                          
-        input_count = 0      
-        for i in range(len(pop_locations[input.population])):
-            flip = rng.random()
-            if flip*100.<input.percentage:
-                handler.handle_single_input(input.id, input_count, i)
-                input_count+=1
-                
-        handler.finalise_input_source(input.id)
+    if include_inputs:   
+        for input in nl_model.inputs:
+
+            handler.handle_input_list(input.id, 
+                                    input.population, 
+                                    input.input_source, 
+                                    size=0, 
+                                    input_comp_obj=None)
+
+            input_count = 0      
+            for i in range(len(pop_locations[input.population])):
+                flip = rng.random()
+                if flip*100.<input.percentage:
+                    handler.handle_single_input(input.id, input_count, i)
+                    input_count+=1
+
+            handler.finalise_input_source(input.id)
             
     if hasattr(handler,'finalise_document'):
         handler.finalise_document()
