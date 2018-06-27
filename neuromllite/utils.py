@@ -66,14 +66,35 @@ def load_network_json(filename):
     net = _parse_element(data, net)
     
     return net
+    
+    
+def load_simulation_json(filename):
+    import json
+
+    with open(filename, 'r') as f:
+        
+        data = json.load(f, object_hook=ascii_encode_dict)
+        
+        
+    print_v("Loaded simulation specification from %s"%filename)
+    
+    sim = Simulation()
+    sim = _parse_element(data, sim)
+    
+    return sim
 
 
 def evaluate(expr, globals={}):
-    #print_v('Exaluating: [%s]...'%expr)
+    #print_v('Exaluating: [%s] vs globals %s...'%(expr,globals))
     try:
+        if expr in globals:
+            return globals[expr]
         if int(expr)==expr:
             return int(expr)
         else: # will have failed if not number
             return float(expr)
     except:
-        return eval(expr, globals)
+        try:
+            return eval(expr, globals)
+        except:
+            return expr

@@ -255,7 +255,7 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
                     nml_doc.poisson_firing_synapses.append(input)
 
                 for p in input_params:
-                    exec('input.%s = "%s"'%(p,input_params[p]))
+                    exec('input.%s = "%s"'%(p,evaluate(input_params[p], nl_model.parameters)))
                 
                 
             if i.pynn_input:
@@ -414,9 +414,10 @@ def _generate_neuron_files_from_neuroml(network):
             print_v("Failed to load mod file mechanisms...")
 
 
-def generate_and_run(simulation, simulator):
+def generate_and_run(simulation, simulator, network = None, return_results=False):
 
-    network = load_network_json(simulation.network)
+    if network==None:
+        network = load_network_json(simulation.network)
     
     print_v("Generating network %s and running in simulator: %s..."%(network.id, simulator))
     
@@ -434,6 +435,8 @@ def generate_and_run(simulation, simulator):
                 nrn_handler.executeHoc('load_file("%s/%s.hoc")'%(src_dir,c.id))
                 
         generate_network(network, nrn_handler,generate_network)
+        if return_results:
+            raise NotImplementedError("Reloading results not supported in Neuron yet...")
 
 
 
@@ -563,6 +566,8 @@ def generate_and_run(simulation, simulator):
                     np.savetxt(filename, times_vm , delimiter = '\t', fmt='%s')
           
         
+        if return_results:
+            raise NotImplementedError("Reloading results not supported in Neuron yet...")
 
     elif simulator=='NetPyNE':
         
@@ -657,6 +662,9 @@ def generate_and_run(simulation, simulator):
         sim.gatherData()                  # gather spiking data and cell info from each node
         sim.saveData()                    # save params, cell info and sim output to file (pickle,mat,txt,etc)
         
+        if return_results:
+            raise NotImplementedError("Reloading results not supported in Neuron yet...")
+        
     elif simulator=='jNeuroML' or  simulator=='jNeuroML_NEURON' or simulator=='jNeuroML_NetPyNE':
 
         from pyneuroml.lems import generate_lems_file_for_neuroml
@@ -724,10 +732,13 @@ def generate_and_run(simulation, simulator):
               
               
         if simulator=='jNeuroML':
-            pynml.run_lems_with_jneuroml(lems_file_name, nogui=True)
+            results = pynml.run_lems_with_jneuroml(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)
         elif simulator=='jNeuroML_NEURON':
-            pynml.run_lems_with_jneuroml_neuron(lems_file_name, nogui=True)
+            results = pynml.run_lems_with_jneuroml_neuron(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)
         elif simulator=='jNeuroML_NetPyNE':
-            pynml.run_lems_with_jneuroml_netpyne(lems_file_name, nogui=True, verbose=True)
+            results = pynml.run_lems_with_jneuroml_netpyne(lems_file_name, nogui=True, verbose=True, load_saved_data=return_results, reload_events=return_results)
 
-        print_v("Finished running LEMS file %s in %s"%(lems_file_name, simulator))
+        print_v("Finished running LEMS file %s in %s (returning results: %s)"%(lems_file_name, simulator, return_results))
+
+        if return_results:
+            return results # traces, events = 
