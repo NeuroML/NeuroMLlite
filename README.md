@@ -1,9 +1,11 @@
 ## NeuroMLlite: a common framework for reading/writing/generating network specifications
 
-Work in progress. Moved from https://github.com/NeuroML/NetworkShorthand/tree/master/proposal.
+Work in progress. For the background to this see here: https://github.com/NeuroML/NetworkShorthand.
 
 ![Architecture](images/NetworkShorthand.png)
 
+
+## Examples
 The best way to see the currently proposed structure is to look at the examples
 
 ### Ex. 1: Simple network, 2 populations & projection
@@ -89,5 +91,51 @@ Can be exported to:
 
 Can be simulated using:
 - **jNeuroML**
+
+## Installation & usage
+
+Installation of the basic framework should be fairly straightforward:
+
+```
+git clone https://github.com/NeuroML/NeuroMLlite.git
+cd NeuroMLlite
+sudo python setup.py install
+```
+
+Then simple examples can be run:
+
+```
+cd examples
+python Example1.py  #  Generates the JSON representation of the network (console & save to file)
+```
+
+To generate the NeuroML 2 version of the network, first install pyNeuroML, then use the -nml flag:
+```
+sudo pip install pyNeuroML
+python Example2.py -nml       # Saves the network structure to a *net.nml XML file
+```
+
+Other options (which will require [Neuron](https://neuron.yale.edu/neuron/), [NetPyNE](http://www.netpyne.org/), 
+[PyNN](http://neuralensemble.org/PyNN/), [NEST](http://www.nest-simulator.org/), [Brain](http://briansimulator.org/) etc. to be installed) include:
+
+```
+python Example4.py -jnml       # Generate NeuroML2 & LEMS simulation & run using jNeuroML
+python Example4.py -jnmlnrn    # Generate NeuroML2 & LEMS simulation, use jNeuroML to generate Neuron code (py/hoc/mod), then run in Neuron
+python Example4.py -jnmlnrn    # Generate NeuroML2 & LEMS simulation, use jNeuroML to generate NetPyNE code (py/hoc/mod), then run in NetPyNE
+python Example4.py -netpyne    # Generate network in NetPyNE directly & run simulation
+python Example4.py -pynnnrn    # Generate network in PyNN, run using simulator Neuron
+python Example4.py -pynnnest   # Generate network in PyNN, run using simulator NEST
+python Example4.py -pynnbrian  # Generate network in PyNN, run using simulator Brian
+```
+
+Graphs of the network structure can be generated at many levels of detail (1-6) and 
+laid out using [GraphViz](http://graphviz.org/) engines (d - dot (default); c - circo;
+ n - neato; f - fdp). See above images for generated examples.
+
+    python Example6.py -graph3d
+    python Example6.py -graph2f
+    python Example6.py -graph1n
+
+
 
 [![Build Status](https://travis-ci.org/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.org/NeuroML/NeuroMLlite)
