@@ -209,6 +209,9 @@ def check_to_generate_or_run(argv, sim):
 
     elif '-pynnneuroml' in argv:
         generate_and_run(sim, simulator='PyNN_NeuroML')
+
+    elif '-sonata' in argv:
+        generate_and_run(sim, simulator='sonata')
         
     elif '-nml' in argv or '-neuroml' in argv:
         
