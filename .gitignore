@@ -29,3 +29,10 @@ examples/test_files/x86_64
 /examples/LEMS_SimExample7.xml
 /.DS_Store
 /test3.sh
+/*.gv.png
+/300*
+/9*
+/SonataExport.net.nml
+/*.gv
+/testmac.sh
+/regenerateAndTestmac.sh

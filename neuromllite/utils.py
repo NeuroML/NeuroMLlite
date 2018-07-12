@@ -52,13 +52,19 @@ def _parse_attributes(json, to_build):
     return to_build
     
     
-def load_network_json(filename):
+def load_json(filename):
     import json
 
     with open(filename, 'r') as f:
         
         data = json.load(f, object_hook=ascii_encode_dict)
         
+    return data
+
+    
+def load_network_json(filename):
+    
+    data = load_json(filename)
         
     print_v("Loaded network specification from %s"%filename)
     

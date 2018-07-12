@@ -1,11 +1,36 @@
 
 import tables   # pytables for HDF5 support
 import os
+import random
 
 from neuroml.hdf5.NetworkContainer import *
 from neuromllite.BaseTypes import NetworkReader
 
-from neuromllite.utils import print_v
+from neuromllite.utils import print_v, load_json
+
+
+def subs(path, substitutes):
+    for s in substitutes:
+        if s in path:
+            path = path.replace(s,substitutes[s])
+    return path
+
+
+def load_csv_props(info_file):
+    info = {}
+    columns = {}
+    for line in open(info_file):
+        w = line.split()
+        if len(columns)==0:
+            for i in range(len(w)):
+                columns[i] = w[i]
+        else:
+            info[int(w[0])] = {}
+            for i in range(len(w)):
+                if i!=0:
+                    info[int(w[0])][columns[i]] = w[i]
+    return info
+            
 
 class SonataReader(NetworkReader):
     
@@ -15,18 +40,39 @@ class SonataReader(NetworkReader):
                      
         print_v("Creating SonataReader with %s..."%parameters)
         self.parameters = parameters
-        self.current_population = None
+        self.current_node = None
+        self.current_node_group = None
+        self.cell_info = {}
+        
+        self.current_edge = None
+        
         self.pre_pop = None
         self.post_pop = None
+        
+        self.myrandom = random.Random(12345)
         
 
     def parse(self, handler):
 
         filename = os.path.abspath(self.parameters['filename'])
-        id=filename.split('/')[-1].split('.')[0]
+        
+        data = load_json(filename)
+        substitutes = {'./':'%s/'%os.path.dirname(filename),
+                       '../':'%s/'%os.path.dirname(os.path.dirname(filename))}
+            
+        import pprint; pp = pprint.PrettyPrinter(depth=6)
+        # pp.pprint(data)
+        for m in data['manifest']:
+            path = subs(data['manifest'][m],substitutes)
+            substitutes[m] = path
+            
+        # pp.pprint(substitutes)
+        
         
         if 'id' in self.parameters:
             id = self.parameters['id']
+        else:
+            id = 'SonataNetwork'
         
         self.handler = handler
     
@@ -34,15 +80,153 @@ class SonataReader(NetworkReader):
         handler.handle_document_start(id, notes)
         
         handler.handle_network(id, notes)
+        self.nodes_info = {}
         
-        h5file=tables.open_file(filename,mode='r')
+        for n in data['networks']['nodes']:
+            nodes_file = subs(n['nodes_file'],substitutes)
+            node_types_file = subs(n['node_types_file'],substitutes)
+            
+            # print("Loading nodes from %s and %s"%(nodes_file,node_types_file))
 
-        print_v("Opened HDF5 file: %s"%(h5file.filename))
-        '''
-        self.parse_group(h5file.root.populations)
-        self.parse_group(h5file.root.connectivity)'''
+            h5file=tables.open_file(nodes_file,mode='r')
+
+            # print_v("Opened HDF5 file: %s"%(h5file.filename))
+            self.parse_group(h5file.root.nodes)
+            h5file.close()
+            self.nodes_info[self.current_node] = load_csv_props(node_types_file)
+            # pp.pprint(self.nodes_info)
+            self.current_node = None
+            
+        self.edges_info = {}
+        self.conn_info = {}
         
-        h5file.close()
+        for e in data['networks']['edges']:
+            edges_file = subs(e['edges_file'],substitutes)
+            edge_types_file = subs(e['edge_types_file'],substitutes)
+            
+            # print("Loading edges from %s and %s"%(edges_file,edge_types_file))
+
+            h5file=tables.open_file(edges_file,mode='r')
+
+            # print_v("Opened HDF5 file: %s"%(h5file.filename))
+            self.parse_group(h5file.root.edges)
+            h5file.close()
+            self.edges_info[self.current_edge] = load_csv_props(edge_types_file)
+            self.current_edge = None
+            
+        # pp.pprint(self.edges_info)
+            
+        for node in self.cell_info:
+            types_vs_pops = {}
+            for type in self.cell_info[node]['type_numbers']:
+                info = self.nodes_info[node][type]
+                
+                ref = info['model_name'] if 'model_name' in info else info['model_type']
+                pop_id = '%s_%s_%s'%(node,ref,type) 
+                size = self.cell_info[node]['type_numbers'][type]
+
+                properties = {}
+
+                properties['type_id']=type
+                properties['node_id']=node
+                properties['region']=node
+                for i in info:
+                    properties[i]=info[i]
+                    if i=='ei':
+                        properties['type']=info[i].upper()
+                        
+                
+                color = '%s %s %s'%(self.myrandom.random(),self.myrandom.random(),self.myrandom.random())
+                
+                try:
+                    import opencortex.utils.color as occ
+                    interneuron = 'SOM' in pop_id or 'PV' in pop_id
+                    if 'L23' in pop_id:
+                        color = occ.L23_INTERNEURON if interneuron else occ.L23_PRINCIPAL_CELL
+                        pop.properties.append(neuroml.Property('region','L23'))
+                    if 'L4' in pop_id:
+                        color = occ.L4_INTERNEURON if interneuron else occ.L4_PRINCIPAL_CELL
+                        pop.properties.append(neuroml.Property('region','L4'))
+                    if 'L5' in pop_id:
+                        color = occ.L5_INTERNEURON if interneuron else occ.L5_PRINCIPAL_CELL
+                        pop.properties.append(neuroml.Property('region','L5'))
+                    if 'L6' in pop_id:
+                        color = occ.L6_INTERNEURON if interneuron else occ.L6_PRINCIPAL_CELL
+                        pop.properties.append(neuroml.Property('region','L6'))
+                except:
+                    pass # Don't add anything, not a problem...
+                    
+                properties['color']=color
+                
+                self.handler.handle_population(pop_id, 
+                                         self.parameters['DEFAULT_CELL_ID'], 
+                                         size,
+                                         component_obj=None,
+                                         properties=properties)
+                types_vs_pops[type] = pop_id
+            self.cell_info[node]['pop_count'] = {}  
+            self.cell_info[node]['pop_map'] = {}   
+            
+            for i in self.cell_info[node]['types']:
+                
+                pop = types_vs_pops[self.cell_info[node]['types'][i]]
+                
+                if not pop in self.cell_info[node]['pop_count']:
+                    self.cell_info[node]['pop_count'][pop] = 0
+                    
+                index = self.cell_info[node]['pop_count'][pop]
+                self.cell_info[node]['pop_map'][i] = (pop, index)
+                
+                if i in self.cell_info[node]['0']['locations']:
+                    pos = self.cell_info[node]['0']['locations'][i]
+                    self.handler.handle_location(index, pop, self.parameters['DEFAULT_CELL_ID'], pos[0], pos[1], pos[2])
+                
+                self.cell_info[node]['pop_count'][pop]+=1
+        
+        projections_created = []
+        for conn in self.conn_info:
+            
+            pre_node = self.conn_info[conn]['pre_node']
+            post_node = self.conn_info[conn]['post_node']
+            
+            # print('-- Conn %s -> %s'%(pre_node,post_node))
+            
+            for i in range(len(self.conn_info[conn]['pre_id'])):
+                pre_id = self.conn_info[conn]['pre_id'][i]
+                post_id = self.conn_info[conn]['post_id'][i]
+                type = self.conn_info[conn]['edge_type_id'][i]
+                # print('   Conn (%s) %s(%s) -> %s(%s)'%(type,pre_node,pre_id,post_node,post_id))
+                pre_pop,pre_i = self.cell_info[pre_node]['pop_map'][pre_id]
+                post_pop,post_i = self.cell_info[post_node]['pop_map'][post_id]
+                # print('   Mapped: Conn %s(%s) -> %s(%s)'%(pre_pop,pre_i,post_pop,post_i))
+                # print self.edges_info[conn][type]
+                synapse = self.edges_info[conn][type]['dynamics_params'].split('.')[0]
+                proj_id = '%s_%s_%s'%(pre_pop,post_pop,synapse)
+                
+                if not proj_id in projections_created:
+                    
+                    self.handler.handle_projection(proj_id, 
+                                         pre_pop, 
+                                         post_pop, 
+                                         synapse)
+                    projections_created.append(proj_id)
+                    
+                
+
+                self.handler.handle_connection(proj_id, 
+                                             i, 
+                                             pre_pop, 
+                                             post_pop, 
+                                             synapse, \
+                                             pre_i, \
+                                             post_i, \
+                                             delay = 0, \
+                                             weight = 1)
+                
+
+        
+        # pp.pprint(self.conn_info)
+        # pp.pprint(self.cell_info)
 
 
     def parse_group(self, g):
@@ -52,21 +236,33 @@ class SonataReader(NetworkReader):
             #print("   ------Sub node: %s, class: %s, name: %s (parent: %s)"   % (node,node._c_classid,node._v_name, g._v_name))
 
             if node._c_classid == 'GROUP':
-                if g._v_name=='populations':
-                    pop_id = node._v_name.replace('-','_')
-                    self.current_population = pop_id
-                    self.pop_locations[self.current_population] = {}
+                if g._v_name=='nodes':
+                    node_id = node._v_name.replace('-','_')
+                    self.current_node = node_id
+                    self.cell_info[self.current_node] = {}
+                    self.cell_info[self.current_node]['types'] = {}
+                    self.cell_info[self.current_node]['type_numbers'] = {}
+                    #self.pop_locations[self.current_population] = {}
                     
-                if g._v_name=='connectivity':
-                    self.pre_pop = node._v_name.replace('-','_')
-                    self.post_pop=None
-                    #print("Conn %s -> ?"%(self.pre_pop))
-                elif self.pre_pop!=None and self.post_pop==None:
-                    self.post_pop = node._v_name.replace('-','_')
-                    #print("Conn2 %s -> %s"%(self.pre_pop,self.post_pop))
-                elif self.pre_pop!=None and self.post_pop!=None:
-                    #print("Conn3 %s -> %s"%(self.pre_pop,self.post_pop))
-                    pass
+                if g._v_name==self.current_node:
+                    node_group = node._v_name
+                    self.current_node_group = node_group
+                    self.cell_info[self.current_node][self.current_node_group] = {}
+                    self.cell_info[self.current_node][self.current_node_group]['locations'] = {}
+                    
+                if g._v_name=='edges':
+                    edge_id = node._v_name.replace('-','_')
+                    # print('  Found edge: %s'%edge_id)
+                    self.current_edge = edge_id
+                    self.conn_info[self.current_edge] = {}
+                
+                if g._v_name==self.current_edge:
+                    
+                    self.current_pre_node = g._v_name.split('_to_')[0]
+                    self.current_post_node = g._v_name.split('_to_')[1]
+                    # print('  Found edge %s -> %s'%(self.current_pre_node, self.current_post_node))
+                    self.conn_info[self.current_edge]['pre_node'] = self.current_pre_node
+                    self.conn_info[self.current_edge]['post_node'] = self.current_post_node
                     
                 self.parse_group(node)
 
@@ -74,6 +270,7 @@ class SonataReader(NetworkReader):
                 self.parse_dataset(node)
                 
         self.current_population = None
+        self.current_node_group = None
         
 
     def _is_dataset(self, node):
@@ -81,11 +278,47 @@ class SonataReader(NetworkReader):
 
 
 
-
     def parse_dataset(self, d):
-        #print_v("Parsing dataset/array: "+ str(d))
+        # print_v("Parsing dataset/array: %s; at node: %s, node_group %s"%(str(d), self.current_node, self.current_node_group))
+        
+        
+        if self.current_node_group:
+            for i in range(0, d.shape[0]):
+                index = 0 if d.name=='x' else (1 if d.name=='y' else 2)
+                
+                if not i in self.cell_info[self.current_node][self.current_node_group]['locations']:
+                    self.cell_info[self.current_node][self.current_node_group]['locations'][i] = {}
+                self.cell_info[self.current_node][self.current_node_group]['locations'][i][index] = d[i]
+                
+        elif self.current_node:
+            
+            if d.name=='node_group_id':
+                for i in range(0, d.shape[0]):
+                    if not d[i]==0:
+                        raise Exception("Error: only support node_group_id==0!")
+            if d.name=='node_id':
+                for i in range(0, d.shape[0]):
+                    if not d[i]==i:
+                        raise Exception("Error: only support dataset node_id when index is same as node_id (fails in %s)...!"%d)
+            if d.name=='node_type_id':
+                for i in range(0, d.shape[0]):
+                    self.cell_info[self.current_node]['types'][i] = d[i]
+                    if not d[i] in self.cell_info[self.current_node]['type_numbers']:
+                        self.cell_info[self.current_node]['type_numbers'][d[i]]=0
+                    self.cell_info[self.current_node]['type_numbers'][d[i]]+=1
+           
+        elif d.name=='source_node_id':
+            self.conn_info[self.current_edge]['pre_id'] = [i for i in d]
+        elif d.name=='edge_type_id':
+            self.conn_info[self.current_edge]['edge_type_id'] = [int(i) for i in d]
+        elif d.name=='target_node_id':
+            self.conn_info[self.current_edge]['post_id'] = [i for i in d]
+              
+        else:
+            print("Unhandled dataset: %s"%d.name)
         
         # Population
+        '''
         if self.current_population and d.name=='locations':
             
             perc_cells = self.parameters['percentage_cells_per_pop'] if 'percentage_cells_per_pop' in self.parameters else 100
@@ -213,32 +446,38 @@ class SonataReader(NetworkReader):
                                          synapse)
 
             self.post_pop=None
+            
+        '''
                 
     
 if __name__ == '__main__':
 
-    filename = 'Example3_Network_nodes.sonata.h5'
 
+    id = '9_cells'
+    id = '300_cells'
+    filename = '../git/sonata/examples/%s/circuit_config.json'%id
     
-
-    bbp = SonataReader(filename=filename, 
-                              DEFAULT_CELL_ID='hhcell')
-    
+    sr = SonataReader(filename=filename, 
+                      id=id,
+                      DEFAULT_CELL_ID='hhcell')
+    '''
     from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
     def_handler = DefaultNetworkHandler()
     
-    bbp.parse(def_handler)   
+    sr.parse(def_handler) '''  
     
     from neuroml.hdf5.NetworkBuilder import NetworkBuilder
 
     neuroml_handler = NetworkBuilder()
     
     bbp = SonataReader(filename=filename, 
-                              DEFAULT_CELL_ID='hhcell')
+                      id=id,
+                      DEFAULT_CELL_ID='hhcell')
     bbp.parse(neuroml_handler)  
     
-    nml_file_name = 'SonataExport.net.nml'
+    nml_file_name = '%s.net.nml'%id
 
     from neuroml.writers import NeuroMLWriter
     NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)
+    print('Written to: %s'%nml_file_name)  
     
