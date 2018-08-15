@@ -1,5 +1,8 @@
 <neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example7_Brunel2000">
-    <notes>Generated network</notes>
+    <notes>Generated network: Example7_Brunel2000
+    NeuroMLlite parameters: 
+        fractionE = 0.8
+        N = 100</notes>
     <pulseGenerator id="iclamp0" delay="100.0ms" duration="800.0ms" amplitude="0.99nA"/>
     <IF_cond_alpha id="ifcell" cm="1." i_offset="0.1" tau_syn_E="2." tau_syn_I="10." v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="-10." e_rev_I="-80."/>
     <alphaCondSynapse id="ampa" tau_syn="2." e_rev="-10."/>
@@ -8,7 +11,7 @@
         <notes>Example 7: based on network of Brunel 2000</notes>
         <population id="Epop" component="ifcell" size="80"/>
         <population id="Ipop" component="ifcell" size="20"/>
-        <projection id="projEe" presynapticPopulation="Epop" postsynapticPopulation="Epop" synapse="ampa">
+        <projection id="projEE" presynapticPopulation="Epop" postsynapticPopulation="Epop" synapse="ampa">
             <connectionWD id="0" preCellId="../Epop[0]" postCellId="../Epop[1]" weight="0.02" delay="2ms"/>
             <connectionWD id="1" preCellId="../Epop[0]" postCellId="../Epop[2]" weight="0.02" delay="2ms"/>
             <connectionWD id="2" preCellId="../Epop[0]" postCellId="../Epop[7]" weight="0.02" delay="2ms"/>

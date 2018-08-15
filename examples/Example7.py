@@ -38,7 +38,7 @@ net.synapses.append(Synapse(id='gaba',
                             pynn_synapse_type='cond_alpha', 
                             parameters={'e_rev':-80, 'tau_syn':10}))
 
-net.projections.append(Projection(id='projEe',
+net.projections.append(Projection(id='projEE',
                                   presynaptic=pE.id, 
                                   postsynaptic=pE.id,
                                   synapse='ampa',

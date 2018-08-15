@@ -5,19 +5,25 @@ import copy
 
 from neuromllite.utils import print_v, evaluate, load_network_json
 
+def _locate_file(f, base_dir):
+    if base_dir==None:
+        return f
+    file_name = os.path.join(base_dir,f)
+    return os.path.realpath(file_name)
 
 def generate_network(nl_model, 
                      handler, 
                      seed=1234, 
                      always_include_props=False,
                      include_connections=True,
-                     include_inputs=True):
+                     include_inputs=True,
+                     base_dir=None):
     
     pop_locations = {}
     cell_objects = {}
     synapse_objects = {}
     
-    print_v("Starting net generation for %s..."%nl_model.id)
+    print_v("Starting net generation for %s%s..."%(nl_model.id, ' (base dir: %s)'%base_dir if base_dir else ''))
     rng = random.Random(seed)
     
     
@@ -34,7 +40,12 @@ def generate_network(nl_model,
         pop_locations = network_reader.get_locations()
         
     else:
-        handler.handle_document_start(nl_model.id, "Generated network")
+        notes = "Generated network: %s"%nl_model.id
+        if nl_model.parameters:
+            notes+= "\n    NeuroMLlite parameters: "%()
+            for p in nl_model.parameters:
+                notes+= "\n        %s = %s"%(p,nl_model.parameters[p])
+        handler.handle_document_start(nl_model.id, notes)
         temperature = '%sdegC'%nl_model.temperature if nl_model.temperature else None 
         handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
         
@@ -42,7 +53,7 @@ def generate_network(nl_model,
     for c in nl_model.cells:
         if c.neuroml2_source_file:
             from pyneuroml import pynml
-            nml2_doc = pynml.read_neuroml2_file(c.neuroml2_source_file, 
+            nml2_doc = pynml.read_neuroml2_file(_locate_file(c.neuroml2_source_file,base_dir), 
                                                 include_includes=True)
             cell_objects[c.id] = nml2_doc.get_by_id(c.id)
         if c.pynn_cell:
@@ -55,7 +66,7 @@ def generate_network(nl_model,
     for s in nl_model.synapses:
         if s.neuroml2_source_file:
             from pyneuroml import pynml
-            nml2_doc = pynml.read_neuroml2_file(s.neuroml2_source_file, 
+            nml2_doc = pynml.read_neuroml2_file(_locate_file(s.neuroml2_source_file, base_dir), 
                                                 include_includes=True)
             synapse_objects[s.id] = nml2_doc.get_by_id(s.id)
             
@@ -170,8 +181,12 @@ def generate_network(nl_model,
             input_count = 0      
             for i in range(len(pop_locations[input.population])):
                 flip = rng.random()
+                weight = input.weight if input.weight else 1
                 if flip*100.<input.percentage:
-                    handler.handle_single_input(input.id, input_count, i)
+                    handler.handle_single_input(input.id, 
+                                                input_count, 
+                                                i,
+                                                weight=evaluate(weight, nl_model.parameters))
                     input_count+=1
 
             handler.finalise_input_source(input.id)
@@ -224,14 +239,21 @@ def check_to_generate_or_run(argv, sim):
                 generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
         
         
-def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=True, seed=1234, format='xml'):
+def generate_neuroml2_from_network(nl_model, 
+                                   nml_file_name=None, 
+                                   print_summary=True, 
+                                   seed=1234, 
+                                   format='xml', 
+                                   base_dir=None):
 
+    print_v("Generating NeuroML2 for %s%s..."%(nl_model.id, ' (base dir: %s)'%base_dir if base_dir else ''))
+    
     import neuroml
     from neuroml.hdf5.NetworkBuilder import NetworkBuilder
 
     neuroml_handler = NetworkBuilder()
 
-    generate_network(nl_model, neuroml_handler, seed=seed)
+    generate_network(nl_model, neuroml_handler, seed=seed, base_dir=base_dir)
 
     nml_doc = neuroml_handler.get_nml_doc()
     
@@ -240,7 +262,7 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
         if nml_doc.get_by_id(i.id)==None:
             if i.neuroml2_source_file:
                 
-                incl = neuroml.IncludeType(i.neuroml2_source_file)
+                incl = neuroml.IncludeType(_locate_file(i.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)
                                         
@@ -272,7 +294,7 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
     for c in nl_model.cells:
         if c.neuroml2_source_file:
             
-            incl = neuroml.IncludeType(c.neuroml2_source_file)
+            incl = neuroml.IncludeType(_locate_file(c.neuroml2_source_file,base_dir))
             found_cell = False
             for cell in nml_doc.cells:
                 if cell.id == c.id:
@@ -317,7 +339,7 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
     for s in nl_model.synapses:
         if nml_doc.get_by_id(s.id)==None:
             if s.neuroml2_source_file:
-                incl = neuroml.IncludeType(s.neuroml2_source_file)
+                incl = neuroml.IncludeType(_locate_file(s.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl) 
             '''
@@ -352,13 +374,13 @@ def generate_neuroml2_from_network(nl_model, nml_file_name=None, print_summary=T
         
     if format=='xml':
         if not nml_file_name:
-            nml_file_name = '%s.net.nml'%nml_doc.id
+            nml_file_name = _locate_file('%s.net.nml'%nml_doc.id, base_dir)
         from neuroml.writers import NeuroMLWriter
         NeuroMLWriter.write(nml_doc,nml_file_name)
         
     if format=='hdf5':
         if not nml_file_name:
-            nml_file_name = '%s.net.nml.h5'%nml_doc.id
+            nml_file_name = _locate_file('%s.net.nml.h5'%nml_doc.id, base_dir)
         from neuroml.writers import NeuroMLHdf5Writer
         NeuroMLHdf5Writer.write(nml_doc, nml_file_name)
 
@@ -417,7 +439,7 @@ def _generate_neuron_files_from_neuroml(network):
             print_v("Failed to load mod file mechanisms...")
 
 
-def generate_and_run(simulation, simulator, network = None, return_results=False):
+def generate_and_run(simulation, simulator, network = None, return_results=False, base_dir=None):
 
     if network==None:
         network = load_network_json(simulation.network)
@@ -437,7 +459,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
                 src_dir = os.path.dirname(os.path.abspath(c.neuroml2_source_file))
                 nrn_handler.executeHoc('load_file("%s/%s.hoc")'%(src_dir,c.id))
                 
-        generate_network(network, nrn_handler,generate_network)
+        generate_network(network, nrn_handler, generate_network, base_dir)
         if return_results:
             raise NotImplementedError("Reloading results not supported in Neuron yet...")
 
@@ -449,7 +471,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
         
         sonata_handler = SonataHandler()
         
-        generate_network(network, sonata_handler, always_include_props=True)
+        generate_network(network, sonata_handler, always_include_props=True, base_dir=base_dir)
     
         print_v("Done with Sonata...")
 
@@ -467,7 +489,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
         
         handler = GraphVizHandler(level, engine=engine, nl_network=network)
         
-        generate_network(network, handler, always_include_props=True)
+        generate_network(network, handler, always_include_props=True, base_dir=base_dir)
     
         print_v("Done with GraphViz...")
         
@@ -530,7 +552,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
             if input_source.pynn_input:
                 pynn_handler.add_input_source(input_source)
         
-        generate_network(network, pynn_handler, always_include_props=True)
+        generate_network(network, pynn_handler, always_include_props=True, base_dir=base_dir)
         
         for pid in pynn_handler.populations:
             pop = pynn_handler.populations[pid]
@@ -586,7 +608,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
         simConfig = specs.SimConfig()
         netpyne_handler = neuromlFuncs.NetPyNEBuilder(netParams, simConfig=simConfig, verbose=True)
         
-        generate_network(network, netpyne_handler)
+        generate_network(network, netpyne_handler, base_dir=base_dir)
         
         netpyne_handler.finalise()
         
@@ -675,8 +697,8 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
 
         lems_file_name='LEMS_%s.xml'%simulation.id
 
-        nml_file_name, nml_doc = generate_neuroml2_from_network(network)
-
+        nml_file_name, nml_doc = generate_neuroml2_from_network(network, base_dir=base_dir)
+        
         included_files = ['PyNN.xml']
 
         for c in network.cells:        
@@ -713,7 +735,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
                                simulation.duration, 
                                simulation.dt, 
                                lems_file_name,
-                               '.',
+                               '.' if not base_dir else base_dir,
                                nml_doc = nml_doc,  # Use this if the nml doc has already been loaded (to avoid delay in reload)
                                include_extra_files = included_files,
                                gen_plots_for_all_v = False,
@@ -731,9 +753,11 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
                                copy_neuroml = True,
                                lems_file_generate_seed=12345,
                                report_file_name = 'report.%s.txt'%simulation.id,
-                               simulation_seed=12345)
+                               simulation_seed=12345,
+                               verbose=True)
               
-              
+        lems_file_name = _locate_file(lems_file_name, base_dir)
+        
         if simulator=='jNeuroML':
             results = pynml.run_lems_with_jneuroml(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)
         elif simulator=='jNeuroML_NEURON':

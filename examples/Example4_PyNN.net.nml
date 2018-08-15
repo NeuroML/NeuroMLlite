@@ -1,5 +1,5 @@
 <neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example4_PyNN">
-    <notes>Generated network</notes>
+    <notes>Generated network: Example4_PyNN</notes>
     <pulseGenerator id="iclamp0" delay="200.0ms" duration="600.0ms" amplitude="0.99nA"/>
     <IF_cond_alpha id="testcell" cm="1." i_offset="0.1" tau_syn_E="0.3" tau_syn_I="0.5" v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="0." e_rev_I="-70."/>
     <IF_cond_alpha id="testcell2" cm="1." i_offset="-0.1" tau_syn_E="2." tau_syn_I="10." v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="-10." e_rev_I="-80."/>

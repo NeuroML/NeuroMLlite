@@ -1,5 +1,10 @@
 <neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example6_PyNN">
-    <notes>Generated network</notes>
+    <notes>Generated network: Example6_PyNN
+    NeuroMLlite parameters: 
+        N_scaling = 0.005
+        depth = 100
+        layer_height = 400
+        width = 100</notes>
     <IF_curr_exp id="CorticalCell" cm="0.25" i_offset="0." tau_syn_E="0.5" tau_syn_I="0.5" v_init="-65." tau_m="10." tau_refrac="2." v_reset="-65." v_rest="-65." v_thresh="-50."/>
     <alphaCurrSynapse id="ampa" tau_syn="0.5"/>
     <alphaCurrSynapse id="gaba" tau_syn="0.5"/>

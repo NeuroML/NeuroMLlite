@@ -138,7 +138,8 @@ class Input(BaseWithId):
         
         self.allowed_fields = collections.OrderedDict([('input_source',('Type of input to use in population',str)),
                                ('population',('Population to target',str)),
-                               ('percentage',('Percentage of cells to apply this input to',float))])
+                               ('percentage',('Percentage of cells to apply this input to',float)),
+                               ('weight',('Weight to use (default: 1)',EvaluableExpression))])
                                
                       
         super(Input, self).__init__(**kwargs)

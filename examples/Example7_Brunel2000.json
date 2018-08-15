@@ -73,7 +73,7 @@
         ], 
         "projections": [
             {
-                "projEe": {
+                "projEE": {
                     "presynaptic": "Epop", 
                     "postsynaptic": "Epop", 
                     "synapse": "ampa", 
