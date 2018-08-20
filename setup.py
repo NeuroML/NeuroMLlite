@@ -8,7 +8,7 @@ setup(
     version=version,
     author='Padraig Gleeson',
     author_email='p.gleeson@gmail.com',
-    packages = ['neuromllite'],
+    packages = ['neuromllite','neuromllite.sweep'],
     url='https://github.com/NeuroML/NeuroMLlite',
     license='LICENSE.lesser',
     description='A common JSON based format for compact network specification, closely tied to NeuroML',

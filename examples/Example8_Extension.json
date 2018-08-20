@@ -1,0 +1,86 @@
+{
+    "Example8_Extension": {
+        "version": "NeuroMLlite v0.1.4", 
+        "parameters": {
+            "weightInput": 1, 
+            "fractionE": 0.8, 
+            "N": 10
+        }, 
+        "notes": "Example 8: extending exising networks", 
+        "cells": [
+            {
+                "hhcell": {
+                    "neuroml2_source_file": "test_files/hhcell.cell.nml"
+                }
+            }
+        ], 
+        "synapses": [
+            {
+                "ampa": {
+                    "neuroml2_source_file": "test_files/ampa.synapse.nml"
+                }
+            }, 
+            {
+                "gaba": {
+                    "neuroml2_source_file": "test_files/gaba.synapse.nml"
+                }
+            }
+        ], 
+        "input_sources": [
+            {
+                "poissonFiringSyn": {
+                    "neuroml2_source_file": "test_files/inputs.nml"
+                }
+            }, 
+            {
+                "poissonFiringSyn": {
+                    "neuroml2_source_file": "test_files/inputs.nml"
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "Epop": {
+                    "size": "int(N*fractionE)", 
+                    "component": "hhcell", 
+                    "properties": {
+                        "color": ".7 0 0"
+                    }
+                }
+            }, 
+            {
+                "RSpop": {
+                    "size": "N - int(N*fractionE)", 
+                    "component": "hhcell", 
+                    "properties": {
+                        "color": "0 0 .7"
+                    }
+                }
+            }
+        ], 
+        "projections": [
+            {
+                "projEI": {
+                    "presynaptic": "Epop", 
+                    "postsynaptic": "RSpop", 
+                    "synapse": "ampa", 
+                    "delay": 2, 
+                    "weight": 0.2, 
+                    "random_connectivity": {
+                        "probability": 0.8
+                    }
+                }
+            }
+        ], 
+        "inputs": [
+            {
+                "stim": {
+                    "input_source": "poissonFiringSyn", 
+                    "population": "Epop", 
+                    "percentage": 50.0, 
+                    "weight": "weightInput"
+                }
+            }
+        ]
+    }
+}

@@ -48,7 +48,7 @@ class ParameterSweep():
     def _run_instance(self, ** kwargs):
 
         print_v('============================================================= \n\n'+
-                '     Instance (%s/%s): %s\n' % (self.complete, self.total_todo, kwargs))
+                '     Instance (%s/%s): %s\n' % (self.complete+1, self.total_todo, kwargs))
 
         return self.runner.run_once( ** kwargs)
 
@@ -161,14 +161,15 @@ class ParameterSweep():
 class NeuroMLliteRunner():
     
     
-    def __init__(self, nmllite_sim, plot_all=True):
+    def __init__(self, nmllite_sim, plot_all=True, show_plot_already=False):
         self.plot_all = plot_all
+        self.show_plot_already = show_plot_already
         self.base_dir = os.path.dirname(os.path.realpath(nmllite_sim))
         self.sim = load_simulation_json(nmllite_sim)
         
         if self.plot_all:
             from matplotlib import pyplot as plt
-            plt.figure()
+            #plt.figure()
             self.ax = pynml.generate_plot([],                    
                          [],                   # Add 2 sets of y values
                          "Some traces...",                  # Title
@@ -204,7 +205,7 @@ class NeuroMLliteRunner():
                     
     def finish(self):
         from matplotlib import pyplot as plt
-        if self.plot_all:
+        if self.show_plot_already:
             plt.show()
         
 
@@ -225,7 +226,9 @@ if __name__ == '__main__':
     #vary = {'stim_amp':['1.5pA']}
     
     
-    nmllr = NeuroMLliteRunner('../../examples/SimExample8.json')
+    nmllr = NeuroMLliteRunner('../../examples/SimExample8.json',
+                              plot_all=True, 
+                              show_plot_already=False)
 
     if quick:
         pass

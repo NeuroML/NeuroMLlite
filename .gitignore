@@ -36,3 +36,4 @@ report*.txt
 /*.gv
 /testmac.sh
 /regenerateAndTestmac.sh
+/neuromllite/sweep/*.png

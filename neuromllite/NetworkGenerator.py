@@ -313,10 +313,10 @@ def generate_neuroml2_from_network(nl_model,
         if c.pynn_cell:
             import pyNN.neuroml
             cell_params = c.parameters if c.parameters else {}
-            print('%s: %s'%(c, cell_params))
+            #print('%s: %s'%(c, cell_params))
             for p in cell_params:
                 cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
-            print('%s: %s'%(c, cell_params))
+            #print('%s: %s'%(c, cell_params))
             for proj in nl_model.projections:
 
                 synapse = nl_model.get_child(proj.synapse,'synapses')
@@ -368,7 +368,7 @@ def generate_neuroml2_from_network(nl_model,
             
     if print_summary:
         # Print info
-        print(nml_doc.summary())
+        print_v(nml_doc.summary())
 
     # Save to file
         
