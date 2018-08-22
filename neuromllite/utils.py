@@ -91,16 +91,33 @@ def load_simulation_json(filename):
 
 
 def evaluate(expr, globals={}):
-    #print_v('Exaluating: [%s] vs globals %s...'%(expr,globals))
+    
+    verbose = False
+    print_('Exaluating: [%s] which is a %s vs globals %s...'%(expr,type(expr),globals),verbose)
     try:
         if expr in globals:
-            return globals[expr]
+            expr = globals[expr]  # replace with the value in globals & check whether it's float/int...
+        
+        if type(expr)==str:
+            try:
+                expr = int(expr)
+            except:
+                pass
+            try:
+                expr = float(expr)
+            except:
+                pass
+            
         if int(expr)==expr:
+            print_('Returning int: %s'%int(expr),verbose)
             return int(expr)
         else: # will have failed if not number
+            print_('Returning float: %s'%expr,verbose)
             return float(expr)
     except:
         try:
+            print_('Evaluating with python: %s'%expr,verbose)
             return eval(expr, globals)
         except:
+            print_('Returning without altering: %s'%expr,verbose)
             return expr

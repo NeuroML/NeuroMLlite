@@ -183,11 +183,15 @@ def generate_network(nl_model,
                 flip = rng.random()
                 weight = input.weight if input.weight else 1
                 if flip*100.<input.percentage:
-                    handler.handle_single_input(input.id, 
-                                                input_count, 
-                                                i,
-                                                weight=evaluate(weight, nl_model.parameters))
-                    input_count+=1
+                    
+                    number_per_cell = evaluate(input.number_per_cell, nl_model.parameters) if input.number_per_cell else 1
+                    
+                    for j in range(number_per_cell):
+                        handler.handle_single_input(input.id, 
+                                                    input_count, 
+                                                    i,
+                                                    weight=evaluate(weight, nl_model.parameters))
+                        input_count+=1
 
             handler.finalise_input_source(input.id)
             

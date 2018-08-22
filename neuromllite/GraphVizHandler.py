@@ -139,8 +139,14 @@ class GraphVizHandler(DefaultNetworkHandler):
                             
                             if projName in self.proj_syn_objs:
                                 syn = self.proj_syn_objs[projName]
-                                gbase_si = convert_to_units(syn.gbase, 'nS')
-                                label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), syn.gbase, self.format_float(post_avg*avg_weight*gbase_si))
+                                
+                                if hasattr(syn,'gbase'):
+                                    gbase = syn.gbase
+                                elif hasattr(syn,'conductance'):
+                                    gbase = syn.conductance
+                                    
+                                gbase_si = convert_to_units(gbase, 'nS')
+                                label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), gbase, self.format_float(post_avg*avg_weight*gbase_si))
                         
                     if not label[-1]=='>':
                         label += '>'

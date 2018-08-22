@@ -139,6 +139,7 @@ class Input(BaseWithId):
         self.allowed_fields = collections.OrderedDict([('input_source',('Type of input to use in population',str)),
                                ('population',('Population to target',str)),
                                ('percentage',('Percentage of cells to apply this input to',float)),
+                               ('number_per_cell',('Number of individual inputs per selected cell',EvaluableExpression)),
                                ('weight',('Weight to use (default: 1)',EvaluableExpression))])
                                
                       

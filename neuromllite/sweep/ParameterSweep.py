@@ -8,10 +8,10 @@ from pyneuroml import pynml
 from pyelectro import analysis
 from collections import OrderedDict
 
-import pprint; pp = pprint.PrettyPrinter(depth=6)
-
 from neuromllite.utils import print_v
 
+from matplotlib import pyplot as plt
+import numpy as np
 
 '''
 
@@ -33,6 +33,9 @@ class ParameterSweep():
         self.complete = 0
         self.total_todo = 1
         self.report = OrderedDict()
+        self.report['Varied parameters'] = vary
+        self.report['Fixed parameters'] = fixed
+        self.report['Simulations'] = OrderedDict()
         for v in vary:
             self.total_todo *= len(vary[v])
             
@@ -76,8 +79,11 @@ class ParameterSweep():
                 r = '%s_%s%s' % (reference, keys[0], val)
                 ref_here = 'REFb%s%s' % (self.complete, r)
                 all_params['reference'] = ref_here
-                self.report[ref_here] = OrderedDict()
-                self.report[ref_here]['parameters'] = all_params
+                
+                self.report['Simulations'][ref_here] = OrderedDict()
+                report_here = self.report['Simulations'][ref_here]
+                
+                report_here['parameters'] = all_params
                 traces, events = self._run_instance( ** all_params)
                 
                 times = [t*1000. for t in traces['t']]
@@ -96,12 +102,12 @@ class ParameterSweep():
                                                    
                 analysed = analysis_data.analyse()
                 
-                self.report[ref_here]['analysis'] = OrderedDict()
+                report_here['analysis'] = OrderedDict()
                 for a in analysed:
                     ref,var = a.split(':')
-                    if not ref in self.report[ref_here]['analysis']:
-                        self.report[ref_here]['analysis'][ref] = OrderedDict()
-                    self.report[ref_here]['analysis'][ref][var] = analysed[a]
+                    if not ref in report_here['analysis']:
+                        report_here['analysis'][ref] = OrderedDict()
+                    report_here['analysis'][ref][var] = analysed[a]
                     
                 #self.report[ref_here]['parameters']
                 
@@ -117,12 +123,20 @@ class ParameterSweep():
         return self.report
     
     
-    def plotLines(self, param, value, save_figure_to=None):
+    def print_report(self):
+
+        print_v('--- REPORT:')
+        import json
+
+        print_v(json.dumps(self.report, indent=4))    
+    
+    
+    def plotLines(self, param, value, save_figure_to=None, logx=False,logy=False):
         
         all_pvals = OrderedDict()
         all_lines = OrderedDict()
         
-        for ref, info in self.report.items():
+        for ref, info in self.report['Simulations'].items():
             print_v('Checking %s: %s'%(ref,info['parameters']))
             pval = get_value_in_si(info['parameters'][param])
 
@@ -141,12 +155,19 @@ class ParameterSweep():
         ys = []
         labels = []
         markers = []
+        colors = []
         
         for ref in all_lines:
             xs.append(all_pvals[ref])
             ys.append(all_lines[ref])
             labels.append(ref)
             markers.append('o')
+            
+            pop_id = ref.split('[')[0] if '[' in ref else ref.split('/')[0]
+            pop = self.runner.last_network.get_child(pop_id, 'populations')
+            color = [float(c) for c in pop.properties['color'].split()]
+            #print_v("This trace %s has population %s: %s, so color: %s"%(ref,pop_id,pop,color))
+            colors.append(color)
         
         ax = pynml.generate_plot(xs,                  
                                  ys,           
@@ -154,57 +175,95 @@ class ParameterSweep():
                                  xaxis = param,            
                                  yaxis = value,          
                                  labels = labels,       
-                                 markers = markers,  
+                                 markers = markers,    
+                                 colors = colors,  
+                                 logx = logx,
+                                 logy = logy,
                                  show_plot_already=False,
                                  save_figure_to=save_figure_to)     # Save figure
         
 class NeuroMLliteRunner():
     
     
-    def __init__(self, nmllite_sim, plot_all=True, show_plot_already=False):
+    def __init__(self, nmllite_sim, plot_all=False, heatmap_all=False, show_plot_already=False, simulator='jNeuroML'):
+        
         self.plot_all = plot_all
+        self.heatmap_all = heatmap_all
         self.show_plot_already = show_plot_already
         self.base_dir = os.path.dirname(os.path.realpath(nmllite_sim))
         self.sim = load_simulation_json(nmllite_sim)
+        self.simulator = simulator
         
         if self.plot_all:
-            from matplotlib import pyplot as plt
             #plt.figure()
             self.ax = pynml.generate_plot([],                    
                          [],                   # Add 2 sets of y values
-                         "Some traces...",                  # Title
+                         "Some traces generated from %s"%nmllite_sim,                  # Title
                          labels = [],
                          xaxis = 'Time (ms)',            # x axis legend
-                         yaxis = '???',   # y axis legend
+                         yaxis = '',   # y axis legend
                          show_plot_already=False)     # Save figure
+                         
+        if self.heatmap_all:
 
+            self.hm_fig, self.hm_ax = plt.subplots()
+            self.all_info = []
         
     def run_once(self, ** kwargs):
         print_v('Running NeuroMLlite simulation...')
         
-        network = load_network_json(self.base_dir+'/'+self.sim.network)
+        self.last_network = load_network_json(self.base_dir+'/'+self.sim.network)
+        
         for a in kwargs:
-            network.parameters[a] = kwargs[a]
+            if a in self.last_network.parameters:
+                print_v('  Setting %s to %s in network...'%(a, kwargs[a]))
+                self.last_network.parameters[a] = kwargs[a]
+            elif a in self.sim.fields:
+                print_v('  Setting %s to %s in simulator...'%(a, kwargs[a]))
+                setattr(self.sim,a,kwargs[a])
+            else:
+                print_v('  Cannot set parameter %s to %s in network or simulator...'%(a, kwargs[a]))
         
         traces, events = generate_and_run(self.sim, 
-                                          simulator='jNeuroML', 
-                                          network=network, 
+                                          simulator=self.simulator, 
+                                          network=self.last_network, 
                                           return_results=True,
                                           base_dir=self.base_dir)
                                           
         print_v("Returned traces: %s, events: %s"%(traces.keys(), events.keys()))
         
-        if self.plot_all:
+        if self.plot_all or self.heatmap_all:
             for y in traces.keys():
                 if y!='t':
-                    label = '%s (%s)'%(y, kwargs)
-                    self.ax.plot(traces['t'],traces[y],label=label)
+                    pop_id = y.split('[')[0] if '[' in y else y.split('/')[0]
+                    pop = self.last_network.get_child(pop_id, 'populations')
+                    if pop:
+                        color = [float(c) for c in pop.properties['color'].split()]
+                        #print_v("This trace %s has population %s: %s, so color: %s"%(y,pop_id,pop,color))
+                    else:
+                        #print_v("This trace %s has population %s: %s which has no color..."%(y,pop_id,pop))
+                        color = [1,0,0]
+                
+                    if self.plot_all:
+                        label = '%s (%s)'%(y, kwargs)
+                        self.ax.plot(traces['t'],traces[y],label=label)
+                    
+                    if self.heatmap_all:
+                        downscale = int(0.1/self.sim.dt)
+                        d = [traces[y][i] for i in range(len(traces[y])) if i%downscale==0]
+                        print_v('-- Trace %s downscaled by factor %i from %i to %i points for heatmap'%(y,downscale,len(traces[y]),len(d)))
+                        self.all_info.append(d)
                     
         return traces, events 
                     
                     
     def finish(self):
-        from matplotlib import pyplot as plt
+        
+        if self.heatmap_all:
+            
+            plot0 = self.hm_ax.pcolormesh(np.array(self.all_info))
+            self.hm_fig.colorbar(plot0)
+        
         if self.show_plot_already:
             plt.show()
         
@@ -212,8 +271,7 @@ class NeuroMLliteRunner():
 if __name__ == '__main__':
 
 
-    fixed = {'dt':0.025}
-    fixed = {'N':20}
+    fixed = {'dt':0.025,'N':30}
 
     quick = False
     #quick=True
@@ -223,11 +281,14 @@ if __name__ == '__main__':
     vary = {'stim_amp':['%spA'%(i/10.0) for i in xrange(-10,20,5)]}
     vary = {'weightInput':[1,2,5,10]}
     vary = {'weightInput':[1,2,3,20]}
+    vary = {'eta':['%sHz'%(i) for i in xrange(0,140,20)]}
+    #vary = {'eta':['100Hz']}
     #vary = {'stim_amp':['1.5pA']}
     
     
-    nmllr = NeuroMLliteRunner('../../examples/SimExample8.json',
+    nmllr = NeuroMLliteRunner('../../examples/SimExample7.json',
                               plot_all=True, 
+                              heatmap_all=True,
                               show_plot_already=False)
 
     if quick:
@@ -236,14 +297,11 @@ if __name__ == '__main__':
     ps = ParameterSweep(nmllr, vary, fixed)
 
     report = ps.run()
-    for r in report:
-        print_v('--- REP: %s'%r)
-        import json
-        
-        print_v(json.dumps(report[r], indent=4))
+    ps.print_report()
     
     #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
-    ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+    #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+    ps.plotLines('eta','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
     
     import matplotlib.pyplot as plt
     
