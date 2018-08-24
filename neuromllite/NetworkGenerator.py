@@ -9,7 +9,9 @@ def _locate_file(f, base_dir):
     if base_dir==None:
         return f
     file_name = os.path.join(base_dir,f)
-    return os.path.realpath(file_name)
+    real = os.path.realpath(file_name)
+    #print_v('- Located %s at %s'%(f,real))
+    return real
 
 def generate_network(nl_model, 
                      handler, 
@@ -248,9 +250,10 @@ def generate_neuroml2_from_network(nl_model,
                                    print_summary=True, 
                                    seed=1234, 
                                    format='xml', 
-                                   base_dir=None):
+                                   base_dir=None,
+                                   target_dir=None):
 
-    print_v("Generating NeuroML2 for %s%s..."%(nl_model.id, ' (base dir: %s)'%base_dir if base_dir else ''))
+    print_v("Generating NeuroML2 for %s%s..."%(nl_model.id, ' (base dir: %s; target dir: %s)'%(base_dir,target_dir) if base_dir or target_dir else ''))
     
     import neuroml
     from neuroml.hdf5.NetworkBuilder import NetworkBuilder
@@ -376,15 +379,17 @@ def generate_neuroml2_from_network(nl_model,
 
     # Save to file
         
+    if target_dir==None:
+        target_dir = base_dir
     if format=='xml':
         if not nml_file_name:
-            nml_file_name = _locate_file('%s.net.nml'%nml_doc.id, base_dir)
+            nml_file_name = _locate_file('%s.net.nml'%nml_doc.id, target_dir)
         from neuroml.writers import NeuroMLWriter
         NeuroMLWriter.write(nml_doc,nml_file_name)
         
     if format=='hdf5':
         if not nml_file_name:
-            nml_file_name = _locate_file('%s.net.nml.h5'%nml_doc.id, base_dir)
+            nml_file_name = _locate_file('%s.net.nml.h5'%nml_doc.id, target_dir)
         from neuroml.writers import NeuroMLHdf5Writer
         NeuroMLHdf5Writer.write(nml_doc, nml_file_name)
 
@@ -443,7 +448,12 @@ def _generate_neuron_files_from_neuroml(network):
             print_v("Failed to load mod file mechanisms...")
 
 
-def generate_and_run(simulation, simulator, network = None, return_results=False, base_dir=None):
+def generate_and_run(simulation, 
+                     simulator, 
+                     network = None, 
+                     return_results=False, 
+                     base_dir=None,
+                     target_dir=None):
 
     if network==None:
         network = load_network_json(simulation.network)
@@ -452,7 +462,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
     
     if simulator=='NEURON':
         
-        _generate_neuron_files_from_neuroml(network)
+        _generate_neuron_files_from_neuroml(network, target_dir)
         
         from neuromllite.NeuronHandler import NeuronHandler
         
@@ -701,8 +711,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
 
         lems_file_name='LEMS_%s.xml'%simulation.id
 
-        nml_file_name, nml_doc = generate_neuroml2_from_network(network, base_dir=base_dir)
-        
+        nml_file_name, nml_doc = generate_neuroml2_from_network(network, base_dir=base_dir, target_dir=target_dir)
         included_files = ['PyNN.xml']
 
         for c in network.cells:        
@@ -739,7 +748,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
                                simulation.duration, 
                                simulation.dt, 
                                lems_file_name,
-                               '.' if not base_dir else base_dir,
+                               target_dir = target_dir if target_dir else '.',
                                nml_doc = nml_doc,  # Use this if the nml doc has already been loaded (to avoid delay in reload)
                                include_extra_files = included_files,
                                gen_plots_for_all_v = False,
@@ -760,7 +769,7 @@ def generate_and_run(simulation, simulator, network = None, return_results=False
                                simulation_seed=12345,
                                verbose=True)
               
-        lems_file_name = _locate_file(lems_file_name, base_dir)
+        lems_file_name = _locate_file(lems_file_name, target_dir)
         
         if simulator=='jNeuroML':
             results = pynml.run_lems_with_jneuroml(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)

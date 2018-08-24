@@ -55,6 +55,8 @@ python Example8.py
 
 jnml -validate *nml
 
+nosetests -vs
+
 echo
 echo "** All generated and tested! **"
 

@@ -37,3 +37,10 @@ report*.txt
 /testmac.sh
 /regenerateAndTestmac.sh
 /neuromllite/sweep/*.png
+/neuromllite/test/temp/*
+/neuromllite/sweep/*.gv
+/neuromllite/sweep/ParamSweep_*
+/neuromllite/sweep/Example_HHTest.json
+/neuromllite/sweep/Example_PyNNTest.json
+/neuromllite/sweep/Sim_HHTest.json
+/neuromllite/sweep/Sim_PyNNTest.json

@@ -121,3 +121,117 @@ def evaluate(expr, globals={}):
         except:
             print_('Returning without altering: %s'%expr,verbose)
             return expr
+        
+        
+def create_new_model(reference,
+                     duration, 
+                     dt=0.025, # ms 
+                     temperature=6.3, # degC
+                     default_region=None,
+                     parameters = None,
+                     cell_for_default_population=None,
+                     color_for_default_population='0.8 0 0',
+                     input_for_default_population=None):
+        
+    ################################################################################
+    ###   Build a new network
+
+    net = Network(id=reference)
+    net.notes = "A network model: %s."%reference
+    net.temperature = temperature # degC
+    if parameters:
+        net.parameters = parameters
+    
+
+    ################################################################################
+    ###   Add some regions
+    
+    if default_region:
+        if type(default_region)==str:
+            r1 = RectangularRegion(id=default_region, x=0,y=0,z=0,width=1000,height=100,depth=1000)
+            net.regions.append(r1)
+            default_region = r1
+        else:
+            net.regions.append(default_region)
+
+
+    ################################################################################
+    ###   Add some cells
+
+    if cell_for_default_population:
+        net.cells.append(cell_for_default_population)
+
+
+    ################################################################################
+    ###   Add some synapses
+    '''
+    ampa = 'wbsFake'
+    net.synapses.append(Synapse(id=ampa, 
+                                lems_source_file='WangBuzsakiSynapse.xml'))'''
+
+
+
+    ################################################################################
+    ###   Add some populations
+
+    if cell_for_default_population:
+        pop = Population(id='pop_%s'%cell_for_default_population.id, 
+                            size=1, 
+                            component=cell_for_default_population.id, 
+                            properties={'color':color_for_default_population})
+
+        if default_region:
+            pop.region = default_region
+
+        net.populations.append(pop)
+        
+
+
+    ################################################################################
+    ###   Add a projection
+
+    '''
+    net.projections.append(Projection(id='proj0',
+                                      presynaptic=p0.id, 
+                                      postsynaptic=p1.id,
+                                      synapse='ampa'))
+
+    net.projections[0].random_connectivity=RandomConnectivity(probability=0.5)'''
+    
+ 
+    ################################################################################
+    ###   Add some inputs
+    
+    if input_for_default_population:
+
+        net.input_sources.append(input_for_default_population)
+
+        
+        net.inputs.append(Input(id='Stim_%s'%input_for_default_population.id,
+                                input_source=input_for_default_population.id,
+                                population=pop.id,
+                                percentage=100))
+        
+
+
+    ################################################################################
+    ###   Save to JSON format
+
+    net.id = reference
+
+    print(net.to_json())
+    new_file = net.to_json_file('Example_%s.json'%net.id)
+    
+
+    ################################################################################
+    ###   Build Simulation object & save as JSON
+
+    sim = Simulation(id='Sim_%s'%reference,
+                     network=new_file,
+                     duration=duration,
+                     dt=dt,
+                     recordTraces={'all':'*'})
+
+    sim.to_json_file()
+    
+    return sim, net

@@ -174,6 +174,10 @@ class Base(object):
             
         return s
     
+    def __getstate__(self): return self.__dict__
+    
+    def __setstate__(self, d): self.__dict__.update(d)
+    
     def get_child(self, id, type):
         if not type in self.children:
             return None
