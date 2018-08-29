@@ -182,6 +182,8 @@ def create_new_model(reference,
 
         if default_region:
             pop.region = default_region
+            
+            pop.random_layout = RandomLayout(region=default_region.id)
 
         net.populations.append(pop)
         
@@ -220,7 +222,7 @@ def create_new_model(reference,
     net.id = reference
 
     print(net.to_json())
-    new_file = net.to_json_file('Example_%s.json'%net.id)
+    new_file = net.to_json_file('%s.json'%net.id)
     
 
     ################################################################################

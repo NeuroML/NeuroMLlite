@@ -1,7 +1,6 @@
 import os
 
-from neuromllite.utils import load_simulation_json,load_network_json
-from neuromllite.NetworkGenerator import generate_and_run
+from neuromllite.utils import load_simulation_json
 from pyneuroml.pynml import get_value_in_si
 
 from pyneuroml import pynml
@@ -37,7 +36,9 @@ class ParameterSweep():
                  verbose=False,
                  num_parallel_runs=1,
                  plot_all=False, 
+                 save_plot_all_to=None, 
                  heatmap_all=False, 
+                 save_heatmap_to=None, 
                  show_plot_already=False, ):
 
         self.sim = load_simulation_json(runner.nmllite_sim)
@@ -56,10 +57,12 @@ class ParameterSweep():
         self.num_parallel_runs=num_parallel_runs
         
         self.plot_all = plot_all
+        self.save_plot_all_to = save_plot_all_to
         self.heatmap_all = heatmap_all
+        self.save_heatmap_to = save_heatmap_to
         self.show_plot_already = show_plot_already
         
-        self.complete = 0
+        self.index = 0
         self.total_todo = 1
         self.report = OrderedDict()
         self.report['Varied parameters'] = vary
@@ -73,15 +76,16 @@ class ParameterSweep():
         if self.plot_all:
             self.ax = pynml.generate_plot([],                    
                          [],                   # Add 2 sets of y values
-                         "Some traces generated from %s"%runner.nmllite_sim,                  # Title
+                         "Traces generated from %s"%runner.nmllite_sim,                  # Title
                          labels = [],
                          xaxis = 'Time (ms)',            # x axis legend
                          yaxis = 'Membrane potential (mV)',   # y axis legend
+                         title_above_plot = True,
                          show_plot_already=False)     # Save figure
                          
         if self.heatmap_all:
-
-            self.hm_fig, self.hm_ax = plt.subplots()
+            if len(self.vary)!=1:
+                raise('Heatmap can only be used when only one parameter is varied...')
             self.hm_x = None
             self.hm_y = []
             self.hm_z = []
@@ -113,7 +117,8 @@ class ParameterSweep():
                 all_params = dict(f)
                 all_params[keys[0]] = val
                 r = '%s_%s%s' % (reference, keys[0], val)
-                ref_here = 'REFb%s%s' % (self.complete, r)
+                ref_here = 'RUN%s_%s_%s' % (self.index, self.sim.id, r)
+                self.index+=1
                 all_params['reference'] = ref_here
                 
                 self.report['Simulations'][ref_here] = OrderedDict()
@@ -192,12 +197,11 @@ class ParameterSweep():
 
             report_here['analysis'] = OrderedDict()
             for a in analysed:
-                ref,var = a.split(':')
-                if not ref in report_here['analysis']:
-                    report_here['analysis'][ref] = OrderedDict()
-                report_here['analysis'][ref][var] = analysed[a]
+                ref0,var = a.split(':')
+                if not ref0 in report_here['analysis']:
+                    report_here['analysis'][ref0] = OrderedDict()
+                report_here['analysis'][ref0][var] = analysed[a]
             
-            self.complete += 1
             
             if self.plot_all or self.heatmap_all:
                 for y in traces.keys():
@@ -216,14 +220,16 @@ class ParameterSweep():
                             self.ax.plot(traces['t'],[v*1000 for v in traces[y]],label=label)
 
                         if self.heatmap_all:
-                            downscale = int(0.1/self.sim.dt)
+                            dt = self.sim.dt if not 'dt' in params else params['dt']
+                            downscale = int(0.1/dt)
                             d = [traces[y][i]*1000 for i in range(len(traces[y])) if i%downscale==0]
                             tt = [traces['t'][i]*1000 for i in range(len(traces['t'])) if i%downscale==0]
-                            print_v('-- Trace %s downscaled by factor %i from %i to %i points for heatmap'%(y,downscale,len(traces[y]),len(d)))
                             
-                            pval = get_value_in_si(params[params.keys()[0]])
+                            param_name = self.vary.keys()[0]
+                            pval = get_value_in_si(params[param_name])
                             if self.hm_x==None:
                                 self.hm_x = tt
+                            print_v('  ==  Trace %s (%s) downscaled by factor %i from %i to %i points for heatmap; y value: %s=%s'%(y,ref,downscale,len(traces[y]),len(d), param_name, pval))
                             self.hm_y.append(pval)
                             self.hm_z.append(d)
                 
@@ -238,11 +244,22 @@ class ParameterSweep():
         self._sweep(self.vary, self.fixed)
         self._run_all()
         
+        if self.plot_all and self.save_plot_all_to:
+            print_v("Saving image to %s of plot"%(os.path.abspath(self.save_plot_all_to)))
+            plt.savefig(self.save_plot_all_to,bbox_inches='tight')
+        
         if self.heatmap_all:
             
+            self.hm_fig, self.hm_ax = plt.subplots()
+            z = np.array(self.hm_z)
+            print('Plotting x: %s->%s (%i), y: %s->%s (%i), z: %s->%s (%i)' % \
+                                       (self.hm_x[0], self.hm_x[-1], len(self.hm_x),
+                                       self.hm_y[0], self.hm_y[-1], len(self.hm_y),
+                                       z.min(), z.max(), z.size))
+                                       
             plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
                                           np.array(self.hm_y), 
-                                          np.array(self.hm_z))
+                                          z)
             
             plt.xlabel('Time (ms)')
             plt.ylabel('%s '%self.vary.keys()[0])
@@ -255,6 +272,11 @@ class ParameterSweep():
 
             cb1 = self.hm_fig.colorbar(plot0)
             cb1.set_label('Membrane potential (mV)')
+
+            if self.save_heatmap_to:
+                print_v("Saving image to %s of plot"%(os.path.abspath(self.save_heatmap_to)))
+                plt.savefig(self.save_heatmap_to,bbox_inches='tight')
+            
         
         if self.show_plot_already:
             plt.show()
@@ -294,10 +316,14 @@ class ParameterSweep():
         labels = []
         markers = []
         colors = []
+        maxy = -1 * sys.float_info.max
         
         for ref in all_lines:
             xs.append(all_pvals[ref])
             ys.append(all_lines[ref])
+            
+            maxy = max(maxy, max(all_lines[ref]))
+            
             labels.append(ref)
             markers.append('o')
             
@@ -310,15 +336,29 @@ class ParameterSweep():
                 pop = None
             print_v("This trace %s has population %s: %s, so color: %s"%(ref,pop_id,pop,color))
             colors.append(color)
+
+        xlim = None
+        ylim = None
+            
+        yaxis = value.replace('_', ' ')
+        yaxis = yaxis[0].upper()+yaxis[1:]
+        
+        if value=='mean_spike_frequency':
+            yaxis += ' (Hz)'
+            ylim = [maxy*-0.1,maxy*1.1]
+            print('Setting y axes on freq plot to: %s'% ylim)
+            
         
         ax = pynml.generate_plot(xs,                  
                                  ys,           
                                  "Plot of %s vs %s"%(value, param),              
                                  xaxis = param,            
-                                 yaxis = value,          
+                                 yaxis = yaxis,          
                                  labels = labels,       
                                  markers = markers,    
                                  colors = colors,  
+                                 xlim = xlim,
+                                 ylim = ylim,
                                  logx = logx,
                                  logy = logy,
                                  show_plot_already=False,
@@ -399,17 +439,23 @@ if __name__ == '__main__':
         fixed = {'dt':0.025}
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,40)],
                 'stim_del':['%sms'%(i) for i in xrange(10,40,10)]}
-        vary = {'stim_amp':['%spA'%(i) for i in xrange(-80,160,1)]}
+                
+        vary = {'stim_amp':['%spA'%(i) for i in [-100,0,100,200]],
+                'stim_del':['%sms'%(i) for i in [10,20,50]]}
+                
+        #vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,20)]}
         
-        nmllr = NeuroMLliteRunner('Sim_IClamp_HH.json')
+        simulator='jNeuroML_NEURON'
+        
+        nmllr = NeuroMLliteRunner('Sim_HHTest.json')
 
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=1,
-                                  plot_all=True, 
-                                  heatmap_all=True,
-                                  show_plot_already=False)
+                            num_parallel_runs=16,
+                            plot_all=True, 
+                            heatmap_all=False,
+                            show_plot_already=False)
 
         report = ps.run()
         ps.print_report()
@@ -429,10 +475,10 @@ if __name__ == '__main__':
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-200,1600,300)]}
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,20)]}
         
-        simulator='jNeuroML_NEURON'
         simulator='jNeuroML_NetPyNE'
         simulator='NetPyNE'
         simulator='jNeuroML'
+        simulator='jNeuroML_NEURON'
         
         nmllr = NeuroMLliteRunner('Sim_HHTest.json',
                                   simulator=simulator)
@@ -446,7 +492,7 @@ if __name__ == '__main__':
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=18,
+                            num_parallel_runs=16,
                             plot_all=True, 
                             heatmap_all=True,
                             show_plot_already=False)

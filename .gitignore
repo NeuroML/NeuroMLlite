@@ -44,3 +44,9 @@ report*.txt
 /neuromllite/sweep/Example_PyNNTest.json
 /neuromllite/sweep/Sim_HHTest.json
 /neuromllite/sweep/Sim_PyNNTest.json
+/neuromllite/sweep/HHTest.json
+/neuromllite/sweep/HHTest.net.nml
+/neuromllite/sweep/LEMS_Sim_HHTest.xml
+/neuromllite/sweep/LEMS_Sim_PyNNTest.xml
+/neuromllite/sweep/PyNNTest.json
+/neuromllite/sweep/PyNNTest.net.nml
