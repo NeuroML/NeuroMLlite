@@ -205,7 +205,7 @@ def generate_network(nl_model,
     
 def check_to_generate_or_run(argv, sim):
     
-    print_v("Checking arguments: %s to see whether anything should be run..."%argv)
+    print_v("Checking arguments: %s to see whether anything should be run in simulation %s (net: %s)..."%(argv, sim.id, sim.network))
     
     if '-pynnnest' in argv:
         generate_and_run(sim, simulator='PyNN_NEST')
@@ -320,7 +320,7 @@ def generate_neuroml2_from_network(nl_model,
         if c.pynn_cell:
             import pyNN.neuroml
             cell_params = c.parameters if c.parameters else {}
-            #print('%s: %s'%(c, cell_params))
+            #print('------- %s: %s'%(c, cell_params))
             for p in cell_params:
                 cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
             #print('%s: %s'%(c, cell_params))
@@ -339,6 +339,9 @@ def generate_neuroml2_from_network(nl_model,
                         cell_params['%s%s'%(p,post)]=synapse.parameters[p]
                     
             temp_cell = eval('pyNN.neuroml.%s(**cell_params)'%c.pynn_cell)
+            if c.pynn_cell != 'SpikeSourcePoisson':
+                temp_cell.default_initial_values['v'] = temp_cell.parameter_space['v_rest'].base_value
+            
             cell_id = temp_cell.add_to_nml_doc(nml_doc, None)
             cell = nml_doc.get_by_id(cell_id)
             cell.id = c.id
@@ -552,6 +555,9 @@ def generate_and_run(simulation,
                     cell_params.update(syn_cell_params[c.id])
                 print_v("Creating cell with params: %s"%cell_params)
                 exec('cells["%s"] = pynn_handler.sim.%s(**cell_params)'%(c.id,c.pynn_cell))
+                
+                if c.pynn_cell != 'SpikeSourcePoisson':
+                    exec("cells['%s'].default_initial_values['v'] = cells['%s'].parameter_space['v_rest'].base_value"%(c.id, c.id))
                 
         pynn_handler.set_cells(cells)
         

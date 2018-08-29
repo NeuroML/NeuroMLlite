@@ -2,8 +2,9 @@
     "Example7_Brunel2000": {
         "version": "NeuroMLlite v0.1.4", 
         "parameters": {
-            "fractionE": 0.8, 
-            "N": 100
+            "eta": "1", 
+            "order": 5, 
+            "g": 4
         }, 
         "notes": "Example 7: based on network of Brunel 2000", 
         "cells": [
@@ -11,8 +12,21 @@
                 "ifcell": {
                     "pynn_cell": "IF_cond_alpha", 
                     "parameters": {
-                        "tau_refrac": 5, 
-                        "i_offset": 0.1
+                        "tau_refrac": 2, 
+                        "tau_m": 20, 
+                        "i_offset": 0, 
+                        "cm": 0.001, 
+                        "v_thresh": 20, 
+                        "v_rest": 0, 
+                        "v_reset": 0
+                    }
+                }
+            }, 
+            {
+                "expoisson": {
+                    "pynn_cell": "SpikeSourcePoisson", 
+                    "parameters": {
+                        "rate": 200
                     }
                 }
             }
@@ -20,33 +34,19 @@
         "synapses": [
             {
                 "ampa": {
-                    "pynn_synapse_type": "cond_alpha", 
+                    "pynn_synapse_type": "curr_alpha", 
                     "pynn_receptor_type": "excitatory", 
                     "parameters": {
-                        "e_rev": -10, 
-                        "tau_syn": 2
+                        "tau_syn": 0.1
                     }
                 }
             }, 
             {
                 "gaba": {
-                    "pynn_synapse_type": "cond_alpha", 
+                    "pynn_synapse_type": "curr_alpha", 
                     "pynn_receptor_type": "inhibitory", 
                     "parameters": {
-                        "e_rev": -80, 
-                        "tau_syn": 10
-                    }
-                }
-            }
-        ], 
-        "input_sources": [
-            {
-                "iclamp0": {
-                    "pynn_input": "DCSource", 
-                    "parameters": {
-                        "start": 100.0, 
-                        "stop": 900.0, 
-                        "amplitude": 0.99
+                        "tau_syn": 0.1
                     }
                 }
             }
@@ -54,7 +54,7 @@
         "populations": [
             {
                 "Epop": {
-                    "size": "int(N*fractionE)", 
+                    "size": "4*order", 
                     "component": "ifcell", 
                     "properties": {
                         "color": "1 0 0"
@@ -62,8 +62,17 @@
                 }
             }, 
             {
+                "Einput": {
+                    "size": "4*order", 
+                    "component": "expoisson", 
+                    "properties": {
+                        "color": ".5 0 0"
+                    }
+                }
+            }, 
+            {
                 "Ipop": {
-                    "size": "N - int(N*fractionE)", 
+                    "size": "1*order", 
                     "component": "ifcell", 
                     "properties": {
                         "color": "0 0 1"
@@ -73,12 +82,12 @@
         ], 
         "projections": [
             {
-                "projEE": {
-                    "presynaptic": "Epop", 
+                "projEinput": {
+                    "presynaptic": "Einput", 
                     "postsynaptic": "Epop", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.02, 
+                    "weight": 0.002, 
                     "random_connectivity": {
                         "probability": 0.5
                     }
@@ -90,31 +99,10 @@
                     "postsynaptic": "Ipop", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.02, 
+                    "weight": 0.002, 
                     "random_connectivity": {
                         "probability": 0.5
                     }
-                }
-            }, 
-            {
-                "projIE": {
-                    "presynaptic": "Ipop", 
-                    "postsynaptic": "Epop", 
-                    "synapse": "gaba", 
-                    "delay": 2, 
-                    "weight": 0.02, 
-                    "random_connectivity": {
-                        "probability": 0.5
-                    }
-                }
-            }
-        ], 
-        "inputs": [
-            {
-                "stim": {
-                    "input_source": "iclamp0", 
-                    "population": "Epop", 
-                    "percentage": 50.0
                 }
             }
         ]

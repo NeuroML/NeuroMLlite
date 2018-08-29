@@ -131,13 +131,16 @@ def create_new_model(reference,
                      parameters = None,
                      cell_for_default_population=None,
                      color_for_default_population='0.8 0 0',
-                     input_for_default_population=None):
+                     input_for_default_population=None,
+                     synapses=[],
+                     network_filename=None,
+                     simulation_filename=None):
         
     ################################################################################
     ###   Build a new network
 
     net = Network(id=reference)
-    net.notes = "A network model: %s."%reference
+    net.notes = "A network model: %s"%reference
     net.temperature = temperature # degC
     if parameters:
         net.parameters = parameters
@@ -164,10 +167,9 @@ def create_new_model(reference,
 
     ################################################################################
     ###   Add some synapses
-    '''
-    ampa = 'wbsFake'
-    net.synapses.append(Synapse(id=ampa, 
-                                lems_source_file='WangBuzsakiSynapse.xml'))'''
+    
+    for s in synapses:
+        net.synapses.append(s)
 
 
 
@@ -222,7 +224,9 @@ def create_new_model(reference,
     net.id = reference
 
     print(net.to_json())
-    new_file = net.to_json_file('%s.json'%net.id)
+    if network_filename==None:
+        network_filename='%s.json'%net.id
+    new_file = net.to_json_file(network_filename)
     
 
     ################################################################################
@@ -234,6 +238,8 @@ def create_new_model(reference,
                      dt=dt,
                      recordTraces={'all':'*'})
 
-    sim.to_json_file()
+    if simulation_filename==None:
+        simulation_filename='%s.json'%sim.id
+    sim.to_json_file(simulation_filename)
     
     return sim, net
