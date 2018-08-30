@@ -2,6 +2,17 @@ import collections
 import json
 from collections import OrderedDict
 
+def print_(text, print_it=False):
+    prefix = "neuromllite >>> "
+    if not isinstance(text, str): 
+        text = ('%s'%text).decode('ascii')
+    if print_it:
+        
+        print("%s%s"%(prefix, text.replace("\n", "\n"+prefix)))
+    
+    
+def print_v(text):
+    print_(text, True)
 
 class Base(object):
     
@@ -210,7 +221,7 @@ class BaseWithId(Base):
         f = open(file_name,'w')
         f.write(self.to_json())
         f.close()
-        print("Written to: %s"%file_name)
+        print_v("Written NeuroMLlite %s to: %s"%(self.__class__.__name__, file_name))
         return file_name
         
         

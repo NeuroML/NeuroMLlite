@@ -1,17 +1,7 @@
 from neuromllite import *
 import sys
-    
-def print_(text, print_it=False):
-    prefix = "neuromllite >>> "
-    if not isinstance(text, str): 
-        text = ('%s'%text).decode('ascii')
-    if print_it:
-        
-        print("%s%s"%(prefix, text.replace("\n", "\n"+prefix)))
-    
-    
-def print_v(text):
-    print_(text, True)
+
+from neuromllite.BaseTypes import print_v, print_
     
     
 def ascii_encode_dict(data):

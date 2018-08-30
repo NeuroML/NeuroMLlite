@@ -15,8 +15,8 @@ def generate():
     net.notes = 'Example 7: based on network of Brunel 2000'
 
     net.parameters = { 'g':       4, 
-                       'eta':     20, 
-                       'order':   1,
+                       'eta':     1, 
+                       'order':   5,
                        'epsilon': 0.1,
                        'J':       0.1,
                        'delay':   1.5,
@@ -29,11 +29,11 @@ def generate():
     cell = Cell(id='ifcell', pynn_cell='IF_cond_alpha')
 
 
-    cell.parameters = { 'tau_m':       20, 
-                        'tau_refrac':  2,
-                        'v_rest':      0,
-                        'v_reset':     0,
-                        'v_thresh':    20,
+    cell.parameters = { 'tau_m':       'tauMem', 
+                        'tau_refrac':  'tauRef',
+                        'v_rest':      'U0',
+                        'v_reset':     'U0',
+                        'v_thresh':    'theta',
                         'cm':          0.001,
                         "i_offset":    0}
 
@@ -41,9 +41,9 @@ def generate():
     net.cells.append(cell)
 
     expoisson = Cell(id='expoisson', pynn_cell='SpikeSourcePoisson')
-    expoisson.parameters = { 'rate':       '100*eta',
-                             'start':      100,
-                             'duration':   800}
+    expoisson.parameters = { 'rate':       '1000 * (eta*theta/(J*4*order*epsilon*tauMem)) * (4*order*epsilon)',
+                             'start':      0,
+                             'duration':   1e9}
     net.cells.append(expoisson)
 
 
@@ -116,8 +116,8 @@ def generate():
                             population=pE.id,
                             percentage=50))'''
 
-    print(net)
-    print(net.to_json())
+    #print(net)
+    #print(net.to_json())
     new_file = net.to_json_file('%s.json'%net.id)
 
 

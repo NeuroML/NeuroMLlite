@@ -243,7 +243,7 @@ def check_to_generate_or_run(argv, sim):
     elif '-nml' in argv or '-neuroml' in argv:
         
         network = load_network_json(sim.network)
-        generate_neuroml2_from_network(network)
+        generate_neuroml2_from_network(network, validate=True)
         
     else:
         for a in argv:
@@ -260,7 +260,8 @@ def generate_neuroml2_from_network(nl_model,
                                    seed=1234, 
                                    format='xml', 
                                    base_dir=None,
-                                   target_dir=None):
+                                   target_dir=None,
+                                   validate=False):
 
     print_v("Generating NeuroML2 for %s%s..." % (nl_model.id, ' (base dir: %s; target dir: %s)' 
                  % (base_dir, target_dir) if base_dir or target_dir else ''))
@@ -330,10 +331,10 @@ def generate_neuroml2_from_network(nl_model,
         if c.pynn_cell:
             import pyNN.neuroml
             cell_params = c.parameters if c.parameters else {}
-            print('------- %s: %s' % (c, cell_params))
+            #print('------- %s: %s' % (c, cell_params))
             for p in cell_params:
                 cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
-            print('====== %s: %s' % (c, cell_params))
+            #print('====== %s: %s' % (c, cell_params))
             for proj in nl_model.projections:
 
                 synapse = nl_model.get_child(proj.synapse, 'synapses')
@@ -405,6 +406,16 @@ def generate_neuroml2_from_network(nl_model,
         NeuroMLHdf5Writer.write(nml_doc, nml_file_name)
 
     print_v("Written NeuroML to %s" % nml_file_name)
+    
+    if validate and format == 'xml':
+        
+        from pyneuroml import pynml
+        success = pynml.validate_neuroml2(nml_file_name, verbose_validate=False)
+        if success:
+            print_v('Generated file is valid NeuroML2!')
+        else:
+            print_v('Generated file is NOT valid NeuroML2!')
+            
     
     return nml_file_name, nml_doc
 
@@ -768,8 +779,6 @@ def generate_and_run(simulation,
                     gen_plots_for_quantities['%s_%i_r' % (p.id, i)] = [quantity]
                     gen_saves_for_quantities['%s_%i_r.dat' % (p.id, i)] = [quantity]
                 
-        print pops_plot_save
-        print pops_spike_save
         
         generate_lems_file_for_neuroml(simulation.id, 
                                        nml_file_name, 

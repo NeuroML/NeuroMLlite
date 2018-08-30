@@ -11,6 +11,7 @@ class EvaluableExpression(str):
     
     def __init__(self,expr):
         self.expr = expr
+        
     
       
 class Network(BaseWithId):

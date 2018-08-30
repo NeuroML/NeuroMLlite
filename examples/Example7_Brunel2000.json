@@ -9,10 +9,10 @@
             "tauMem": 20.0, 
             "tauRef": 2.0, 
             "delay": 1.5, 
-            "eta": 20, 
+            "eta": 1, 
             "theta": 20.0, 
             "tauSyn": 0.1, 
-            "order": 1
+            "order": 5
         }, 
         "notes": "Example 7: based on network of Brunel 2000", 
         "cells": [
@@ -20,13 +20,13 @@
                 "ifcell": {
                     "pynn_cell": "IF_cond_alpha", 
                     "parameters": {
-                        "tau_refrac": 2, 
-                        "tau_m": 20, 
+                        "tau_refrac": "tauRef", 
+                        "tau_m": "tauMem", 
                         "i_offset": 0, 
                         "cm": 0.001, 
-                        "v_thresh": 20, 
-                        "v_rest": 0, 
-                        "v_reset": 0
+                        "v_thresh": "theta", 
+                        "v_rest": "U0", 
+                        "v_reset": "U0"
                     }
                 }
             }, 
@@ -34,9 +34,9 @@
                 "expoisson": {
                     "pynn_cell": "SpikeSourcePoisson", 
                     "parameters": {
-                        "duration": 800, 
-                        "start": 100, 
-                        "rate": "100*eta"
+                        "duration": 1000000000.0, 
+                        "start": 0, 
+                        "rate": "1000 * (eta*theta/(J*4*order*epsilon*tauMem)) * (4*order*epsilon)"
                     }
                 }
             }
