@@ -13,9 +13,11 @@ def print_(text, print_it=False):
 def print_v(text):
     print_(text, True)
     
+    
 def ascii_encode_dict(data):
     ascii_encode = lambda x: x.encode('ascii') if (sys.version_info[0]==2 and isinstance(x, unicode)) else x
     return dict(map(ascii_encode, pair) for pair in data.items()) 
+    
     
 def _parse_element(json, to_build):
 
@@ -24,6 +26,7 @@ def _parse_element(json, to_build):
         to_build = _parse_attributes(json[k], to_build)
                
     return to_build 
+            
             
 def _parse_attributes(json, to_build):
             
@@ -90,13 +93,13 @@ def load_simulation_json(filename):
     return sim
 
 
-def evaluate(expr, globals={}):
+def evaluate(expr, parameters={}):
     
     verbose = False
-    print_('Exaluating: [%s] which is a %s vs globals %s...'%(expr,type(expr),globals),verbose)
+    print_('Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
     try:
-        if expr in globals:
-            expr = globals[expr]  # replace with the value in globals & check whether it's float/int...
+        if expr in parameters:
+            expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
         
         if type(expr)==str:
             try:
@@ -117,7 +120,7 @@ def evaluate(expr, globals={}):
     except:
         try:
             print_('Evaluating with python: %s'%expr,verbose)
-            return eval(expr, globals)
+            return eval(expr, parameters)
         except:
             print_('Returning without altering: %s'%expr,verbose)
             return expr

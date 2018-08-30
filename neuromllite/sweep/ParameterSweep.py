@@ -39,7 +39,9 @@ class ParameterSweep():
                  save_plot_all_to=None, 
                  heatmap_all=False, 
                  save_heatmap_to=None, 
-                 show_plot_already=False, ):
+                 heatmap_lims=None,
+                 show_plot_already=False, 
+                 peak_threshold = 0):
 
         self.sim = load_simulation_json(runner.nmllite_sim)
         
@@ -60,6 +62,7 @@ class ParameterSweep():
         self.save_plot_all_to = save_plot_all_to
         self.heatmap_all = heatmap_all
         self.save_heatmap_to = save_heatmap_to
+        self.heatmap_lims = heatmap_lims
         self.show_plot_already = show_plot_already
         
         self.index = 0
@@ -71,12 +74,12 @@ class ParameterSweep():
         for v in vary:
             self.total_todo *= len(vary[v])
             
-        self.analysis_var={'peak_delta':0,'baseline':0,'dvdt_threshold':0, 'peak_threshold':0}
+        self.analysis_var={'peak_delta':0,'baseline':0,'dvdt_threshold':0, 'peak_threshold':peak_threshold}
         
         if self.plot_all:
             self.ax = pynml.generate_plot([],                    
                          [],                   # Add 2 sets of y values
-                         "Traces generated from %s"%runner.nmllite_sim,                  # Title
+                         "Traces generated from %s"%self.sim.id,                  # Title
                          labels = [],
                          xaxis = 'Time (ms)',            # x axis legend
                          yaxis = 'Membrane potential (mV)',   # y axis legend
@@ -85,7 +88,7 @@ class ParameterSweep():
                          
         if self.heatmap_all:
             if len(self.vary)!=1:
-                raise('Heatmap can only be used when only one parameter is varied...')
+                raise Exception('Heatmap can only be used when only one parameter is varied...')
             self.hm_x = None
             self.hm_y = []
             self.hm_z = []
@@ -217,7 +220,7 @@ class ParameterSweep():
 
                         if self.plot_all:
                             label = '%s (%s)'%(y, params)
-                            self.ax.plot(traces['t'],[v*1000 for v in traces[y]],label=label)
+                            self.ax.plot([t*1000 for t in traces['t']],[v*1000 for v in traces[y]],label=label)
 
                         if self.heatmap_all:
                             dt = self.sim.dt if not 'dt' in params else params['dt']
@@ -252,14 +255,23 @@ class ParameterSweep():
             
             self.hm_fig, self.hm_ax = plt.subplots()
             z = np.array(self.hm_z)
+            
             print('Plotting x: %s->%s (%i), y: %s->%s (%i), z: %s->%s (%i)' % \
                                        (self.hm_x[0], self.hm_x[-1], len(self.hm_x),
                                        self.hm_y[0], self.hm_y[-1], len(self.hm_y),
                                        z.min(), z.max(), z.size))
                                        
-            plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
-                                          np.array(self.hm_y), 
-                                          z)
+            if not self.heatmap_lims:                         
+                plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
+                                              np.array(self.hm_y), 
+                                              z)
+            else:  
+                plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
+                                              np.array(self.hm_y), 
+                                              z,
+                                              vmin=self.heatmap_lims[0],
+                                              vmax=self.heatmap_lims[1])
+                
             
             plt.xlabel('Time (ms)')
             plt.ylabel('%s '%self.vary.keys()[0])
@@ -291,26 +303,57 @@ class ParameterSweep():
         print_v(json.dumps(self.report, indent=4))    
     
     
-    def plotLines(self, param, value, save_figure_to=None, logx=False,logy=False):
+    def plotLines(self, first_param, value, second_param=None, save_figure_to=None, logx=False,logy=False):
         
         all_pvals = OrderedDict()
         all_lines = OrderedDict()
         
+        all_traces = []
+        
+        DEFAULT_TRACE = self.sim.id
+        if not second_param:
+            all_traces = [DEFAULT_TRACE]
+        else:
+            for ref, info in self.report['Simulations'].items():
+                val2 = get_value_in_si(info['parameters'][second_param])
+                trace_id = '%s__%s'%(second_param,val2)
+                trace_id = val2
+                if not trace_id in all_traces:
+                    all_traces.append(trace_id)
+            
+        for t in all_traces:
+            all_lines[t] = {}
+            all_pvals[t] = {}
+            
+            
+        print all_traces
+        
         for ref, info in self.report['Simulations'].items():
             print_v('Checking %s: %s'%(ref,info['parameters']))
-            pval = get_value_in_si(info['parameters'][param])
+            
+            pval = get_value_in_si(info['parameters'][first_param])
+            
+            if not second_param:
+                trace_id = DEFAULT_TRACE
+            else:
+                val2 = get_value_in_si(info['parameters'][second_param])
+                trace_id = val2
+                
 
             for cell_ref in info['analysis']:
-                if not cell_ref in all_lines:
-                    all_lines[cell_ref] = []
-                    all_pvals[cell_ref] = []
+                if not cell_ref in all_lines[trace_id]:
+                    all_lines[trace_id][cell_ref] = []
+                    all_pvals[trace_id][cell_ref] = []
                 vval = info['analysis'][cell_ref][value]
                 
-                all_lines[cell_ref].append(vval)
-                all_pvals[cell_ref].append(pval)
+                all_lines[trace_id][cell_ref].append(vval)
+                all_pvals[trace_id][cell_ref].append(pval)
         
-        #print_v('Plot x: %s'%all_pvals)
-        #print_v('Plot y: %s'%all_lines)
+        print all_traces
+        
+        print_v('Plot x: %s'%all_pvals)
+        print_v('Plot y: %s'%all_lines)
+        
         xs= []
         ys = []
         labels = []
@@ -318,24 +361,28 @@ class ParameterSweep():
         colors = []
         maxy = -1 * sys.float_info.max
         
-        for ref in all_lines:
-            xs.append(all_pvals[ref])
-            ys.append(all_lines[ref])
-            
-            maxy = max(maxy, max(all_lines[ref]))
-            
-            labels.append(ref)
-            markers.append('o')
-            
-            pop_id = ref.split('[')[0] if '[' in ref else ref.split('/')[0]
-            if self.last_network_ran:
-                pop = self.last_network_ran.get_child(pop_id, 'populations')
-                color = [float(c) for c in pop.properties['color'].split()]
-            else:
-                color = [random.random(),random.random(),random.random()]
-                pop = None
-            print_v("This trace %s has population %s: %s, so color: %s"%(ref,pop_id,pop,color))
-            colors.append(color)
+        for t in all_traces:
+        
+            for ref in all_lines[t]:
+                print('Add data %s, %s'%(t,ref))
+                
+                xs.append(all_pvals[t][ref])
+                ys.append(all_lines[t][ref])
+
+                maxy = max(maxy, max(all_lines[t][ref]))
+
+                labels.append(t)
+                markers.append('o')
+
+                pop_id = ref.split('[')[0] if '[' in ref else ref.split('/')[0]
+                if self.last_network_ran:
+                    pop = self.last_network_ran.get_child(pop_id, 'populations')
+                    color = [float(c) for c in pop.properties['color'].split()]
+                else:
+                    color = [random.random(),random.random(),random.random()]
+                    pop = None
+                print_v("This trace %s has population %s: %s, so color: %s"%(ref,pop_id,pop,color))
+                colors.append(color)
 
         xlim = None
         ylim = None
@@ -351,8 +398,8 @@ class ParameterSweep():
         
         ax = pynml.generate_plot(xs,                  
                                  ys,           
-                                 "Plot of %s vs %s"%(value, param),              
-                                 xaxis = param,            
+                                 "Plot of %s vs %s in %s"%(value, first_param, self.sim),              
+                                 xaxis = first_param,            
                                  yaxis = yaxis,          
                                  labels = labels,       
                                  markers = markers,    
@@ -462,7 +509,10 @@ if __name__ == '__main__':
 
         #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
         #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
-        ps.plotLines('stim_amp','mean_spike_frequency',save_figure_to='mean_spike_frequency_hh.png')
+        ps.plotLines('stim_amp',
+                     value='mean_spike_frequency',
+                     second_param='stim_del',
+                     save_figure_to='mean_spike_frequency_hh.png')
 
         import matplotlib.pyplot as plt
 
@@ -473,7 +523,7 @@ if __name__ == '__main__':
 
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-200,1500,10)]}
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-200,1600,300)]}
-        vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,20)]}
+        vary = {'stim_amp':['%spA'%(i) for i in xrange(-100,500,5)]}
         
         simulator='jNeuroML_NetPyNE'
         simulator='NetPyNE'
@@ -495,6 +545,7 @@ if __name__ == '__main__':
                             num_parallel_runs=16,
                             plot_all=True, 
                             heatmap_all=True,
+                            heatmap_lims=[-100,20],
                             show_plot_already=False)
 
         report = ps.run()

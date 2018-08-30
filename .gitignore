@@ -50,3 +50,5 @@ report*.txt
 /neuromllite/sweep/LEMS_Sim_PyNNTest.xml
 /neuromllite/sweep/PyNNTest.json
 /neuromllite/sweep/PyNNTest.net.nml
+/examples/ParamSweep_*
+/examples/*.spikes

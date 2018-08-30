@@ -182,6 +182,7 @@ class Simulation(BaseWithId):
                                ('duration',('Duration of simulation (ms)',float)),
                                ('dt',('Timestep of simulation (ms)',float)),
                                ('recordTraces',('Record traces?',dict)),
+                               ('recordSpikes',('Record spikes?',dict)),
                                ('recordRates',('Record rates?',dict))])
                         
         super(Simulation, self).__init__(**kwargs)

@@ -1,18 +1,24 @@
-import random
+import copy
+from neuromllite.utils import evaluate
+from neuromllite.utils import load_network_json
+from neuromllite.utils import print_v
 import numpy as np
 import os
-import copy
+import random
 
-from neuromllite.utils import print_v, evaluate, load_network_json
 
 def _locate_file(f, base_dir):
-    if base_dir==None:
+    if base_dir == None:
         return f
-    file_name = os.path.join(base_dir,f)
+    file_name = os.path.join(base_dir, f)
     real = os.path.realpath(file_name)
     #print_v('- Located %s at %s'%(f,real))
     return real
 
+'''
+    Generate the network model as described in NeuroMLlite in a specific handler,
+    e.g. NeuroMLHandler, PyNNHandler, etc.
+'''
 def generate_network(nl_model, 
                      handler, 
                      seed=1234, 
@@ -25,37 +31,35 @@ def generate_network(nl_model,
     cell_objects = {}
     synapse_objects = {}
     
-    print_v("Starting net generation for %s%s..."%(nl_model.id, ' (base dir: %s)'%base_dir if base_dir else ''))
+    print_v("Starting net generation for %s%s..." % (nl_model.id, 
+                                ' (base dir: %s)' % base_dir if base_dir else ''))
     rng = random.Random(seed)
-    
     
     if nl_model.network_reader:
         
-        exec('from neuromllite.%s import %s'%(nl_model.network_reader.type,nl_model.network_reader.type))
-        #params = ''
-        #for k in nl_model.network_reader.parameters:
-        #    params += '%s = %s, '%(k, '"%s"'%nl_model.network_reader.parameters[k] if type(nl_model.network_reader.parameters[k])==str else nl_model.network_reader.parameters[k])
-        exec('network_reader = %s()'%(nl_model.network_reader.type))
+        exec('from neuromllite.%s import %s' % (nl_model.network_reader.type, nl_model.network_reader.type))
+        
+        exec('network_reader = %s()' % (nl_model.network_reader.type))
         network_reader.parameters = nl_model.network_reader.parameters
         
         network_reader.parse(handler)
         pop_locations = network_reader.get_locations()
         
     else:
-        notes = "Generated network: %s"%nl_model.id
+        notes = "Generated network: %s" % nl_model.id
         if nl_model.parameters:
-            notes+= "\n    NeuroMLlite parameters: "%()
+            notes += "\n    NeuroMLlite parameters: " % ()
             for p in nl_model.parameters:
-                notes+= "\n        %s = %s"%(p,nl_model.parameters[p])
+                notes += "\n        %s = %s" % (p, nl_model.parameters[p])
         handler.handle_document_start(nl_model.id, notes)
-        temperature = '%sdegC'%nl_model.temperature if nl_model.temperature else None 
+        temperature = '%sdegC' % nl_model.temperature if nl_model.temperature else None 
         handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
         
     
     for c in nl_model.cells:
         if c.neuroml2_source_file:
             from pyneuroml import pynml
-            nml2_doc = pynml.read_neuroml2_file(_locate_file(c.neuroml2_source_file,base_dir), 
+            nml2_doc = pynml.read_neuroml2_file(_locate_file(c.neuroml2_source_file, base_dir), 
                                                 include_includes=True)
             cell_objects[c.id] = nml2_doc.get_by_id(c.id)
         if c.pynn_cell:
@@ -86,30 +90,29 @@ def generate_network(nl_model,
             # If there are no positions (abstract network), and <property>
             # is added to <population>, jLems doesn't like it... (it has difficulty 
             # interpreting pop0[0]/v, etc.)
-            # So better not to give propoerties...
+            # So better not to give properties...
             properties = {} 
             
         handler.handle_population(p.id, 
-                                 p.component, 
-                                 size, 
-                                 cell_objects[p.component] if p.component in cell_objects else None,
-                                 properties = properties)
+                                  p.component, 
+                                  size, 
+                                  cell_objects[p.component] if p.component in cell_objects else None,
+                                  properties=properties)
                                  
-        pop_locations[p.id] = np.zeros((size,3))
+        pop_locations[p.id] = np.zeros((size, 3))
         
         for i in range(size):
             if p.random_layout:
-                region = nl_model.get_child(p.random_layout.region,'regions')
+                region = nl_model.get_child(p.random_layout.region, 'regions')
                 
-                x = region.x + rng.random()*region.width
-                y = region.y + rng.random()*region.height
-                z = region.z + rng.random()*region.depth
-                pop_locations[p.id][i]=(x,y,z)
+                x = region.x + rng.random() * region.width
+                y = region.y + rng.random() * region.height
+                z = region.z + rng.random() * region.depth
+                pop_locations[p.id][i] = (x, y, z)
 
                 handler.handle_location(i, p.id, p.component, x, y, z)
                 
-                
-        if hasattr(handler,'finalise_population'):
+        if hasattr(handler, 'finalise_population'):
             handler.finalise_population(p.id)
         
     if include_connections:
@@ -118,11 +121,11 @@ def generate_network(nl_model,
             type = p.type if p.type else 'projection'
 
             handler.handle_projection(p.id, 
-                                     p.presynaptic, 
-                                     p.postsynaptic, 
-                                     p.synapse,
-                                     synapse_obj=synapse_objects[p.synapse] if p.synapse in synapse_objects else None,
-                                     type = type)
+                                      p.presynaptic, 
+                                      p.postsynaptic, 
+                                      p.synapse,
+                                      synapse_obj=synapse_objects[p.synapse] if p.synapse in synapse_objects else None,
+                                      type=type)
 
             delay = p.delay if p.delay else 0
             weight = p.weight if p.weight else 1
@@ -133,58 +136,58 @@ def generate_network(nl_model,
                     for post_i in range(len(pop_locations[p.postsynaptic])):
                         flip = rng.random()
                         #print("Is cell %i conn to %i, prob %s - %s"%(pre_i, post_i, flip, p.random_connectivity.probability))
-                        if flip<p.random_connectivity.probability:
+                        if flip < p.random_connectivity.probability:
                             handler.handle_connection(p.id, 
-                                             conn_count, 
-                                             p.presynaptic, 
-                                             p.postsynaptic, 
-                                             p.synapse, \
-                                             pre_i, \
-                                             post_i, \
-                                             preSegId = 0, \
-                                             preFract = 0.5, \
-                                             postSegId = 0, \
-                                             postFract = 0.5, \
-                                             delay = evaluate(delay, nl_model.parameters), \
-                                             weight = evaluate(weight, nl_model.parameters))
-                            conn_count+=1
+                                                      conn_count, 
+                                                      p.presynaptic, 
+                                                      p.postsynaptic, 
+                                                      p.synapse, \
+                                                      pre_i, \
+                                                      post_i, \
+                                                      preSegId=0, \
+                                                      preFract=0.5, \
+                                                      postSegId=0, \
+                                                      postFract=0.5, \
+                                                      delay=evaluate(delay, nl_model.parameters), \
+                                                      weight=evaluate(weight, nl_model.parameters))
+                            conn_count += 1
 
             if p.one_to_one_connector:
-                for i in range(min(len(pop_locations[p.presynaptic]),len(pop_locations[p.postsynaptic]))):
+                for i in range(min(len(pop_locations[p.presynaptic]), len(pop_locations[p.postsynaptic]))):
                     handler.handle_connection(p.id, 
-                                     conn_count, 
-                                     p.presynaptic, 
-                                     p.postsynaptic, 
-                                     p.synapse, \
-                                     i, \
-                                     i, \
-                                     preSegId = 0, \
-                                     preFract = 0.5, \
-                                     postSegId = 0, \
-                                     postFract = 0.5, \
-                                     delay = evaluate(delay, nl_model.parameters), \
-                                     weight = evaluate(weight, nl_model.parameters))
-                    conn_count+=1
+                                              conn_count, 
+                                              p.presynaptic, 
+                                              p.postsynaptic, 
+                                              p.synapse, \
+                                              i, \
+                                              i, \
+                                              preSegId=0, \
+                                              preFract=0.5, \
+                                              postSegId=0, \
+                                              postFract=0.5, \
+                                              delay=evaluate(delay, nl_model.parameters), \
+                                              weight=evaluate(weight, nl_model.parameters))
+                    conn_count += 1
 
             handler.finalise_projection(p.id, 
-                                     p.presynaptic, 
-                                     p.postsynaptic, 
-                                     p.synapse)
+                                        p.presynaptic, 
+                                        p.postsynaptic, 
+                                        p.synapse)
                                  
     if include_inputs:   
         for input in nl_model.inputs:
 
             handler.handle_input_list(input.id, 
-                                    input.population, 
-                                    input.input_source, 
-                                    size=0, 
-                                    input_comp_obj=None)
+                                      input.population, 
+                                      input.input_source, 
+                                      size=0, 
+                                      input_comp_obj=None)
 
             input_count = 0      
             for i in range(len(pop_locations[input.population])):
                 flip = rng.random()
                 weight = input.weight if input.weight else 1
-                if flip*100.<input.percentage:
+                if flip * 100. < input.percentage:
                     
                     number_per_cell = evaluate(input.number_per_cell, nl_model.parameters) if input.number_per_cell else 1
                     
@@ -193,19 +196,22 @@ def generate_network(nl_model,
                                                     input_count, 
                                                     i,
                                                     weight=evaluate(weight, nl_model.parameters))
-                        input_count+=1
+                        input_count += 1
 
             handler.finalise_input_source(input.id)
             
-    if hasattr(handler,'finalise_document'):
+    if hasattr(handler, 'finalise_document'):
         handler.finalise_document()
         
         
-        
-    
+'''
+    Useful for calling in main method after network and simulation are generated, 
+    to handle some standaed export ptions like -jnml, -graph etc.
+'''
 def check_to_generate_or_run(argv, sim):
     
-    print_v("Checking arguments: %s to see whether anything should be run in simulation %s (net: %s)..."%(argv, sim.id, sim.network))
+    print_v("Checking arguments: %s to see whether anything should be run in simulation %s (net: %s)..." % 
+               (argv, sim.id, sim.network))
     
     if '-pynnnest' in argv:
         generate_and_run(sim, simulator='PyNN_NEST')
@@ -245,6 +251,9 @@ def check_to_generate_or_run(argv, sim):
                 generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
         
         
+'''
+    Generate and save NeuroML2 file (XML or HDF5) from the NeuroMLlite description
+'''
 def generate_neuroml2_from_network(nl_model, 
                                    nml_file_name=None, 
                                    print_summary=True, 
@@ -253,7 +262,8 @@ def generate_neuroml2_from_network(nl_model,
                                    base_dir=None,
                                    target_dir=None):
 
-    print_v("Generating NeuroML2 for %s%s..."%(nl_model.id, ' (base dir: %s; target dir: %s)'%(base_dir,target_dir) if base_dir or target_dir else ''))
+    print_v("Generating NeuroML2 for %s%s..." % (nl_model.id, ' (base dir: %s; target dir: %s)' 
+                 % (base_dir, target_dir) if base_dir or target_dir else ''))
     
     import neuroml
     from neuroml.hdf5.NetworkBuilder import NetworkBuilder
@@ -266,7 +276,7 @@ def generate_neuroml2_from_network(nl_model,
     
     for i in nl_model.input_sources:
         
-        if nml_doc.get_by_id(i.id)==None:
+        if nml_doc.get_by_id(i.id) == None:
             if i.neuroml2_source_file:
                 
                 incl = neuroml.IncludeType(_locate_file(i.neuroml2_source_file, base_dir))
@@ -278,22 +288,22 @@ def generate_neuroml2_from_network(nl_model,
                 #input = eval('pyNN.neuroml.%s(**input_params)'%i.pynn_input)
                 # TODO make more generic...
                 
-                if i.neuroml2_input.lower()=='pulsegenerator':
+                if i.neuroml2_input.lower() == 'pulsegenerator':
                     input = neuroml.PulseGenerator(id=i.id)
                     nml_doc.pulse_generators.append(input)
 
-                if i.neuroml2_input.lower()=='poissonfiringsynapse':
+                if i.neuroml2_input.lower() == 'poissonfiringsynapse':
                     input = neuroml.PoissonFiringSynapse(id=i.id)
                     nml_doc.poisson_firing_synapses.append(input)
 
                 for p in input_params:
-                    exec('input.%s = "%s"'%(p,evaluate(input_params[p], nl_model.parameters)))
+                    exec('input.%s = "%s"' % (p, evaluate(input_params[p], nl_model.parameters)))
                 
                 
             if i.pynn_input:
                 import pyNN.neuroml
                 input_params = i.parameters if i.parameters else {}
-                temp_input = eval('pyNN.neuroml.%s(**input_params)'%i.pynn_input)
+                temp_input = eval('pyNN.neuroml.%s(**input_params)' % i.pynn_input)
                 pg_id = temp_input.add_to_nml_doc(nml_doc, None)
                 pg = nml_doc.get_by_id(pg_id)
                 pg.id = i.id
@@ -301,7 +311,7 @@ def generate_neuroml2_from_network(nl_model,
     for c in nl_model.cells:
         if c.neuroml2_source_file:
             
-            incl = neuroml.IncludeType(_locate_file(c.neuroml2_source_file,base_dir))
+            incl = neuroml.IncludeType(_locate_file(c.neuroml2_source_file, base_dir))
             found_cell = False
             for cell in nml_doc.cells:
                 if cell.id == c.id:
@@ -311,7 +321,7 @@ def generate_neuroml2_from_network(nl_model,
                     
             if not found_cell:
                 for p in nl_model.populations:
-                    if p.component==c.id:
+                    if p.component == c.id:
                         pass
             
             if not incl in nml_doc.includes:
@@ -320,25 +330,25 @@ def generate_neuroml2_from_network(nl_model,
         if c.pynn_cell:
             import pyNN.neuroml
             cell_params = c.parameters if c.parameters else {}
-            #print('------- %s: %s'%(c, cell_params))
+            print('------- %s: %s' % (c, cell_params))
             for p in cell_params:
                 cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
-            #print('%s: %s'%(c, cell_params))
+            print('====== %s: %s' % (c, cell_params))
             for proj in nl_model.projections:
 
-                synapse = nl_model.get_child(proj.synapse,'synapses')
-                post_pop = nl_model.get_child(proj.postsynaptic,'populations')
+                synapse = nl_model.get_child(proj.synapse, 'synapses')
+                post_pop = nl_model.get_child(proj.postsynaptic, 'populations')
                 if post_pop.component == c.id:
                     #print("--------- Cell %s in post pop %s of %s uses %s"%(c.id,post_pop.id, proj.id, synapse))
 
                     if synapse.pynn_receptor_type == 'excitatory':
-                        post='_E'
+                        post = '_E'
                     elif synapse.pynn_receptor_type == 'inhibitory':
-                        post='_I'
+                        post = '_I'
                     for p in synapse.parameters:
-                        cell_params['%s%s'%(p,post)]=synapse.parameters[p]
+                        cell_params['%s%s' % (p, post)] = synapse.parameters[p]
                     
-            temp_cell = eval('pyNN.neuroml.%s(**cell_params)'%c.pynn_cell)
+            temp_cell = eval('pyNN.neuroml.%s(**cell_params)' % c.pynn_cell)
             if c.pynn_cell != 'SpikeSourcePoisson':
                 temp_cell.default_initial_values['v'] = temp_cell.parameter_space['v_rest'].base_value
             
@@ -347,7 +357,7 @@ def generate_neuroml2_from_network(nl_model,
             cell.id = c.id
             
     for s in nl_model.synapses:
-        if nml_doc.get_by_id(s.id)==None:
+        if nml_doc.get_by_id(s.id) == None:
             if s.neuroml2_source_file:
                 incl = neuroml.IncludeType(_locate_file(s.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
@@ -374,29 +384,27 @@ def generate_neuroml2_from_network(nl_model,
                     syn = neuroml.AlphaCurrSynapse(id=s.id, tau_syn=s.parameters['tau_syn'])
                     nml_doc.alpha_curr_synapses.append(syn)
                     
-
-            
     if print_summary:
         # Print info
         print_v(nml_doc.summary())
 
     # Save to file
         
-    if target_dir==None:
+    if target_dir == None:
         target_dir = base_dir
-    if format=='xml':
+    if format == 'xml':
         if not nml_file_name:
-            nml_file_name = _locate_file('%s.net.nml'%nml_doc.id, target_dir)
+            nml_file_name = _locate_file('%s.net.nml' % nml_doc.id, target_dir)
         from neuroml.writers import NeuroMLWriter
-        NeuroMLWriter.write(nml_doc,nml_file_name)
+        NeuroMLWriter.write(nml_doc, nml_file_name)
         
-    if format=='hdf5':
+    if format == 'hdf5':
         if not nml_file_name:
-            nml_file_name = _locate_file('%s.net.nml.h5'%nml_doc.id, target_dir)
+            nml_file_name = _locate_file('%s.net.nml.h5' % nml_doc.id, target_dir)
         from neuroml.writers import NeuroMLHdf5Writer
         NeuroMLHdf5Writer.write(nml_doc, nml_file_name)
 
-    print_v("Written NeuroML to %s"%nml_file_name)
+    print_v("Written NeuroML to %s" % nml_file_name)
     
     return nml_file_name, nml_doc
 
@@ -404,9 +412,13 @@ def generate_neuroml2_from_network(nl_model,
 locations_mods_loaded_from = []
 
 
+'''
+    Generate NEURON hoc/mod files from the NeuroML files which are marked as included in the 
+    NeuroMLlite description; also compiles the mod files
+'''
 def _generate_neuron_files_from_neuroml(network):
 
-    print_v("-------------   Generating NEURON files from NeuroML for %s..."%(network.id))
+    print_v("-------------   Generating NEURON files from NeuroML for %s..." % (network.id))
     nml_src_files = []
     dir_for_mod_files = None
 
@@ -434,11 +446,11 @@ def _generate_neuron_files_from_neuroml(network):
         pynml.run_lems_with_jneuroml_neuron(f, 
                                             nogui=True, 
                                             only_generate_scripts=True,
-                                            compile_mods = True,
+                                            compile_mods=True,
                                             verbose=True)
 
     if not dir_for_mod_files in locations_mods_loaded_from:
-        print_v("Generated NEURON code; loading mechanisms from %s"%dir_for_mod_files)
+        print_v("Generated NEURON code; loading mechanisms from %s" % dir_for_mod_files)
         try:
 
             from neuron import load_mechanisms
@@ -451,19 +463,22 @@ def _generate_neuron_files_from_neuroml(network):
             print_v("Failed to load mod file mechanisms...")
 
 
+'''
+    Generated in the specified simulatr and runs, if appropriate
+'''
 def generate_and_run(simulation, 
                      simulator, 
-                     network = None, 
+                     network=None, 
                      return_results=False, 
                      base_dir=None,
                      target_dir=None):
 
-    if network==None:
+    if network == None:
         network = load_network_json(simulation.network)
     
-    print_v("Generating network %s and running in simulator: %s..."%(network.id, simulator))
+    print_v("Generating network %s and running in simulator: %s..." % (network.id, simulator))
     
-    if simulator=='NEURON':
+    if simulator == 'NEURON':
         
         _generate_neuron_files_from_neuroml(network, target_dir)
         
@@ -474,12 +489,11 @@ def generate_and_run(simulation,
         for c in network.cells:
             if c.neuroml2_source_file:
                 src_dir = os.path.dirname(os.path.abspath(c.neuroml2_source_file))
-                nrn_handler.executeHoc('load_file("%s/%s.hoc")'%(src_dir,c.id))
+                nrn_handler.executeHoc('load_file("%s/%s.hoc")' % (src_dir, c.id))
                 
         generate_network(network, nrn_handler, generate_network, base_dir)
         if return_results:
             raise NotImplementedError("Reloading results not supported in Neuron yet...")
-
 
 
     elif simulator.lower() == 'sonata': # Will not "run" obviously...
@@ -497,7 +511,7 @@ def generate_and_run(simulation,
                            
         from neuromllite.GraphVizHandler import GraphVizHandler, engines
         
-        if len(simulator)==7:
+        if len(simulator) == 7:
             engine = engines[simulator[6:]]
         else:
             engine = 'dot'
@@ -525,8 +539,8 @@ def generate_and_run(simulation,
         syn_cell_params = {}
         for proj in network.projections:
             
-            synapse = network.get_child(proj.synapse,'synapses')
-            post_pop = network.get_child(proj.postsynaptic,'populations')
+            synapse = network.get_child(proj.synapse, 'synapses')
+            post_pop = network.get_child(proj.postsynaptic, 'populations')
           
             if not post_pop.component in syn_cell_params:
                 syn_cell_params[post_pop.component] = {}
@@ -536,7 +550,7 @@ def generate_and_run(simulation,
                     post = '_E'
                 elif synapse.pynn_receptor_type == "inhibitory":
                     post = '_I'
-                syn_cell_params[post_pop.component]['%s%s'%(p,post)]=synapse.parameters[p]
+                syn_cell_params[post_pop.component]['%s%s' % (p, post)] = synapse.parameters[p]
                     
         
         cells = {}
@@ -547,17 +561,18 @@ def generate_and_run(simulation,
                     for p in c.parameters:
                         cell_params[p] = evaluate(c.parameters[p], network.parameters)
                 
-                dont_set_here = ['tau_syn_E', 'e_rev_E','tau_syn_I', 'e_rev_I']
+                dont_set_here = ['tau_syn_E', 'e_rev_E', 'tau_syn_I', 'e_rev_I']
                 for d in dont_set_here:
                     if d in c.parameters:
-                        raise Exception('Synaptic parameters like %s should be set in individual synapses, not in the list of parameters associated with the cell'%d)
+                        raise Exception('Synaptic parameters like %s should be set '+
+                          'in individual synapses, not in the list of parameters associated with the cell' % d)
                 if c.id in syn_cell_params:
                     cell_params.update(syn_cell_params[c.id])
-                print_v("Creating cell with params: %s"%cell_params)
-                exec('cells["%s"] = pynn_handler.sim.%s(**cell_params)'%(c.id,c.pynn_cell))
+                print_v("Creating cell with params: %s" % cell_params)
+                exec('cells["%s"] = pynn_handler.sim.%s(**cell_params)' % (c.id, c.pynn_cell))
                 
                 if c.pynn_cell != 'SpikeSourcePoisson':
-                    exec("cells['%s'].default_initial_values['v'] = cells['%s'].parameter_space['v_rest'].base_value"%(c.id, c.id))
+                    exec("cells['%s'].default_initial_values['v'] = cells['%s'].parameter_space['v_rest'].base_value" % (c.id, c.id))
                 
         pynn_handler.set_cells(cells)
         
@@ -592,29 +607,29 @@ def generate_and_run(simulation,
 
                 if 'all' in simulation.recordTraces or pop.label in simulation.recordTraces:
                     
-                    filename = "%s.%s.v.dat"%(simulation.id,pop.label)
+                    filename = "%s.%s.v.dat" % (simulation.id, pop.label)
                     all_columns = []
-                    print_v("Writing data for %s to %s"%(pop.label,filename))
+                    print_v("Writing data for %s to %s" % (pop.label, filename))
                     for i in range(len(pop)):
                         if pop.can_record('v'):
-                            data =  pop.get_data('v', gather=False)
+                            data = pop.get_data('v', gather=False)
                             for segment in data.segments:
                                 vm = segment.analogsignals[0].transpose()[i]
                                 
-                                if len(all_columns)==0:
-                                    tt = np.array([t*simulation.dt/1000. for t in range(len(vm))])
+                                if len(all_columns) == 0:
+                                    tt = np.array([t * simulation.dt / 1000. for t in range(len(vm))])
                                     all_columns.append(tt)
-                                all_columns.append(vm/1000.)
+                                all_columns.append(vm / 1000.)
                                 
                             times_vm = np.array(all_columns).transpose()
                                 
-                    np.savetxt(filename, times_vm , delimiter = '\t', fmt='%s')
+                    np.savetxt(filename, times_vm, delimiter='\t', fmt='%s')
           
         
         if return_results:
             raise NotImplementedError("Reloading results not supported in Neuron yet...")
 
-    elif simulator=='NetPyNE':
+    elif simulator == 'NetPyNE':
         
         from netpyne import specs
         from netpyne import sim
@@ -647,7 +662,7 @@ def generate_and_run(simulation,
                 for i in pop['cellsList']:
                     id = pop['pop']
                     index = i['cellLabel']
-                    simConfig.recordTraces['v_%s_%s'%(id,index)] = {'sec':'soma','loc':0.5,'var':'v','conds':{'pop':id,'cellLabel':index}}
+                    simConfig.recordTraces['v_%s_%s' % (id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':id, 'cellLabel':index}}
 
         simConfig.saveDat = True
         
@@ -661,39 +676,37 @@ def generate_and_run(simulation,
         cells = sim.net.createCells()                 # instantiate network cells based on defined populations  
         
         
-        
         for proj_id in netpyne_handler.projection_infos.keys():
             projName, prePop, postPop, synapse, ptype = netpyne_handler.projection_infos[proj_id]
-            print_v("Creating connections for %s (%s): %s->%s via %s"%(projName, ptype, prePop, postPop, synapse))
+            print_v("Creating connections for %s (%s): %s->%s via %s" % (projName, ptype, prePop, postPop, synapse))
             
             preComp = netpyne_handler.pop_ids_vs_components[prePop]
             
             ###from neuroml import Cell
            
-
             for conn in netpyne_handler.connections[projName]:
                 
                 pre_id, pre_seg, pre_fract, post_id, post_seg, post_fract, delay, weight = conn
                 
                 #connParam = {'delay':delay,'weight':weight,'synsPerConn':1, 'sec':post_seg, 'loc':post_fract, 'threshold':threshold}
-                connParam = {'delay':delay,'weight':weight,'synsPerConn':1, 'sec':post_seg, 'loc':post_fract}
+                connParam = {'delay':delay, 'weight':weight, 'synsPerConn':1, 'sec':post_seg, 'loc':post_fract}
                 
                 if ptype == 'electricalProjection':
 
-                    if weight!=1:
+                    if weight != 1:
                         raise Exception('Cannot yet support inputs where weight !=1!')
                     connParam = {'synsPerConn': 1, 
-                                 'sec': post_seg, 
-                                 'loc': post_fract, 
-                                 'gapJunction': True, 
-                                 'weight': weight}
+                        'sec': post_seg, 
+                        'loc': post_fract, 
+                        'gapJunction': True, 
+                        'weight': weight}
                 else:
                     connParam = {'delay': delay,
-                                 'weight': weight,
-                                 'synsPerConn': 1, 
-                                 'sec': post_seg, 
-                                 'loc': post_fract} 
-                                 #'threshold': threshold}
+                        'weight': weight,
+                        'synsPerConn': 1, 
+                        'sec': post_seg, 
+                        'loc': post_fract} 
+                        #'threshold': threshold}
 
                 connParam['synMech'] = synapse
 
@@ -710,12 +723,12 @@ def generate_and_run(simulation,
         if return_results:
             raise NotImplementedError("Reloading results not supported in Neuron yet...")
         
-    elif simulator=='jNeuroML' or  simulator=='jNeuroML_NEURON' or simulator=='jNeuroML_NetPyNE':
+    elif simulator == 'jNeuroML' or  simulator == 'jNeuroML_NEURON' or simulator == 'jNeuroML_NetPyNE':
 
         from pyneuroml.lems import generate_lems_file_for_neuroml
         from pyneuroml import pynml
 
-        lems_file_name='LEMS_%s.xml'%simulation.id
+        lems_file_name = 'LEMS_%s.xml' % simulation.id
 
         nml_file_name, nml_doc = generate_neuroml2_from_network(network, base_dir=base_dir, target_dir=target_dir)
         included_files = ['PyNN.xml']
@@ -733,58 +746,72 @@ def generate_and_run(simulation,
                 if s.lems_source_file:
                     included_files.append(s.lems_source_file)
                 
-        print_v("Generating LEMS file prior to running in %s"%simulator)
+        print_v("Generating LEMS file prior to running in %s" % simulator)
+        
         pops_plot_save = []
+        pops_spike_save = []
         gen_plots_for_quantities = {}
         gen_saves_for_quantities = {}
         
         for p in network.populations:
+            
             if simulation.recordTraces and ('all' in simulation.recordTraces or p.id in simulation.recordTraces):
                 pops_plot_save.append(p.id)
+                
+            if simulation.recordSpikes and ('all' in simulation.recordSpikes or p.id in simulation.recordSpikes):
+                pops_spike_save.append(p.id)
+                
             if simulation.recordRates and ('all' in simulation.recordRates or p.id in simulation.recordRates):
                 size = evaluate(p.size, network.parameters)
                 for i in range(size):
-                    quantity = '%s/%i/%s/r'%(p.id,i,p.component)
-                    gen_plots_for_quantities['%s_%i_r'%(p.id,i)] = [quantity]
-                    gen_saves_for_quantities['%s_%i_r.dat'%(p.id,i)] = [quantity]
+                    quantity = '%s/%i/%s/r' % (p.id, i, p.component)
+                    gen_plots_for_quantities['%s_%i_r' % (p.id, i)] = [quantity]
+                    gen_saves_for_quantities['%s_%i_r.dat' % (p.id, i)] = [quantity]
                 
+        print pops_plot_save
+        print pops_spike_save
+        
         generate_lems_file_for_neuroml(simulation.id, 
-                               nml_file_name, 
-                               network.id, 
-                               simulation.duration, 
-                               simulation.dt, 
-                               lems_file_name,
-                               target_dir = target_dir if target_dir else '.',
-                               nml_doc = nml_doc,  # Use this if the nml doc has already been loaded (to avoid delay in reload)
-                               include_extra_files = included_files,
-                               gen_plots_for_all_v = False,
-                               plot_all_segments = False,
-                               gen_plots_for_quantities = gen_plots_for_quantities,   # Dict with displays vs lists of quantity paths
-                               gen_plots_for_only_populations = pops_plot_save,   # List of populations, all pops if = []
-                               gen_saves_for_all_v = False,
-                               save_all_segments = False,
-                               gen_saves_for_only_populations = pops_plot_save,  # List of populations, all pops if = []
-                               gen_saves_for_quantities = gen_saves_for_quantities,   # Dict with file names vs lists of quantity paths
-                               gen_spike_saves_for_all_somas = False,
-                               gen_spike_saves_for_only_populations = [],  # List of populations, all pops if = []
-                               gen_spike_saves_for_cells = {},  # Dict with file names vs lists of quantity paths
-                               spike_time_format='ID_TIME',
-                               copy_neuroml = True,
-                               lems_file_generate_seed=12345,
-                               report_file_name = 'report.%s.txt'%simulation.id,
-                               simulation_seed=12345,
-                               verbose=True)
+                                       nml_file_name, 
+                                       network.id, 
+                                       simulation.duration, 
+                                       simulation.dt, 
+                                       lems_file_name,
+                                       target_dir=target_dir if target_dir else '.',
+                                       nml_doc=nml_doc, # Use this if the nml doc has already been loaded (to avoid delay in reload)
+                                       include_extra_files=included_files,
+                                       
+                                       gen_plots_for_all_v=False,
+                                       plot_all_segments=False,
+                                       gen_plots_for_quantities=gen_plots_for_quantities, # Dict with displays vs lists of quantity paths
+                                       gen_plots_for_only_populations=pops_plot_save, # List of populations, all pops if = []
+                                       
+                                       gen_saves_for_all_v=False,
+                                       save_all_segments=False,
+                                       gen_saves_for_only_populations=pops_plot_save, # List of populations, all pops if = []
+                                       gen_saves_for_quantities=gen_saves_for_quantities, # Dict with file names vs lists of quantity paths
+                                       
+                                       gen_spike_saves_for_all_somas=False,
+                                       gen_spike_saves_for_only_populations=pops_spike_save, # List of populations, all pops if = []
+                                       gen_spike_saves_for_cells={}, # Dict with file names vs lists of quantity paths
+                                       spike_time_format='ID_TIME',
+                                       
+                                       copy_neuroml=True,
+                                       lems_file_generate_seed=12345,
+                                       report_file_name='report.%s.txt' % simulation.id,
+                                       simulation_seed=12345,
+                                       verbose=True)
               
         lems_file_name = _locate_file(lems_file_name, target_dir)
         
-        if simulator=='jNeuroML':
+        if simulator == 'jNeuroML':
             results = pynml.run_lems_with_jneuroml(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)
-        elif simulator=='jNeuroML_NEURON':
+        elif simulator == 'jNeuroML_NEURON':
             results = pynml.run_lems_with_jneuroml_neuron(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)
-        elif simulator=='jNeuroML_NetPyNE':
+        elif simulator == 'jNeuroML_NetPyNE':
             results = pynml.run_lems_with_jneuroml_netpyne(lems_file_name, nogui=True, verbose=True, load_saved_data=return_results, reload_events=return_results)
 
-        print_v("Finished running LEMS file %s in %s (returning results: %s)"%(lems_file_name, simulator, return_results))
+        print_v("Finished running LEMS file %s in %s (returning results: %s)" % (lems_file_name, simulator, return_results))
 
         if return_results:
             return results # traces, events = 
