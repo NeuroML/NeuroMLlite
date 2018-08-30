@@ -18,7 +18,7 @@
         "cells": [
             {
                 "ifcell": {
-                    "pynn_cell": "IF_cond_alpha", 
+                    "pynn_cell": "IF_curr_alpha", 
                     "parameters": {
                         "tau_refrac": "tauRef", 
                         "tau_m": "tauMem", 

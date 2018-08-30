@@ -26,7 +26,7 @@ def generate():
                        'U0':      0.0,
                        'theta':   20.0}
 
-    cell = Cell(id='ifcell', pynn_cell='IF_cond_alpha')
+    cell = Cell(id='ifcell', pynn_cell='IF_curr_alpha')
 
 
     cell.parameters = { 'tau_m':       'tauMem', 
