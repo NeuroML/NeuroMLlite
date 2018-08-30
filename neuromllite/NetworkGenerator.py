@@ -610,6 +610,9 @@ def generate_and_run(simulation,
         pynn_handler.sim.run(simulation.duration)
         pynn_handler.sim.end()
         
+        traces = {}
+        events = {}
+        
         if not 'NeuroML' in simulator:
             from neo.io import PyNNTextIO
 
@@ -623,6 +626,8 @@ def generate_and_run(simulation,
                     print_v("Writing data for %s to %s" % (pop.label, filename))
                     for i in range(len(pop)):
                         if pop.can_record('v'):
+                            ref = '%s[%i]'%(pop.label,i)
+                            traces[ref] = []
                             data = pop.get_data('v', gather=False)
                             for segment in data.segments:
                                 vm = segment.analogsignals[0].transpose()[i]
@@ -630,7 +635,9 @@ def generate_and_run(simulation,
                                 if len(all_columns) == 0:
                                     tt = np.array([t * simulation.dt / 1000. for t in range(len(vm))])
                                     all_columns.append(tt)
-                                all_columns.append(vm / 1000.)
+                                vm_si = [float(v / 1000.) for v in vm]
+                                traces[ref] = vm_si
+                                all_columns.append(vm_si)
                                 
                             times_vm = np.array(all_columns).transpose()
                                 
@@ -638,7 +645,8 @@ def generate_and_run(simulation,
           
         
         if return_results:
-            raise NotImplementedError("Reloading results not supported in Neuron yet...")
+            _print_result_info(traces, events)
+            return traces, events
 
     elif simulator == 'NetPyNE':
         
@@ -732,7 +740,7 @@ def generate_and_run(simulation,
         sim.saveData()                    # save params, cell info and sim output to file (pickle,mat,txt,etc)
         
         if return_results:
-            raise NotImplementedError("Reloading results not supported in Neuron yet...")
+            raise NotImplementedError("Reloading results not supported in NetPyNE yet...")
         
     elif simulator == 'jNeuroML' or  simulator == 'jNeuroML_NEURON' or simulator == 'jNeuroML_NetPyNE':
 
@@ -823,4 +831,16 @@ def generate_and_run(simulation,
         print_v("Finished running LEMS file %s in %s (returning results: %s)" % (lems_file_name, simulator, return_results))
 
         if return_results:
-            return results # traces, events = 
+            traces, events = results
+            _print_result_info(traces, events)
+            return results # traces, events =
+        
+def _print_result_info(traces, events):
+    print_v('Returning %i traces:'%len(traces))
+    for r in sorted(traces.keys()):
+        x = traces[r]
+        print_v('  %s (%s): %s -> %s (min: %s, max: %s, len: %i)'%(r, type(x), x[0],x[-1],min(x),max(x),len(x)))
+    print_v('Returning %i events:'%len(events))
+    for r in sorted(events.keys()):
+        x = events[r]
+        print_v('  %s: %s -> %s (len: %i)'%(r, x[0] if len(x)>0 else '-',x[-1] if len(x)>0 else '-',len(x)))

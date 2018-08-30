@@ -150,8 +150,14 @@ if __name__ == "__main__":
         #vary = {'eta':[i/10 for i in xrange(0,100,5)]}
         #vary = {'stim_amp':['1.5pA']}
 
+        simulator = 'jNeuroML'
+        simulator = 'jNeuroML_NEURON'
+        simulator = 'jNeuroML_NetPyNE'
+        simulator = 'PyNN_NEST'
+        simulator = 'jNeuroML'
 
-        nmllr = NeuroMLliteRunner('SimExample7.json')
+        nmllr = NeuroMLliteRunner('SimExample7.json',
+                                  simulator=simulator)
 
         ps = ParameterSweep(nmllr, 
                             vary, 

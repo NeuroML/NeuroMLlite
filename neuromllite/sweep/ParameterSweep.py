@@ -199,7 +199,7 @@ class ParameterSweep():
             analysed = analysis_data.analyse()
 
             report_here['analysis'] = OrderedDict()
-            for a in analysed:
+            for a in sorted(analysed.keys()):
                 ref0,var = a.split(':')
                 if not ref0 in report_here['analysis']:
                     report_here['analysis'][ref0] = OrderedDict()
@@ -238,7 +238,7 @@ class ParameterSweep():
                 
         job_server.print_stats()
         job_server.destroy()
-        print("-------------------------------------------")
+        print_v("-------------------------------------------")
 
         
     def run(self):
@@ -256,7 +256,7 @@ class ParameterSweep():
             self.hm_fig, self.hm_ax = plt.subplots()
             z = np.array(self.hm_z)
             
-            print('Plotting x: %s->%s (%i), y: %s->%s (%i), z: %s->%s (%i)' % \
+            print_v('Plotting x: %s->%s (%i), y: %s->%s (%i), z: %s->%s (%i)' % \
                                        (self.hm_x[0], self.hm_x[-1], len(self.hm_x),
                                        self.hm_y[0], self.hm_y[-1], len(self.hm_y),
                                        z.min(), z.max(), z.size))
@@ -325,8 +325,6 @@ class ParameterSweep():
             all_lines[t] = {}
             all_pvals[t] = {}
             
-            
-        print all_traces
         
         for ref, info in self.report['Simulations'].items():
             print_v('Checking %s: %s'%(ref,info['parameters']))
@@ -349,7 +347,6 @@ class ParameterSweep():
                 all_lines[trace_id][cell_ref].append(vval)
                 all_pvals[trace_id][cell_ref].append(pval)
         
-        print all_traces
         
         print_v('Plot x: %s'%all_pvals)
         print_v('Plot y: %s'%all_lines)
@@ -364,14 +361,14 @@ class ParameterSweep():
         for t in all_traces:
         
             for ref in all_lines[t]:
-                print('Add data %s, %s'%(t,ref))
+                print_v('Add data %s, %s'%(t,ref))
                 
                 xs.append(all_pvals[t][ref])
                 ys.append(all_lines[t][ref])
 
                 maxy = max(maxy, max(all_lines[t][ref]))
 
-                labels.append(t)
+                labels.append('%s - %s'%(t,ref))
                 markers.append('o')
 
                 pop_id = ref.split('[')[0] if '[' in ref else ref.split('/')[0]
@@ -393,7 +390,7 @@ class ParameterSweep():
         if value=='mean_spike_frequency':
             yaxis += ' (Hz)'
             ylim = [maxy*-0.1,maxy*1.1]
-            print('Setting y axes on freq plot to: %s'% ylim)
+            print_v('Setting y axes on freq plot to: %s'% ylim)
             
         
         ax = pynml.generate_plot(xs,                  
@@ -432,8 +429,11 @@ class NeuroMLliteRunner():
     def __init__(self, 
                  nmllite_sim, 
                  simulator='jNeuroML'):
+                     
+        real_sim = os.path.realpath(nmllite_sim)
+        print_v('Created NeuroMLliteRunner to run %s in %s'%(real_sim, simulator))
         
-        self.base_dir = os.path.dirname(os.path.realpath(nmllite_sim))
+        self.base_dir = os.path.dirname(real_sim)
         self.nmllite_sim = nmllite_sim
         self.simulator = simulator
         
@@ -531,13 +531,7 @@ if __name__ == '__main__':
         simulator='jNeuroML_NEURON'
         
         nmllr = NeuroMLliteRunner('Sim_HHTest.json',
-                                  simulator=simulator)
-                                  
-        '''print(nmllr)  
-        nmllr.run_once()
-        
-        pstr0 = pickle.dumps(nmllr)'''
-        
+                                  simulator=simulator)        
 
         ps = ParameterSweep(nmllr, 
                             vary, 
@@ -556,6 +550,16 @@ if __name__ == '__main__':
         import matplotlib.pyplot as plt
 
         plt.show()
+        
+    elif '-run' in sys.argv: 
+        
+        simulator = 'jNeuroML_NetPyNE'
+        simulator = 'jNeuroML'
+        simulator = 'PyNN_NEST'
+        nmllr = NeuroMLliteRunner('../../examples/SimExample7.json',
+                                  simulator=simulator)
+        
+        traces, events = nmllr.run_once('.')
         
     else:
         fixed = {'dt':0.025,'N':10}

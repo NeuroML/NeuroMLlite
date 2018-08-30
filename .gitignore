@@ -52,3 +52,6 @@ report*.txt
 /neuromllite/sweep/PyNNTest.net.nml
 /examples/ParamSweep_*
 /examples/*.spikes
+/neuromllite/sweep/*.spikes
+/neuromllite/sweep/x86_64
+/neuromllite/sweep/Example7_Brunel2000.net.nml
