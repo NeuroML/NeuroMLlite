@@ -8,14 +8,20 @@ from neuromllite.BaseTypes import NetworkReader
 
 from neuromllite.utils import print_v, load_json
 
-
+'''
+    Search the strings in a config file for a substitutable value, e.g. 
+    "morphologies_dir": "$COMPONENT_DIR/morphologies",
+'''
 def subs(path, substitutes):
+    print_v('Checking for %s in %s'%(substitutes.keys(),path))
     for s in substitutes:
         if s in path:
             path = path.replace(s,substitutes[s])
     return path
 
-
+'''
+    Load a generic csv file as used in Sonata
+'''
 def load_csv_props(info_file):
     info = {}
     columns = {}
@@ -31,7 +37,9 @@ def load_csv_props(info_file):
                     info[int(w[0])][columns[i]] = w[i]
     return info
             
-
+'''
+    Main class for reading a Sonata model. For typical usage, see main method below
+'''
 class SonataReader(NetworkReader):
     
     component_objects = {} # Store cell ids vs objects, e.g. NeuroML2 based object
@@ -58,6 +66,7 @@ class SonataReader(NetworkReader):
         
         data = load_json(filename)
         substitutes = {'./':'%s/'%os.path.dirname(filename),
+                       '${configdir}':'%s'%os.path.dirname(filename),
                        '../':'%s/'%os.path.dirname(os.path.dirname(filename))}
             
         import pprint; pp = pprint.PrettyPrinter(depth=6)
@@ -86,11 +95,11 @@ class SonataReader(NetworkReader):
             nodes_file = subs(n['nodes_file'],substitutes)
             node_types_file = subs(n['node_types_file'],substitutes)
             
-            # print("Loading nodes from %s and %s"%(nodes_file,node_types_file))
+            print_v("\nLoading nodes from %s and %s"%(nodes_file,node_types_file))
 
             h5file=tables.open_file(nodes_file,mode='r')
 
-            # print_v("Opened HDF5 file: %s"%(h5file.filename))
+            print_v("Opened HDF5 file: %s"%(h5file.filename))
             self.parse_group(h5file.root.nodes)
             h5file.close()
             self.nodes_info[self.current_node] = load_csv_props(node_types_file)
@@ -104,11 +113,11 @@ class SonataReader(NetworkReader):
             edges_file = subs(e['edges_file'],substitutes)
             edge_types_file = subs(e['edge_types_file'],substitutes)
             
-            # print("Loading edges from %s and %s"%(edges_file,edge_types_file))
+            print_v("\nLoading edges from %s and %s"%(edges_file,edge_types_file))
 
             h5file=tables.open_file(edges_file,mode='r')
 
-            # print_v("Opened HDF5 file: %s"%(h5file.filename))
+            print_v("Opened HDF5 file: %s"%(h5file.filename))
             self.parse_group(h5file.root.edges)
             h5file.close()
             self.edges_info[self.current_edge] = load_csv_props(edge_types_file)
@@ -279,9 +288,8 @@ class SonataReader(NetworkReader):
 
 
     def parse_dataset(self, d):
-        # print_v("Parsing dataset/array: %s; at node: %s, node_group %s"%(str(d), self.current_node, self.current_node_group))
-        
-        
+        print_v("Parsing dataset/array: %s; at node: %s, node_group %s"%(str(d), self.current_node, self.current_node_group))
+                
         if self.current_node_group:
             for i in range(0, d.shape[0]):
                 index = 0 if d.name=='x' else (1 if d.name=='y' else 2)
@@ -315,7 +323,7 @@ class SonataReader(NetworkReader):
             self.conn_info[self.current_edge]['post_id'] = [i for i in d]
               
         else:
-            print("Unhandled dataset: %s"%d.name)
+            print_v("Unhandled dataset: %s"%d.name)
         
         # Population
         '''
@@ -454,30 +462,39 @@ if __name__ == '__main__':
 
 
     id = '9_cells'
-    id = '300_cells'
-    filename = '../git/sonata/examples/%s/circuit_config.json'%id
+    #id = '300_cells'
+    filename = '../../git/bmtk/docs/examples/bio_basic_features/config_iclamp.json'
+    filename = '../../git/sonata/examples/%s/circuit_config.json'%id
+    #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
+    #filename = '../../git/bmtk/docs/examples/point_120cells/config.json'
     
-    sr = SonataReader(filename=filename, 
+    '''sr = SonataReader(filename=filename, 
                       id=id,
                       DEFAULT_CELL_ID='hhcell')
-    '''
+    
     from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
     def_handler = DefaultNetworkHandler()
     
-    sr.parse(def_handler) '''  
+    sr.parse(def_handler)   '''
     
     from neuroml.hdf5.NetworkBuilder import NetworkBuilder
 
     neuroml_handler = NetworkBuilder()
     
-    bbp = SonataReader(filename=filename, 
+    sr = SonataReader(filename=filename, 
                       id=id,
                       DEFAULT_CELL_ID='hhcell')
-    bbp.parse(neuroml_handler)  
+    sr.parse(neuroml_handler)  
     
     nml_file_name = '%s.net.nml'%id
 
     from neuroml.writers import NeuroMLWriter
     NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)
+    print('Written to: %s'%nml_file_name)  
+    
+    nml_file_name += '.h5'
+
+    from neuroml.writers import NeuroMLHdf5Writer
+    NeuroMLHdf5Writer.write(neuroml_handler.get_nml_doc(),nml_file_name)
     print('Written to: %s'%nml_file_name)  
     
