@@ -84,7 +84,7 @@ def generate():
                                       postsynaptic=pE.id,
                                       synapse='ampa',
                                       delay=2,
-                                      weight=0.002,
+                                      weight=0.02,
                                       one_to_one_connector=OneToOneConnector()))
     '''           
     net.projections.append(Projection(id='projEE',
@@ -100,7 +100,7 @@ def generate():
                                       postsynaptic=pI.id,
                                       synapse='ampa',
                                       delay=2,
-                                      weight=0.002,
+                                      weight=0.02,
                                       random_connectivity=RandomConnectivity(probability=.5)))
     '''
     net.projections.append(Projection(id='projIE',
@@ -128,6 +128,7 @@ def generate():
                      network=new_file,
                      duration='1000',
                      dt='0.025',
+                     seed= 123,
                      recordTraces={pE.id:'*',pI.id:'*'},
                      recordSpikes={'all':'*'})
 
@@ -143,12 +144,16 @@ if __name__ == "__main__":
         
         sim, net = generate()
         
-        fixed = {'dt':0.025, 'order':1}
+        fixed = {'dt':0.001, 'order':1}
  
         #
         vary = {'eta':[0.5,1,1.5,2]}
-        #vary = {'eta':[i/10 for i in xrange(0,100,5)]}
+        #vary = {'eta':[1,2]}
+        #vary = {'eta':[1]}
+        #vary = {'eta':[i/1000. for i in xrange(0,200,20)]}
         #vary = {'stim_amp':['1.5pA']}
+        
+        vary['seed'] = [1,2,3,4,5]
 
         simulator = 'jNeuroML'
         simulator = 'jNeuroML_NEURON'
@@ -164,16 +169,17 @@ if __name__ == "__main__":
                             fixed,
                             num_parallel_runs=16,
                             plot_all=True, 
-                            heatmap_all=True,
+                            heatmap_all=False,
                             show_plot_already=False,
-                            peak_threshold=19.9)
+                            peak_threshold=0)
 
         report = ps.run()
         ps.print_report()
 
         #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
         #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
-        ps.plotLines('eta','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+        #ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+        ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency.png')
 
         import matplotlib.pyplot as plt
 

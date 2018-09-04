@@ -188,7 +188,12 @@ class SonataReader(NetworkReader):
                 
                 if i in self.cell_info[node]['0']['locations']:
                     pos = self.cell_info[node]['0']['locations'][i]
-                    self.handler.handle_location(index, pop, self.parameters['DEFAULT_CELL_ID'], pos[0], pos[1], pos[2])
+                    self.handler.handle_location(index, 
+                                                 pop, 
+                                                 self.parameters['DEFAULT_CELL_ID'], 
+                                                 pos['x'] if 'x' in pos else 0, 
+                                                 pos['y'] if 'y' in pos else 0, 
+                                                 pos['z'] if 'z' in pos else 0)
                 
                 self.cell_info[node]['pop_count'][pop]+=1
         
@@ -292,11 +297,11 @@ class SonataReader(NetworkReader):
                 
         if self.current_node_group:
             for i in range(0, d.shape[0]):
-                index = 0 if d.name=='x' else (1 if d.name=='y' else 2)
+                #index = 0 if d.name=='x' else (1 if d.name=='y' else 2)
                 
                 if not i in self.cell_info[self.current_node][self.current_node_group]['locations']:
                     self.cell_info[self.current_node][self.current_node_group]['locations'][i] = {}
-                self.cell_info[self.current_node][self.current_node_group]['locations'][i][index] = d[i]
+                self.cell_info[self.current_node][self.current_node_group]['locations'][i][d.name] = d[i]
                 
         elif self.current_node:
             
@@ -462,11 +467,12 @@ if __name__ == '__main__':
 
 
     id = '9_cells'
-    #id = '300_cells'
+    id = '300_cells'
     filename = '../../git/bmtk/docs/examples/bio_basic_features/config_iclamp.json'
     filename = '../../git/sonata/examples/%s/circuit_config.json'%id
     #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
     #filename = '../../git/bmtk/docs/examples/point_120cells/config.json'
+    filename = '../../git/sonatakd/examples/300_intfire/circuit_config.json'
     
     '''sr = SonataReader(filename=filename, 
                       id=id,

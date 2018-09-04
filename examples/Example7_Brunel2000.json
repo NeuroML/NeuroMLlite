@@ -97,7 +97,7 @@
                     "postsynaptic": "Epop", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.002, 
+                    "weight": 0.02, 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -107,7 +107,7 @@
                     "postsynaptic": "Ipop", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.002, 
+                    "weight": 0.02, 
                     "random_connectivity": {
                         "probability": 0.5
                     }

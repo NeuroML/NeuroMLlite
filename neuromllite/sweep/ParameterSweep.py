@@ -129,6 +129,13 @@ class ParameterSweep():
                 
                 report_here['parameters'] = all_params
                 
+                
+    def _get_sim_duration_ms(self,parameters):
+        if 'duration' in parameters:
+            return parameters['duration']
+        else:
+            return self.sim.duration
+            
             
     def _run_all(self):
         
@@ -175,6 +182,7 @@ class ParameterSweep():
             job = jobs[job_i]
             ref = job_refs[job_i]
             report_here = self.report['Simulations'][ref]
+            report_here['analysis'] = OrderedDict()
             params = report_here['parameters']
             
             print_v("Checking parallel job %i/%i (%s)"%(job_i,len(jobs),ref))
@@ -182,29 +190,45 @@ class ParameterSweep():
             
             self.last_network_ran = None
             
-            times = [t*1000. for t in traces['t']]
-            volts = OrderedDict()
-            for tr in traces:
-                if tr.endswith('/v'): volts[tr] = [v*1000. for v in traces[tr]]
+            if len(traces)>0:
+                times = [t*1000. for t in traces['t']]
+                volts = OrderedDict()
+                for tr in traces:
+                    if tr.endswith('/v'): volts[tr] = [v*1000. for v in traces[tr]]
 
-            analysis_data=analysis.NetworkAnalysis(volts,
-                                               times,
-                                               self.analysis_var,
-                                               start_analysis=0,
-                                               end_analysis=times[-1],
-                                               smooth_data=False,
-                                               show_smoothed_data=False,
-                                               verbose=self.verbose)
+                analysis_data=analysis.NetworkAnalysis(volts,
+                                                   times,
+                                                   self.analysis_var,
+                                                   start_analysis=0,
+                                                   end_analysis=times[-1],
+                                                   smooth_data=False,
+                                                   show_smoothed_data=False,
+                                                   verbose=self.verbose)
 
-            analysed = analysis_data.analyse()
+                analysed = analysis_data.analyse()
 
-            report_here['analysis'] = OrderedDict()
-            for a in sorted(analysed.keys()):
-                ref0,var = a.split(':')
+                for a in sorted(analysed.keys()):
+                    ref0,var = a.split(':')
+                    if not ref0 in report_here['analysis']:
+                        report_here['analysis'][ref0] = OrderedDict()
+                    report_here['analysis'][ref0][var] = analysed[a]
+                
+            for e in sorted(events.keys()):
+                x = events[e]
+                print_v('Examining event %s: %s -> %s (len: %i)'%(e, x[0] if len(x)>0 else '-',x[-1] if len(x)>0 else '-',len(x)))
+                ref0 = '%s/spike'%e
+                analysed = OrderedDict()
+                l = len(x)
+                tmax_si = self._get_sim_duration_ms(params)/1000.
+                f_hz = l / tmax_si
+                print_v('This has %s points in %s sec, so %s Hz'%(l,tmax_si, f_hz))
+                analysed["mean_spike_frequency"] = f_hz
+                
                 if not ref0 in report_here['analysis']:
                     report_here['analysis'][ref0] = OrderedDict()
-                report_here['analysis'][ref0][var] = analysed[a]
-            
+                    
+                report_here['analysis'][ref0] = analysed
+                
             
             if self.plot_all or self.heatmap_all:
                 for y in traces.keys():
@@ -337,15 +361,25 @@ class ParameterSweep():
                 val2 = get_value_in_si(info['parameters'][second_param])
                 trace_id = val2
                 
-
-            for cell_ref in info['analysis']:
-                if not cell_ref in all_lines[trace_id]:
-                    all_lines[trace_id][cell_ref] = []
-                    all_pvals[trace_id][cell_ref] = []
-                vval = info['analysis'][cell_ref][value]
+            if ':' in value:
+                matching_ref = value.split(':')[0]
+                feature = value.split(':')[1]
+            else:
+                matching_ref = '*'
+                feature = value
                 
-                all_lines[trace_id][cell_ref].append(vval)
-                all_pvals[trace_id][cell_ref].append(pval)
+            for cell_ref in info['analysis']:
+                print_v('Checking if %s matches %s, feature: %s (from %s)'%(cell_ref, matching_ref, feature, value))
+                if matching_ref==cell_ref or matching_ref=='*':
+                    #print('y')
+                    if not cell_ref in all_lines[trace_id]:
+                        all_lines[trace_id][cell_ref] = []
+                        all_pvals[trace_id][cell_ref] = []
+
+                    vval = info['analysis'][cell_ref][feature]
+
+                    all_lines[trace_id][cell_ref].append(vval)
+                    all_pvals[trace_id][cell_ref].append(pval)
         
         
         print_v('Plot x: %s'%all_pvals)
@@ -451,7 +485,7 @@ class NeuroMLliteRunner():
         print_v('Running NeuroMLlite simulation...')
         sim = load_simulation_json(self.nmllite_sim)
         import random
-        sim.id = '%s_%s'%(sim.id,random.random())
+        sim.id = '%s%s'%(sim.id, '_%s'%kwargs['reference'] if 'reference' in kwargs else '')
         network = load_network_json(self.base_dir+'/'+sim.network)
         
         for a in kwargs:
@@ -487,7 +521,7 @@ if __name__ == '__main__':
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,40)],
                 'stim_del':['%sms'%(i) for i in xrange(10,40,10)]}
                 
-        vary = {'stim_amp':['%spA'%(i) for i in [-100,0,100,200]],
+        vary = {'stim_amp':['%spA'%(i) for i in [100,200,300]],
                 'stim_del':['%sms'%(i) for i in [10,20,50]]}
                 
         #vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,20)]}
@@ -510,9 +544,13 @@ if __name__ == '__main__':
         #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
         #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
         ps.plotLines('stim_amp',
-                     value='mean_spike_frequency',
+                     value='pop_hhcell[0]/v:mean_spike_frequency',
                      second_param='stim_del',
                      save_figure_to='mean_spike_frequency_hh.png')
+        ps.plotLines('stim_amp',
+                     value='pop_hhcell[0]/v:first_spike_time',
+                     second_param='stim_del',
+                     save_figure_to='first_spike_time_hh.png')
 
         import matplotlib.pyplot as plt
 
@@ -522,8 +560,8 @@ if __name__ == '__main__':
         fixed = {'dt':0.025}
 
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-200,1500,10)]}
-        vary = {'stim_amp':['%spA'%(i) for i in xrange(-200,1600,300)]}
-        vary = {'stim_amp':['%spA'%(i) for i in xrange(-100,500,5)]}
+        vary = {'stim_amp':['%spA'%(i) for i in xrange(-100,1800,20)]}
+        #vary = {'stim_amp':['%spA'%(i) for i in xrange(-100,500,5)]}
         
         simulator='jNeuroML_NetPyNE'
         simulator='NetPyNE'
@@ -555,11 +593,11 @@ if __name__ == '__main__':
         
         simulator = 'jNeuroML_NetPyNE'
         simulator = 'jNeuroML'
-        simulator = 'PyNN_NEST'
+        #simulator = 'PyNN_NEST'
         nmllr = NeuroMLliteRunner('../../examples/SimExample7.json',
                                   simulator=simulator)
         
-        traces, events = nmllr.run_once('.')
+        traces, events = nmllr.run_once('.', reference='ref0')
         
     else:
         fixed = {'dt':0.025,'N':10}
@@ -572,7 +610,7 @@ if __name__ == '__main__':
         vary = {'stim_amp':['%spA'%(i/10.0) for i in xrange(-10,20,5)]}
         vary = {'weightInput':[1,2,5,10]}
         vary = {'weightInput':[1,2,3,20]}
-        vary = {'eta':['%sHz'%(i) for i in xrange(0,260,20)]}
+        vary = {'eta':[i/100. for i in xrange(0,200,20)]}
         #vary = {'eta':['100Hz']}
         #vary = {'stim_amp':['1.5pA']}
 

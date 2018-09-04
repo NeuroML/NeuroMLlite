@@ -182,6 +182,7 @@ class Simulation(BaseWithId):
                                ('network',('File name of network to simulate',str)),
                                ('duration',('Duration of simulation (ms)',float)),
                                ('dt',('Timestep of simulation (ms)',float)),
+                               ('seed',('Seed for stochastic elements os the simulation (integer)',int)),
                                ('recordTraces',('Record traces?',dict)),
                                ('recordSpikes',('Record spikes?',dict)),
                                ('recordRates',('Record rates?',dict))])

@@ -670,6 +670,7 @@ def generate_and_run(simulation,
         simConfig.tstop = simulation.duration
         simConfig.duration = simulation.duration
         simConfig.dt = simulation.dt
+        simConfig.seed = simulation.seed
         simConfig.recordStep = simulation.dt
         
         simConfig.recordCells = ['all'] 
@@ -816,7 +817,7 @@ def generate_and_run(simulation,
                                        copy_neuroml=True,
                                        lems_file_generate_seed=12345,
                                        report_file_name='report.%s.txt' % simulation.id,
-                                       simulation_seed=12345,
+                                       simulation_seed=simulation.seed if simulation.seed else 12345,
                                        verbose=True)
               
         lems_file_name = _locate_file(lems_file_name, target_dir)
