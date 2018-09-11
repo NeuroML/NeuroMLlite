@@ -8,17 +8,30 @@ from neuromllite.BaseTypes import NetworkReader
 
 from neuromllite.utils import print_v, load_json
 
+from pyneuroml.lems import generate_lems_file_for_neuroml
+
+import pprint
+pp = pprint.PrettyPrinter(depth=6)
+
 '''
     Search the strings in a config file for a substitutable value, e.g. 
     "morphologies_dir": "$COMPONENT_DIR/morphologies",
 '''
 def subs(path, substitutes):
-    print_v('Checking for %s in %s'%(substitutes.keys(),path))
+    #print_v('Checking for %s in %s'%(substitutes.keys(),path))
     for s in substitutes:
         if s in path:
             path = path.replace(s,substitutes[s])
     return path
 
+def _parse_entry(w):
+    try:
+        return int(w)
+    except:
+        try:
+            return float(w)
+        except:
+            return w
 '''
     Load a generic csv file as used in Sonata
 '''
@@ -29,12 +42,12 @@ def load_csv_props(info_file):
         w = line.split()
         if len(columns)==0:
             for i in range(len(w)):
-                columns[i] = w[i]
+                columns[i] = _parse_entry(w[i])
         else:
             info[int(w[0])] = {}
             for i in range(len(w)):
                 if i!=0:
-                    info[int(w[0])][columns[i]] = w[i]
+                    info[int(w[0])][columns[i]] = _parse_entry(w[i])
     return info
             
 '''
@@ -44,6 +57,7 @@ class SonataReader(NetworkReader):
     
     component_objects = {} # Store cell ids vs objects, e.g. NeuroML2 based object
     
+    
     def __init__(self, **parameters):
                      
         print_v("Creating SonataReader with %s..."%parameters)
@@ -51,6 +65,9 @@ class SonataReader(NetworkReader):
         self.current_node = None
         self.current_node_group = None
         self.cell_info = {}
+        self.pop_comp_info = {}
+        self.syn_comp_info = {}
+        self.input_comp_info = {}
         
         self.current_edge = None
         
@@ -62,26 +79,37 @@ class SonataReader(NetworkReader):
 
     def parse(self, handler):
 
+        ########################################################################
+        #  load the main configuration scripts    
+    
         filename = os.path.abspath(self.parameters['filename'])
         
-        data = load_json(filename)
+        config = load_json(filename)
         substitutes = {'./':'%s/'%os.path.dirname(filename),
                        '${configdir}':'%s'%os.path.dirname(filename),
                        '../':'%s/'%os.path.dirname(os.path.dirname(filename))}
-            
-        import pprint; pp = pprint.PrettyPrinter(depth=6)
-        # pp.pprint(data)
-        for m in data['manifest']:
-            path = subs(data['manifest'][m],substitutes)
-            substitutes[m] = path
-            
-        # pp.pprint(substitutes)
         
+        if 'network' in config:
+            self.network_config = load_json(subs(config['network'],substitutes))
+        else:
+            self.network_config = config
+            
+        if 'simulation' in config:
+            self.simulation_config = load_json(subs(config['simulation'],substitutes))
+        else:
+            self.simulation_config = None
+            
+        for m in self.network_config['manifest']:
+            path = subs(self.network_config['manifest'][m],substitutes)
+            substitutes[m] = path
         
         if 'id' in self.parameters:
             id = self.parameters['id']
         else:
             id = 'SonataNetwork'
+        
+        ########################################################################
+        #  Feed the handler the info on the network   
         
         self.handler = handler
     
@@ -91,7 +119,10 @@ class SonataReader(NetworkReader):
         handler.handle_network(id, notes)
         self.nodes_info = {}
         
-        for n in data['networks']['nodes']:
+        ########################################################################
+        #  Get info from nodes files    
+        
+        for n in self.network_config['networks']['nodes']:
             nodes_file = subs(n['nodes_file'],substitutes)
             node_types_file = subs(n['node_types_file'],substitutes)
             
@@ -103,13 +134,18 @@ class SonataReader(NetworkReader):
             self.parse_group(h5file.root.nodes)
             h5file.close()
             self.nodes_info[self.current_node] = load_csv_props(node_types_file)
-            # pp.pprint(self.nodes_info)
+            pp.pprint(self.nodes_info)
             self.current_node = None
             
+        
+        
+        ########################################################################
+        #  Get info from edges files    
+        
         self.edges_info = {}
         self.conn_info = {}
         
-        for e in data['networks']['edges']:
+        for e in self.network_config['networks']['edges']:
             edges_file = subs(e['edges_file'],substitutes)
             edge_types_file = subs(e['edge_types_file'],substitutes)
             
@@ -123,17 +159,37 @@ class SonataReader(NetworkReader):
             self.edges_info[self.current_edge] = load_csv_props(edge_types_file)
             self.current_edge = None
             
-        # pp.pprint(self.edges_info)
+            
+        ########################################################################
+        #  Use extracted node/cell info to create populations
             
         for node in self.cell_info:
             types_vs_pops = {}
             for type in self.cell_info[node]['type_numbers']:
                 info = self.nodes_info[node][type]
+                pop_name = info['pop_name'] if 'pop_name' in info else None
                 
                 ref = info['model_name'] if 'model_name' in info else info['model_type']
-                pop_id = '%s_%s_%s'%(node,ref,type) 
+                model_type = info['model_type']
+                model_template = info['model_template'] if 'model_template' in info else '- None -'
+                
+                if pop_name:
+                    pop_id = '%s_%s'%(node,pop_name) 
+                else:
+                    pop_id = '%s_%s_%s'%(node,ref,type) 
+                    
+                print_v(" - Adding population: %s which has model info: %s"%(pop_id, info))
+                
                 size = self.cell_info[node]['type_numbers'][type]
-
+                
+                if model_type=='point_process' and model_template=='nrn:IntFire1':
+                    pop_comp = model_template.replace(':','_')
+                    self.pop_comp_info[pop_comp] = {}
+                    self.pop_comp_info[pop_comp]['model_type'] = model_type
+                    
+                    dynamics_params_file = subs(self.network_config['components']['point_neuron_models_dir'],substitutes) +'/'+info['dynamics_params']
+                    self.pop_comp_info[pop_comp]['dynamics_params'] = load_json(dynamics_params_file)
+                    
                 properties = {}
 
                 properties['type_id']=type
@@ -144,7 +200,6 @@ class SonataReader(NetworkReader):
                     if i=='ei':
                         properties['type']=info[i].upper()
                         
-                
                 color = '%s %s %s'%(self.myrandom.random(),self.myrandom.random(),self.myrandom.random())
                 
                 try:
@@ -166,9 +221,11 @@ class SonataReader(NetworkReader):
                     pass # Don't add anything, not a problem...
                     
                 properties['color']=color
+                #############  temp for LEMS...
+                properties={}
                 
                 self.handler.handle_population(pop_id, 
-                                         self.parameters['DEFAULT_CELL_ID'], 
+                                         pop_comp, 
                                          size,
                                          component_obj=None,
                                          properties=properties)
@@ -190,20 +247,22 @@ class SonataReader(NetworkReader):
                     pos = self.cell_info[node]['0']['locations'][i]
                     self.handler.handle_location(index, 
                                                  pop, 
-                                                 self.parameters['DEFAULT_CELL_ID'], 
+                                                 pop_comp, 
                                                  pos['x'] if 'x' in pos else 0, 
                                                  pos['y'] if 'y' in pos else 0, 
                                                  pos['z'] if 'z' in pos else 0)
                 
                 self.cell_info[node]['pop_count'][pop]+=1
+                
+                
+        ########################################################################
+        #  Use extracted edge info to create connections
         
         projections_created = []
         for conn in self.conn_info:
             
             pre_node = self.conn_info[conn]['pre_node']
             post_node = self.conn_info[conn]['post_node']
-            
-            # print('-- Conn %s -> %s'%(pre_node,post_node))
             
             for i in range(len(self.conn_info[conn]['pre_id'])):
                 pre_id = self.conn_info[conn]['pre_id'][i]
@@ -214,8 +273,18 @@ class SonataReader(NetworkReader):
                 post_pop,post_i = self.cell_info[post_node]['pop_map'][post_id]
                 # print('   Mapped: Conn %s(%s) -> %s(%s)'%(pre_pop,pre_i,post_pop,post_i))
                 # print self.edges_info[conn][type]
+                
                 synapse = self.edges_info[conn][type]['dynamics_params'].split('.')[0]
+                self.syn_comp_info[synapse] = {}
+                #print self.edges_info[conn][type]
+                dynamics_params_file = subs(self.network_config['components']['synaptic_models_dir'],substitutes) +'/'+self.edges_info[conn][type]['dynamics_params']
+                
+                
+                #TODO: don't load this file every connection!!!
+                self.syn_comp_info[synapse]['dynamics_params'] = load_json(dynamics_params_file)
                 proj_id = '%s_%s_%s'%(pre_pop,post_pop,synapse)
+                
+                sign = self.syn_comp_info[synapse]['dynamics_params']['sign']
                 
                 if not proj_id in projections_created:
                     
@@ -223,10 +292,9 @@ class SonataReader(NetworkReader):
                                          pre_pop, 
                                          post_pop, 
                                          synapse)
+                                         
                     projections_created.append(proj_id)
                     
-                
-
                 self.handler.handle_connection(proj_id, 
                                              i, 
                                              pre_pop, 
@@ -234,13 +302,68 @@ class SonataReader(NetworkReader):
                                              synapse, \
                                              pre_i, \
                                              post_i, \
-                                             delay = 0, \
-                                             weight = 1)
+                                             weight=sign * self.edges_info[conn][type]['syn_weight'], \
+                                             delay=self.edges_info[conn][type]['delay'])
                 
 
+        ########################################################################
+        #  Load simulation info into self.simulation_config
         
-        # pp.pprint(self.conn_info)
-        # pp.pprint(self.cell_info)
+        if self.simulation_config:
+            
+            if self.simulation_config:
+                for m in self.simulation_config['manifest']:
+                    path = subs(self.simulation_config['manifest'][m],substitutes)
+                    substitutes[m] = path
+                    
+            for s1 in ['output']:
+                for k in self.simulation_config[s1]:
+                    self.simulation_config[s1][k] = subs(self.simulation_config[s1][k],substitutes)
+                    
+            for s1 in ['inputs']:
+                for s2 in self.simulation_config[s1]:
+                    for k in self.simulation_config[s1][s2]:
+                        self.simulation_config[s1][s2][k] = subs(self.simulation_config[s1][s2][k],substitutes)
+                    
+    
+        ########################################################################
+        #  Extract info from inputs in simulation_config
+        
+        pp.pprint(self.simulation_config)
+        
+        for input in self.simulation_config['inputs']:
+            info = self.simulation_config['inputs'][input]
+            print_v(" - Adding input: %s which has info: %s"%(input, info)) 
+            
+            self.input_comp_info[input] = {}
+            
+            node_set = info['node_set']
+            node_info = self.cell_info[node_set]
+            print node_info
+            from pyneuroml.plot.PlotSpikes import read_sonata_spikes_hdf5_file
+            
+            ids_times = read_sonata_spikes_hdf5_file(info['input_file'])
+            for id in ids_times:
+                times = ids_times[id]
+                pop_id, cell_id = node_info['pop_map'][id] 
+                print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has %i spikes"%(id, node_set, pop_id, cell_id, len(times)))
+                
+                component = '%s_timedInputs_%i'%(input,cell_id)
+                
+                self.input_comp_info[input][component] ={'id': cell_id, 'times': times}
+                
+                input_list_id = 'il_%s_%i'%(input,cell_id)
+                self.handler.handle_input_list(input_list_id, 
+                                               pop_id, 
+                                               component, 
+                                               1)
+                
+                self.handler.handle_single_input(input_list_id, 
+                                                  0, 
+                                                  cellId = cell_id, 
+                                                  segId = 0, 
+                                                  fract = 0.5)
+            
 
 
     def parse_group(self, g):
@@ -291,7 +414,6 @@ class SonataReader(NetworkReader):
           return node._c_classid == 'ARRAY' or node._c_classid == 'CARRAY'   
 
 
-
     def parse_dataset(self, d):
         print_v("Parsing dataset/array: %s; at node: %s, node_group %s"%(str(d), self.current_node, self.current_node_group))
                 
@@ -330,141 +452,101 @@ class SonataReader(NetworkReader):
         else:
             print_v("Unhandled dataset: %s"%d.name)
         
-        # Population
-        '''
-        if self.current_population and d.name=='locations':
-            
-            perc_cells = self.parameters['percentage_cells_per_pop'] if 'percentage_cells_per_pop' in self.parameters else 100
-            if perc_cells>100: perc_cells = 100
-            
-            size = max(0,int((perc_cells/100.)*d.shape[0]))
-            
-            if size>0:
-                properties = {}
-                if self._is_interneuron(self.current_population):
-                    properties['radius'] = 5
-                    type='I'
-                else:
-                    properties['radius'] = 10
-                    type='E'
-                properties['type'] = type
-                    
-                layer = self.current_population.split('_')[0]
-                properties['region'] = layer
-                try:
-                    import opencortex.utils.color as occ
-                    if layer == 'L23':
-                        if type=='E': color = occ.L23_PRINCIPAL_CELL
-                        if type=='I': color = occ.L23_INTERNEURON
-                    if layer == 'L4':
-                        if type=='E': color = occ.L4_PRINCIPAL_CELL
-                        if type=='I': color = occ.L4_INTERNEURON
-                    if layer == 'L5':
-                        if type=='E': color = occ.L5_PRINCIPAL_CELL
-                        if type=='I': color = occ.L5_INTERNEURON
-                    if layer == 'L6':
-                        if type=='E': color = occ.L6_PRINCIPAL_CELL
-                        if type=='I': color = occ.L6_INTERNEURON
-                            
-                    properties['color'] = color
-                except:
-                    # Don't worry about it, it's just metadata
-                    pass
+    '''
+        Based on cell & synapse properties found, create the corresponding NeuroML components
+    '''
+    def add_neuroml_components(self, nml_doc):
+        
+        #pp.pprint(self.pop_comp_info)
+        
+        print_v("Adding NeuroML cells to: %s"%nml_doc.id)
+        
+        for c in self.pop_comp_info:
+            info = self.pop_comp_info[c]
+            if info['model_type'] == 'point_process':
                 
-                component_obj = None
+                from neuroml import IF_curr_alpha
                 
-                if self.parameters['DEFAULT_CELL_ID'] in self.component_objects:
-                    component_obj = self.component_objects[self.parameters['DEFAULT_CELL_ID']]
-                else:
-                    if 'cell_info' in self.parameters:
-                        def_cell_info = self.parameters['cell_info'][self.parameters['DEFAULT_CELL_ID']]
-                        if def_cell_info.neuroml2_source_file:
-                            from pyneuroml import pynml
-                            nml2_doc = pynml.read_neuroml2_file(def_cell_info.neuroml2_source_file, 
-                                                    include_includes=True)
-                            component_obj = nml2_doc.get_by_id(self.parameters['DEFAULT_CELL_ID'])
-                            print_v("Loaded NeuroML2 object %s from %s "%(component_obj,def_cell_info.neuroml2_source_file))
-                            self.component_objects[self.parameters['DEFAULT_CELL_ID']] = component_obj
-                        
-
-                self.handler.handle_population(self.current_population, 
-                                         self.parameters['DEFAULT_CELL_ID'], 
-                                         size,
-                                         component_obj=component_obj,
-                                         properties=properties)
-
-                print_v("   There are %i cells in: %s"%(size, self.current_population))
-                for i in range(0, d.shape[0]):
-
-                    if i<size:
-                        row = d[i,:]
-                        x = row[0]
-                        y = row[1]
-                        z = row[2]
-                        self.pop_locations[self.current_population][i]=(x,y,z)
-                        self.handler.handle_location(i, self.current_population, self.parameters['DEFAULT_CELL_ID'], x, y, z)
-                    
+                pynn0 = IF_curr_alpha(id=c, 
+                                      cm="1.0", 
+                                      i_offset="0", 
+                                      tau_m=info['dynamics_params']['tau']*1000, 
+                                      tau_refrac=info['dynamics_params']['refrac']*1000, 
+                                      tau_syn_E="0.5", 
+                                      tau_syn_I="0.5", 
+                                      v_init="-65", 
+                                      v_reset="-62.0", 
+                                      v_rest="-65.0", 
+                                      v_thresh="-52.0")
+                nml_doc.IF_curr_alpha.append(pynn0)
                 
-        # Projection
-        elif self.pre_pop!=None and self.post_pop!=None:
+        print_v("Adding NeuroML synapses to: %s"%nml_doc.id)
+        
+        #pp.pprint(self.syn_comp_info)
+        
+        for s in self.syn_comp_info:
+                
+            from neuroml import ExpCurrSynapse
             
-            proj_id = 'Proj__%s__%s'%(self.pre_pop,self.post_pop)
-            synapse = 'gaba'
-            if 'PC' in self.pre_pop or 'SS' in self.pre_pop: # TODO: better choice between E/I cells
-                synapse = 'ampa'
-                
-            (ii, jj) = np.nonzero(d)
-            conns_here = False
-            pre_num = len(self.pop_locations[self.pre_pop]) if self.pre_pop in self.pop_locations else 0
-            post_num = len(self.pop_locations[self.post_pop]) if self.post_pop in self.pop_locations else 0
+            pynnSynn0 = ExpCurrSynapse(id=s, tau_syn="5")
+            nml_doc.exp_curr_synapses.append(pynnSynn0)
             
-            if pre_num>0 and post_num>0:
-                for index in range(len(ii)):
-                    if ii[index]<pre_num and \
-                       jj[index]<post_num:
-                        conns_here=True
-                        break
-
-                if conns_here:
-                    print_v("Conn %s -> %s (%s)"%(self.pre_pop,self.post_pop, synapse))
-                    self.handler.handle_projection(proj_id, 
-                                         self.pre_pop, 
-                                         self.post_pop, 
-                                         synapse)
-
-                    conn_count = 0
-
-                    for index in range(len(ii)):
-                        i = ii[index]
-                        j = jj[index]
-                        if i<pre_num and j<post_num:
-                            #print("  Conn5 %s[%s] -> %s[%s]"%(self.pre_pop,i,self.post_pop,j))
-                            delay = 1.111
-                            weight =1
-                            self.handler.handle_connection(proj_id, 
-                                             conn_count, 
-                                             self.pre_pop, 
-                                             self.post_pop, 
-                                             synapse, \
-                                             i, \
-                                             j, \
-                                             delay = delay, \
-                                             weight = weight)
-                            conn_count+=1
-
-
-                    self.handler.finalise_projection(proj_id, 
-                                         self.pre_pop, 
-                                         self.post_pop, 
-                                         synapse)
-
-            self.post_pop=None
-            
-        '''
                 
+        print_v("Adding NeuroML inputs to: %s"%nml_doc.id)
+                
+        pp.pprint(self.input_comp_info)
+        
+        for input in self.input_comp_info:
+            
+            for comp_id in self.input_comp_info[input]:
+                info = self.input_comp_info[input][comp_id]
+                print_v("Adding input %s: %s"%(comp_id, info))
+                from neuroml import TimedSynapticInput, Spike
+
+                tsi = TimedSynapticInput(id=comp_id, synapse="instanteneousExc", spike_target="./instanteneousExc")
+                nml_doc.timed_synaptic_inputs.append(tsi)
+                for ti in range(len(info['times'])):
+                    tsi.spikes.append(Spike(id=ti, time='%sms'%info['times'][ti]))
+            
+    
+    '''
+        Generate a LEMS file to use in simulations of the NeuroML file
+    '''
+    def generate_lems_file(self, nml_file_name, nml_doc):
+        
+        #pp.pprint(self.simulation_config)
+        
+        sim_id = 'SonataSim'
+        
+        target = nml_doc.networks[0].id
+        
+        duration = self.simulation_config['run']['tstop']
+        dt = self.simulation_config['run']['dt']
+        lems_file_name = 'LEMS_%s.xml'%sim_id
+        target_dir = "./"
+
+        generate_lems_file_for_neuroml(sim_id, 
+                                       nml_file_name, 
+                                       target, 
+                                       duration, 
+                                       dt, 
+                                       lems_file_name,
+                                       target_dir,
+                                       include_extra_files = ['PyNN.xml'],
+                                       gen_plots_for_all_v = True,
+                                       plot_all_segments = False,
+                                       gen_plots_for_quantities = {},   #  Dict with displays vs lists of quantity paths
+                                       gen_plots_for_only_populations = [],   #  List of populations, all pops if = []
+                                       gen_saves_for_all_v = True,
+                                       save_all_segments = False,
+                                       gen_saves_for_only_populations = [],  #  List of populations, all pops if = []
+                                       gen_saves_for_quantities = {},   #  Dict with file names vs lists of quantity paths
+                                       gen_spike_saves_for_all_somas = True,
+                                       report_file_name = 'report.txt',
+                                       copy_neuroml = True,
+                                       verbose=True)
     
 if __name__ == '__main__':
-
 
     id = '9_cells'
     id = '300_cells'
@@ -472,35 +554,35 @@ if __name__ == '__main__':
     filename = '../../git/sonata/examples/%s/circuit_config.json'%id
     #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
     #filename = '../../git/bmtk/docs/examples/point_120cells/config.json'
-    filename = '../../git/sonatakd/examples/300_intfire/circuit_config.json'
     
-    '''sr = SonataReader(filename=filename, 
-                      id=id,
-                      DEFAULT_CELL_ID='hhcell')
-    
-    from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
-    def_handler = DefaultNetworkHandler()
-    
-    sr.parse(def_handler)   '''
+    id = '300_intfire'
+    id = 'small_intfire'
+    ## https://github.com/pgleeson/sonata/tree/intfire
+    filename = '../../git/sonatapg/examples/%s/config.json'%id
     
     from neuroml.hdf5.NetworkBuilder import NetworkBuilder
 
     neuroml_handler = NetworkBuilder()
     
     sr = SonataReader(filename=filename, 
-                      id=id,
-                      DEFAULT_CELL_ID='hhcell')
+                      id=id)
+                      
     sr.parse(neuroml_handler)  
     
     nml_file_name = '%s.net.nml'%id
 
+    sr.add_neuroml_components(neuroml_handler.get_nml_doc())
+    
     from neuroml.writers import NeuroMLWriter
     NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)
     print('Written to: %s'%nml_file_name)  
     
+    sr.generate_lems_file(nml_file_name, neuroml_handler.get_nml_doc())
+    
+    '''
     nml_file_name += '.h5'
 
     from neuroml.writers import NeuroMLHdf5Writer
     NeuroMLHdf5Writer.write(neuroml_handler.get_nml_doc(),nml_file_name)
-    print('Written to: %s'%nml_file_name)  
+    print('Written to: %s'%nml_file_name) ''' 
     
