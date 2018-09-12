@@ -8,6 +8,9 @@ import random
 
 
 def _locate_file(f, base_dir):
+    """
+    Utility method for finding full path to a filename as string
+    """
     if base_dir == None:
         return f
     file_name = os.path.join(base_dir, f)
@@ -15,10 +18,7 @@ def _locate_file(f, base_dir):
     #print_v('- Located %s at %s'%(f,real))
     return real
 
-'''
-    Generate the network model as described in NeuroMLlite in a specific handler,
-    e.g. NeuroMLHandler, PyNNHandler, etc.
-'''
+
 def generate_network(nl_model, 
                      handler, 
                      seed=1234, 
@@ -26,6 +26,10 @@ def generate_network(nl_model,
                      include_connections=True,
                      include_inputs=True,
                      base_dir=None):
+    """
+    Generate the network model as described in NeuroMLlite in a specific handler,
+    e.g. NeuroMLHandler, PyNNHandler, etc.
+    """
     
     pop_locations = {}
     cell_objects = {}
@@ -47,27 +51,28 @@ def generate_network(nl_model,
         
     else:
         notes = "Generated network: %s" % nl_model.id
+        notes += "\n    Generation seed: %i" % (seed)
         if nl_model.parameters:
-            notes += "\n    NeuroMLlite parameters: " % ()
+            notes += "\n    NeuroMLlite parameters: " 
             for p in nl_model.parameters:
                 notes += "\n        %s = %s" % (p, nl_model.parameters[p])
         handler.handle_document_start(nl_model.id, notes)
         temperature = '%sdegC' % nl_model.temperature if nl_model.temperature else None 
         handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
         
+    nml2_doc_temp = _extract_pynn_components_to_neuroml(nl_model)
     
     for c in nl_model.cells:
+        
         if c.neuroml2_source_file:
             from pyneuroml import pynml
             nml2_doc = pynml.read_neuroml2_file(_locate_file(c.neuroml2_source_file, base_dir), 
                                                 include_includes=True)
             cell_objects[c.id] = nml2_doc.get_by_id(c.id)
-        if c.pynn_cell:
-            from pyNN.neuroml.populations import Population
             
-            #exec('from pyNN.neuroml import %s'%c.pynn_cell)
-            #exec('temp_pynn_pop = Population(1, %s())'%c.pynn_cell)
-            #print temp_pynn_pop
+        if c.pynn_cell:
+            cell_objects[c.id] = nml2_doc_temp.get_by_id(c.id)
+            
             
     for s in nl_model.synapses:
         if s.neuroml2_source_file:
@@ -76,6 +81,8 @@ def generate_network(nl_model,
                                                 include_includes=True)
             synapse_objects[s.id] = nml2_doc.get_by_id(s.id)
             
+        if c.pynn_synapse:
+            synapse_objects[s.id] = nml2_doc_temp.get_by_id(s.id)
             
             
     for p in nl_model.populations:
@@ -204,11 +211,11 @@ def generate_network(nl_model,
         handler.finalise_document()
         
         
-'''
-    Useful for calling in main method after network and simulation are generated, 
-    to handle some standaed export ptions like -jnml, -graph etc.
-'''
 def check_to_generate_or_run(argv, sim):
+    """
+    Useful method for calling in main method after network and simulation are 
+    generated, to handle some standard export options like -jnml, -graph etc.
+    """
     
     print_v("Checking arguments: %s to see whether anything should be run in simulation %s (net: %s)..." % 
                (argv, sim.id, sim.network))
@@ -249,11 +256,86 @@ def check_to_generate_or_run(argv, sim):
         for a in argv:
             if 'graph' in a:
                 generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
+                
+        
+def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
+    """
+    Parse the NeuroMLlite description for cell, synapses and inputs described as 
+    PyNN elements (e.g. IF_cond_alpha, DCSource) and parameters, and convert 
+    these to the equivalent elements in a NeuroMLDocument
+    """
+    
+    if nml_doc == None:
+        from neuroml import NeuroMLDocument
+        nml_doc = NeuroMLDocument(id="temp")
+    
+    for c in nl_model.cells:
+        
+        if c.pynn_cell:
+            
+            if nml_doc.get_by_id(c.id) == None:
+                import pyNN.neuroml
+                cell_params = c.parameters if c.parameters else {}
+                #print('------- %s: %s' % (c, cell_params))
+                for p in cell_params:
+                    cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
+                #print('====== %s: %s' % (c, cell_params))
+                for proj in nl_model.projections:
+
+                    synapse = nl_model.get_child(proj.synapse, 'synapses')
+                    post_pop = nl_model.get_child(proj.postsynaptic, 'populations')
+                    if post_pop.component == c.id:
+                        #print("--------- Cell %s in post pop %s of %s uses %s"%(c.id,post_pop.id, proj.id, synapse))
+
+                        if synapse.pynn_receptor_type == 'excitatory':
+                            post = '_E'
+                        elif synapse.pynn_receptor_type == 'inhibitory':
+                            post = '_I'
+                        for p in synapse.parameters:
+                            cell_params['%s%s' % (p, post)] = synapse.parameters[p]
+
+                temp_cell = eval('pyNN.neuroml.%s(**cell_params)' % c.pynn_cell)
+                if c.pynn_cell != 'SpikeSourcePoisson':
+                    temp_cell.default_initial_values['v'] = temp_cell.parameter_space['v_rest'].base_value
+
+                cell_id = temp_cell.add_to_nml_doc(nml_doc, None)
+                cell = nml_doc.get_by_id(cell_id)
+                cell.id = c.id
+            
+    for s in nl_model.synapses:
+        if nml_doc.get_by_id(s.id) == None:
+            
+            if s.pynn_synapse_type and s.pynn_receptor_type:
+                import neuroml
+                
+                if s.pynn_synapse_type == 'cond_exp':
+                    syn = neuroml.ExpCondSynapse(id=s.id, tau_syn=s.parameters['tau_syn'], e_rev=s.parameters['e_rev'])
+                    nml_doc.exp_cond_synapses.append(syn)
+                elif s.pynn_synapse_type == 'cond_alpha':
+                    syn = neuroml.AlphaCondSynapse(id=s.id, tau_syn=s.parameters['tau_syn'], e_rev=s.parameters['e_rev'])
+                    nml_doc.alpha_cond_synapses.append(syn)
+                elif s.pynn_synapse_type == 'curr_exp':
+                    syn = neuroml.ExpCurrSynapse(id=s.id, tau_syn=s.parameters['tau_syn'])
+                    nml_doc.exp_curr_synapses.append(syn)
+                elif s.pynn_synapse_type == 'curr_alpha':
+                    syn = neuroml.AlphaCurrSynapse(id=s.id, tau_syn=s.parameters['tau_syn'])
+                    nml_doc.alpha_curr_synapses.append(syn)
+    
+    for i in nl_model.input_sources:
+        
+        #if nml_doc.get_by_id(i.id) == None:
+      
+        if i.pynn_input:
+            import pyNN.neuroml
+            input_params = i.parameters if i.parameters else {}
+            temp_input = eval('pyNN.neuroml.%s(**input_params)' % i.pynn_input)
+            pg_id = temp_input.add_to_nml_doc(nml_doc, None)
+            pg = nml_doc.get_by_id(pg_id)
+            pg.id = i.id
+            
+    return nml_doc
         
         
-'''
-    Generate and save NeuroML2 file (XML or HDF5) from the NeuroMLlite description
-'''
 def generate_neuroml2_from_network(nl_model, 
                                    nml_file_name=None, 
                                    print_summary=True, 
@@ -262,6 +344,10 @@ def generate_neuroml2_from_network(nl_model,
                                    base_dir=None,
                                    target_dir=None,
                                    validate=False):
+    """
+    Generate and save NeuroML2 file (in either XML or HDF5 format) from the 
+    NeuroMLlite description
+    """
 
     print_v("Generating NeuroML2 for %s%s..." % (nl_model.id, ' (base dir: %s; target dir: %s)' 
                  % (base_dir, target_dir) if base_dir or target_dir else ''))
@@ -286,7 +372,7 @@ def generate_neuroml2_from_network(nl_model,
                                         
             if i.neuroml2_input: 
                 input_params = i.parameters if i.parameters else {}
-                #input = eval('pyNN.neuroml.%s(**input_params)'%i.pynn_input)
+                
                 # TODO make more generic...
                 
                 if i.neuroml2_input.lower() == 'pulsegenerator':
@@ -300,15 +386,6 @@ def generate_neuroml2_from_network(nl_model,
                 for p in input_params:
                     exec('input.%s = "%s"' % (p, evaluate(input_params[p], nl_model.parameters)))
                 
-                
-            if i.pynn_input:
-                import pyNN.neuroml
-                input_params = i.parameters if i.parameters else {}
-                temp_input = eval('pyNN.neuroml.%s(**input_params)' % i.pynn_input)
-                pg_id = temp_input.add_to_nml_doc(nml_doc, None)
-                pg = nml_doc.get_by_id(pg_id)
-                pg.id = i.id
-    
     for c in nl_model.cells:
         if c.neuroml2_source_file:
             
@@ -328,35 +405,25 @@ def generate_neuroml2_from_network(nl_model,
             if not incl in nml_doc.includes:
                 nml_doc.includes.append(incl) 
                 
-        if c.pynn_cell:
-            import pyNN.neuroml
+        if c.neuroml2_cell: 
+            
             cell_params = c.parameters if c.parameters else {}
-            #print('------- %s: %s' % (c, cell_params))
+            # TODO make more generic...
+            if c.neuroml2_cell.lower() == 'spikegenerator':
+                cell = neuroml.SpikeGenerator(id=c.id)
+                nml_doc.spike_generators.append(cell)
+            elif c.neuroml2_cell.lower() == 'spikegeneratorpoisson':
+                cell = neuroml.SpikeGeneratorPoisson(id=c.id)
+                nml_doc.spike_generator_poissons.append(cell)
+            elif c.neuroml2_cell.lower() == 'spikegeneratorrefpoisson':
+                cell = neuroml.SpikeGeneratorRefPoisson(id=c.id)
+                nml_doc.spike_generator_ref_poissons.append(cell)
+            else:
+                raise Exception('The neuroml2_cell: %s is not yet supported...'%c.neuroml2_cell)
+
             for p in cell_params:
-                cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
-            #print('====== %s: %s' % (c, cell_params))
-            for proj in nl_model.projections:
-
-                synapse = nl_model.get_child(proj.synapse, 'synapses')
-                post_pop = nl_model.get_child(proj.postsynaptic, 'populations')
-                if post_pop.component == c.id:
-                    #print("--------- Cell %s in post pop %s of %s uses %s"%(c.id,post_pop.id, proj.id, synapse))
-
-                    if synapse.pynn_receptor_type == 'excitatory':
-                        post = '_E'
-                    elif synapse.pynn_receptor_type == 'inhibitory':
-                        post = '_I'
-                    for p in synapse.parameters:
-                        cell_params['%s%s' % (p, post)] = synapse.parameters[p]
-                    
-            temp_cell = eval('pyNN.neuroml.%s(**cell_params)' % c.pynn_cell)
-            if c.pynn_cell != 'SpikeSourcePoisson':
-                temp_cell.default_initial_values['v'] = temp_cell.parameter_space['v_rest'].base_value
-            
-            cell_id = temp_cell.add_to_nml_doc(nml_doc, None)
-            cell = nml_doc.get_by_id(cell_id)
-            cell.id = c.id
-            
+                exec('cell.%s = "%s"' % (p, evaluate(cell_params[p], nl_model.parameters)))
+                
     for s in nl_model.synapses:
         if nml_doc.get_by_id(s.id) == None:
             if s.neuroml2_source_file:
@@ -368,29 +435,15 @@ def generate_neuroml2_from_network(nl_model,
                 incl = neuroml.IncludeType(s.lems_source_file)
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)'''
-            
-            if s.pynn_synapse_type and s.pynn_receptor_type:
-                import neuroml
-                
-                if s.pynn_synapse_type == 'cond_exp':
-                    syn = neuroml.ExpCondSynapse(id=s.id, tau_syn=s.parameters['tau_syn'], e_rev=s.parameters['e_rev'])
-                    nml_doc.exp_cond_synapses.append(syn)
-                elif s.pynn_synapse_type == 'cond_alpha':
-                    syn = neuroml.AlphaCondSynapse(id=s.id, tau_syn=s.parameters['tau_syn'], e_rev=s.parameters['e_rev'])
-                    nml_doc.alpha_cond_synapses.append(syn)
-                elif s.pynn_synapse_type == 'curr_exp':
-                    syn = neuroml.ExpCurrSynapse(id=s.id, tau_syn=s.parameters['tau_syn'])
-                    nml_doc.exp_curr_synapses.append(syn)
-                elif s.pynn_synapse_type == 'curr_alpha':
-                    syn = neuroml.AlphaCurrSynapse(id=s.id, tau_syn=s.parameters['tau_syn'])
-                    nml_doc.alpha_curr_synapses.append(syn)
+       
+    # Look for and add the PyNN based elements to the NeuroMLDocument 
+    _extract_pynn_components_to_neuroml(nl_model, nml_doc)
                     
     if print_summary:
         # Print info
         print_v(nml_doc.summary())
 
     # Save to file
-        
     if target_dir == None:
         target_dir = base_dir
     if format == 'xml':
@@ -422,35 +475,53 @@ def generate_neuroml2_from_network(nl_model,
 
 locations_mods_loaded_from = []
 
+def _generate_neuron_files_from_neuroml(network, verbose=False, dir_for_mod_files = None):
+    """
+    Generate NEURON hoc/mod files from the NeuroML files which are marked as 
+    included in the NeuroMLlite description; also compiles the mod files
+    """
 
-'''
-    Generate NEURON hoc/mod files from the NeuroML files which are marked as included in the 
-    NeuroMLlite description; also compiles the mod files
-'''
-def _generate_neuron_files_from_neuroml(network):
-
-    print_v("-------------   Generating NEURON files from NeuroML for %s..." % (network.id))
+    print_v("-------------   Generating NEURON files from NeuroML for %s (default dir: %s)..." % (network.id, dir_for_mod_files))
     nml_src_files = []
-    dir_for_mod_files = None
+
+    from neuroml import NeuroMLDocument
+    import neuroml.writers as writers
+    temp_nml_doc = NeuroMLDocument(id="temp")
+    
+    dirs_for_mod_files = []
+    if dir_for_mod_files!=None:
+        dirs_for_mod_files.append(dir_for_mod_files)
 
     for c in network.cells:
         if c.neuroml2_source_file:
             nml_src_files.append(c.neuroml2_source_file)
-            if not dir_for_mod_files:
-                dir_for_mod_files = os.path.dirname(os.path.abspath(c.neuroml2_source_file))
-
+            dir_for_mod = os.path.dirname(os.path.abspath(c.neuroml2_source_file))
+            if not dir_for_mod in dirs_for_mod_files: dirs_for_mod_files.append(dir_for_mod)
+                
     for s in network.synapses:
         if s.neuroml2_source_file:
             nml_src_files.append(s.neuroml2_source_file)
-            if not dir_for_mod_files:
-                dir_for_mod_files = os.path.dirname(os.path.abspath(s.neuroml2_source_file))
+            dir_for_mod = os.path.dirname(os.path.abspath(s.neuroml2_source_file))
+            if not dir_for_mod in dirs_for_mod_files: dirs_for_mod_files.append(dir_for_mod)
 
     for i in network.input_sources:
         if i.neuroml2_source_file:
             nml_src_files.append(i.neuroml2_source_file)
-            if not dir_for_mod_files:
-                dir_for_mod_files = os.path.dirname(os.path.abspath(i.neuroml2_source_file))
+            dir_for_mod = os.path.dirname(os.path.abspath(i.neuroml2_source_file))
+            if not dir_for_mod in dirs_for_mod_files: dirs_for_mod_files.append(dir_for_mod)
                 
+    temp_nml_doc = _extract_pynn_components_to_neuroml(network)
+      
+    summary = temp_nml_doc.summary()
+    print summary
+    
+    if 'IF_' in summary: 
+        import tempfile
+        temp_nml_file = tempfile.NamedTemporaryFile(delete=False, suffix='.nml', dir=dir_for_mod_files)
+        print_v("Writing temp NML to: %s"%temp_nml_file.name)
+
+        writers.NeuroMLWriter.write(temp_nml_doc, temp_nml_file.name)
+        nml_src_files.append(temp_nml_file.name)
 
     for f in nml_src_files:
         from pyneuroml import pynml
@@ -460,29 +531,29 @@ def _generate_neuron_files_from_neuroml(network):
                                             compile_mods=True,
                                             verbose=True)
 
-    if not dir_for_mod_files in locations_mods_loaded_from:
-        print_v("Generated NEURON code; loading mechanisms from %s" % dir_for_mod_files)
-        try:
+    for dir_for_mod_files in dirs_for_mod_files:
+        if not dir_for_mod_files in locations_mods_loaded_from:
+            print_v("Generated NEURON code; loading mechanisms from %s (already loaded: %s)" % (dir_for_mod_files,locations_mods_loaded_from))
+            try:
 
-            from neuron import load_mechanisms
-            #if os.path.get_cwd()==dir_for_mod_files:
-                #print_v("Compiled mod files in currents"%dir_for_mod_files)
-            load_mechanisms(dir_for_mod_files)
+                from neuron import load_mechanisms
+                #if os.path.get_cwd()==dir_for_mod_files:
+                    #print_v("Compiled mod files in currents"%dir_for_mod_files)
+                load_mechanisms(dir_for_mod_files)
+                locations_mods_loaded_from.append(dir_for_mod_files)
+            except:
+                print_v("Failed to load mod file mechanisms...")
 
-            locations_mods_loaded_from.append(dir_for_mod_files)
-        except:
-            print_v("Failed to load mod file mechanisms...")
 
-
-'''
-    Generated in the specified simulatr and runs, if appropriate
-'''
 def generate_and_run(simulation, 
                      simulator, 
                      network=None, 
                      return_results=False, 
                      base_dir=None,
                      target_dir=None):
+    """
+    Generates the network in the specified simulator and runs, if appropriate
+    """
 
     if network == None:
         network = load_network_json(simulation.network)
@@ -491,7 +562,7 @@ def generate_and_run(simulation,
     
     if simulator == 'NEURON':
         
-        _generate_neuron_files_from_neuroml(network, target_dir)
+        _generate_neuron_files_from_neuroml(network, dir_for_mod_files=target_dir)
         
         from neuromllite.NeuronHandler import NeuronHandler
         
@@ -534,7 +605,6 @@ def generate_and_run(simulation,
         generate_network(network, handler, always_include_props=True, base_dir=base_dir)
     
         print_v("Done with GraphViz...")
-        
         
 
     elif simulator.startswith('PyNN'):
@@ -654,7 +724,10 @@ def generate_and_run(simulation,
         from netpyne import sim
         from netpyne import neuromlFuncs
         
-        _generate_neuron_files_from_neuroml(network)
+        if target_dir==None:
+            target_dir='./'
+            
+        _generate_neuron_files_from_neuroml(network, dir_for_mod_files=target_dir)
         
         import pprint; pp = pprint.PrettyPrinter(depth=6)
         
@@ -686,9 +759,10 @@ def generate_and_run(simulation,
 
         simConfig.saveDat = True
         
+        #print_v("NetPyNE netParams: ")
         #pp.pprint(netParams.todict())
-
-        pp.pprint(simConfig.todict())
+        #print_v("NetPyNE simConfig: ")
+        #pp.pprint(simConfig.todict())
         
         sim.initialize(netParams, simConfig)  # create network object and set cfg and net params
 
@@ -702,8 +776,6 @@ def generate_and_run(simulation,
             
             preComp = netpyne_handler.pop_ids_vs_components[prePop]
             
-            ###from neuroml import Cell
-           
             for conn in netpyne_handler.connections[projName]:
                 
                 pre_id, pre_seg, pre_fract, post_id, post_seg, post_fract, delay, weight = conn
@@ -760,7 +832,7 @@ def generate_and_run(simulation,
         if network.cells:
             for c in network.cells:
                 included_files.append(c.neuroml2_source_file)
-'''
+        '''
         if network.synapses:
             for s in network.synapses:  
                 if s.lems_source_file:
@@ -836,7 +908,11 @@ def generate_and_run(simulation,
             _print_result_info(traces, events)
             return results # traces, events =
         
+        
 def _print_result_info(traces, events):
+    """
+    Print a summary of the returned (voltage) traces and spike times
+    """
     print_v('Returning %i traces:'%len(traces))
     for r in sorted(traces.keys()):
         x = traces[r]

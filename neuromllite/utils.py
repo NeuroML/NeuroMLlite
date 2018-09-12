@@ -126,6 +126,7 @@ def create_new_model(reference,
                      color_for_default_population='0.8 0 0',
                      input_for_default_population=None,
                      synapses=[],
+                     simulation_seed=12345,
                      network_filename=None,
                      simulation_filename=None):
         
@@ -229,6 +230,7 @@ def create_new_model(reference,
                      network=new_file,
                      duration=duration,
                      dt=dt,
+                     seed=simulation_seed,
                      recordTraces={'all':'*'})
 
     if simulation_filename==None:

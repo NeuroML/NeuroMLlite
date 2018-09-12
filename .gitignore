@@ -56,3 +56,7 @@ report*.txt
 /neuromllite/sweep/x86_64
 /neuromllite/sweep/Example7_Brunel2000.net.nml
 /neuromllite/sweep/LEMS_SimExample7_ref0.xml
+/neuromllite/*.gv
+/neuromllite/*.gv.png
+/neuromllite/*.spikes
+/neuromllite/x86_64
