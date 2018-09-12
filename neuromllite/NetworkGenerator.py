@@ -81,7 +81,7 @@ def generate_network(nl_model,
                                                 include_includes=True)
             synapse_objects[s.id] = nml2_doc.get_by_id(s.id)
             
-        if c.pynn_synapse:
+        if s.pynn_synapse:
             synapse_objects[s.id] = nml2_doc_temp.get_by_id(s.id)
             
             

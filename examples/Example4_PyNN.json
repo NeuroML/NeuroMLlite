@@ -56,6 +56,18 @@
                 }
             }
         ], 
+        "regions": [
+            {
+                "region1": {
+                    "x": 0.0, 
+                    "y": 0.0, 
+                    "z": 0.0, 
+                    "width": 1000.0, 
+                    "height": 100.0, 
+                    "depth": 1000.0
+                }
+            }
+        ], 
         "populations": [
             {
                 "pop0": {
@@ -63,6 +75,9 @@
                     "component": "testcell", 
                     "properties": {
                         "color": "1 0 0"
+                    }, 
+                    "random_layout": {
+                        "region": "region1"
                     }
                 }
             }, 
@@ -72,6 +87,9 @@
                     "component": "testcell2", 
                     "properties": {
                         "color": "0 1 0"
+                    }, 
+                    "random_layout": {
+                        "region": "region1"
                     }
                 }
             }, 
@@ -81,6 +99,9 @@
                     "component": "testcell2", 
                     "properties": {
                         "color": "0 0 1"
+                    }, 
+                    "random_layout": {
+                        "region": "region1"
                     }
                 }
             }

@@ -1,4 +1,4 @@
-from neuromllite import Network, Cell, InputSource, Population, Synapse
+from neuromllite import Network, Cell, InputSource, Population, Synapse, RectangularRegion, RandomLayout 
 from neuromllite import Projection, RandomConnectivity, Input, Simulation
 from neuromllite.NetworkGenerator import generate_and_run
 import sys
@@ -22,10 +22,12 @@ input_source = InputSource(id='i_clamp',
                            parameters={'amplitude':0.99, 'start':200., 'stop':800.})
 net.input_sources.append(input_source)
 
+r1 = RectangularRegion(id='region1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
+net.regions.append(r1)
 
-p0 = Population(id='pop0', size=2, component=cell.id, properties={'color':'1 0 0'})
-p1 = Population(id='pop1', size=2, component=cell2.id, properties={'color':'0 1 0'})
-p2 = Population(id='pop2', size=1, component=cell2.id, properties={'color':'0 0 1'})
+p0 = Population(id='pop0', size=2, component=cell.id, properties={'color':'1 0 0'},random_layout = RandomLayout(region=r1.id))
+p1 = Population(id='pop1', size=2, component=cell2.id, properties={'color':'0 1 0'},random_layout = RandomLayout(region=r1.id))
+p2 = Population(id='pop2', size=1, component=cell2.id, properties={'color':'0 0 1'},random_layout = RandomLayout(region=r1.id))
 
 net.populations.append(p0)
 net.populations.append(p1)
