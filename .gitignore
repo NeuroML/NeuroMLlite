@@ -3,7 +3,7 @@
 examples/x86_64
 examples/test_files/x86_64
 *.pyc
-*_netpyne.py
+LEMS*_netpyne.py
 *_nrn.py
 *.hoc
 /test_files/cons_locs_pathways_mc0_Column.h5
