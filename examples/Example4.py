@@ -17,7 +17,7 @@ cell2 = Cell(id='testcell2', pynn_cell='IF_cond_alpha')
 cell2.parameters = { "tau_refrac":5, "i_offset":-.1 }
 net.cells.append(cell2)
 
-input_source = InputSource(id='iclamp0', 
+input_source = InputSource(id='i_clamp', 
                            pynn_input='DCSource', 
                            parameters={'amplitude':0.99, 'start':200., 'stop':800.})
 net.input_sources.append(input_source)
@@ -31,11 +31,11 @@ net.populations.append(p0)
 net.populations.append(p1)
 net.populations.append(p2)
 
-net.synapses.append(Synapse(id='ampa', 
+net.synapses.append(Synapse(id='ampaSyn', 
                             pynn_receptor_type='excitatory', 
                             pynn_synapse_type='cond_alpha', 
                             parameters={'e_rev':-10, 'tau_syn':2}))
-net.synapses.append(Synapse(id='gaba', 
+net.synapses.append(Synapse(id='gabaSyn', 
                             pynn_receptor_type='inhibitory', 
                             pynn_synapse_type='cond_alpha', 
                             parameters={'e_rev':-80, 'tau_syn':10}))
@@ -43,7 +43,7 @@ net.synapses.append(Synapse(id='gaba',
 net.projections.append(Projection(id='proj0',
                                   presynaptic=p0.id, 
                                   postsynaptic=p1.id,
-                                  synapse='ampa',
+                                  synapse='ampaSyn',
                                   delay=2,
                                   weight=0.02))
 net.projections[0].random_connectivity=RandomConnectivity(probability=1)
@@ -51,7 +51,7 @@ net.projections[0].random_connectivity=RandomConnectivity(probability=1)
 net.projections.append(Projection(id='proj1',
                                   presynaptic=p0.id, 
                                   postsynaptic=p2.id,
-                                  synapse='gaba',
+                                  synapse='gabaSyn',
                                   delay=2,
                                   weight=0.01))
 net.projections[1].random_connectivity=RandomConnectivity(probability=1)

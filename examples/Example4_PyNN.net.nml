@@ -1,27 +1,27 @@
 <neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example4_PyNN">
     <notes>Generated network: Example4_PyNN
     Generation seed: 1234</notes>
-    <pulseGenerator id="iclamp0" delay="200.0ms" duration="600.0ms" amplitude="0.99nA"/>
+    <pulseGenerator id="i_clamp" delay="200.0ms" duration="600.0ms" amplitude="0.99nA"/>
     <IF_cond_alpha id="testcell" cm="1." i_offset="0.1" tau_syn_E="0.3" tau_syn_I="0.5" v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="0." e_rev_I="-70."/>
     <IF_cond_alpha id="testcell2" cm="1." i_offset="-0.1" tau_syn_E="2." tau_syn_I="10." v_init="-65." tau_m="20." tau_refrac="5." v_reset="-65." v_rest="-65." v_thresh="-50." e_rev_E="-10." e_rev_I="-80."/>
-    <alphaCondSynapse id="ampa" tau_syn="2." e_rev="-10."/>
-    <alphaCondSynapse id="gaba" tau_syn="10." e_rev="-80."/>
+    <alphaCondSynapse id="ampaSyn" tau_syn="2." e_rev="-10."/>
+    <alphaCondSynapse id="gabaSyn" tau_syn="10." e_rev="-80."/>
     <network id="Example4_PyNN">
         <notes>Example 4: a network with PyNN cells &amp; inputs</notes>
         <population id="pop0" component="testcell" size="2"/>
         <population id="pop1" component="testcell2" size="2"/>
         <population id="pop2" component="testcell2" size="1"/>
-        <projection id="proj0" presynapticPopulation="pop0" postsynapticPopulation="pop1" synapse="ampa">
+        <projection id="proj0" presynapticPopulation="pop0" postsynapticPopulation="pop1" synapse="ampaSyn">
             <connectionWD id="0" preCellId="../pop0[0]" postCellId="../pop1[0]" weight="0.02" delay="2ms"/>
             <connectionWD id="1" preCellId="../pop0[0]" postCellId="../pop1[1]" weight="0.02" delay="2ms"/>
             <connectionWD id="2" preCellId="../pop0[1]" postCellId="../pop1[0]" weight="0.02" delay="2ms"/>
             <connectionWD id="3" preCellId="../pop0[1]" postCellId="../pop1[1]" weight="0.02" delay="2ms"/>
         </projection>
-        <projection id="proj1" presynapticPopulation="pop0" postsynapticPopulation="pop2" synapse="gaba">
+        <projection id="proj1" presynapticPopulation="pop0" postsynapticPopulation="pop2" synapse="gabaSyn">
             <connectionWD id="0" preCellId="../pop0[0]" postCellId="../pop2[0]" weight="0.01" delay="2ms"/>
             <connectionWD id="1" preCellId="../pop0[1]" postCellId="../pop2[0]" weight="0.01" delay="2ms"/>
         </projection>
-        <inputList id="stim" population="pop0" component="iclamp0">
+        <inputList id="stim" population="pop0" component="i_clamp">
             <input id="0" target="../pop0[1]" destination="synapses"/>
         </inputList>
     </network>

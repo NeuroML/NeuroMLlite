@@ -490,7 +490,7 @@ def _generate_neuron_files_from_neuroml(network, verbose=False, dir_for_mod_file
     
     dirs_for_mod_files = []
     if dir_for_mod_files!=None:
-        dirs_for_mod_files.append(dir_for_mod_files)
+        dirs_for_mod_files.append(os.path.abspath(dir_for_mod_files))
 
     for c in network.cells:
         if c.neuroml2_source_file:
@@ -513,36 +513,40 @@ def _generate_neuron_files_from_neuroml(network, verbose=False, dir_for_mod_file
     temp_nml_doc = _extract_pynn_components_to_neuroml(network)
       
     summary = temp_nml_doc.summary()
-    print summary
     
     if 'IF_' in summary: 
         import tempfile
         temp_nml_file = tempfile.NamedTemporaryFile(delete=False, suffix='.nml', dir=dir_for_mod_files)
-        print_v("Writing temp NML to: %s"%temp_nml_file.name)
+        print_v("Writing temporary NML file to: %s, summary: "%temp_nml_file.name)
+        print_v(summary)
 
         writers.NeuroMLWriter.write(temp_nml_doc, temp_nml_file.name)
         nml_src_files.append(temp_nml_file.name)
 
     for f in nml_src_files:
         from pyneuroml import pynml
+        print_v("Generating/compiling hoc/mod files for: %s"%f)
         pynml.run_lems_with_jneuroml_neuron(f, 
                                             nogui=True, 
                                             only_generate_scripts=True,
                                             compile_mods=True,
-                                            verbose=True)
+                                            verbose=False)
 
     for dir_for_mod_files in dirs_for_mod_files:
         if not dir_for_mod_files in locations_mods_loaded_from:
-            print_v("Generated NEURON code; loading mechanisms from %s (already loaded: %s)" % (dir_for_mod_files,locations_mods_loaded_from))
+            print_v("Generated NEURON code; loading mechanisms from %s (cwd: %s; already loaded: %s)" % (dir_for_mod_files,os.getcwd(),locations_mods_loaded_from))
             try:
 
                 from neuron import load_mechanisms
-                #if os.path.get_cwd()==dir_for_mod_files:
-                    #print_v("Compiled mod files in currents"%dir_for_mod_files)
-                load_mechanisms(dir_for_mod_files)
+                if os.getcwd()==dir_for_mod_files:
+                    print_v("That's current dir => importing neuron module loads mods here...")
+                else:
+                    load_mechanisms(dir_for_mod_files)
                 locations_mods_loaded_from.append(dir_for_mod_files)
             except:
                 print_v("Failed to load mod file mechanisms...")
+        else:
+            print_v("Already loaded mechanisms from %s (all loaded: %s)" % (dir_for_mod_files,locations_mods_loaded_from))
 
 
 def generate_and_run(simulation, 
@@ -720,14 +724,15 @@ def generate_and_run(simulation,
 
     elif simulator == 'NetPyNE':
         
-        from netpyne import specs
-        from netpyne import sim
-        from netpyne import neuromlFuncs
         
         if target_dir==None:
             target_dir='./'
             
         _generate_neuron_files_from_neuroml(network, dir_for_mod_files=target_dir)
+        
+        from netpyne import specs
+        from netpyne import sim
+        from netpyne import neuromlFuncs
         
         import pprint; pp = pprint.PrettyPrinter(depth=6)
         
@@ -759,8 +764,8 @@ def generate_and_run(simulation,
 
         simConfig.saveDat = True
         
-        #print_v("NetPyNE netParams: ")
-        #pp.pprint(netParams.todict())
+        print_v("NetPyNE netParams: ")
+        pp.pprint(netParams.todict())
         #print_v("NetPyNE simConfig: ")
         #pp.pprint(simConfig.todict())
         

@@ -24,7 +24,7 @@
         ], 
         "synapses": [
             {
-                "ampa": {
+                "ampaSyn": {
                     "pynn_synapse_type": "cond_alpha", 
                     "pynn_receptor_type": "excitatory", 
                     "parameters": {
@@ -34,7 +34,7 @@
                 }
             }, 
             {
-                "gaba": {
+                "gabaSyn": {
                     "pynn_synapse_type": "cond_alpha", 
                     "pynn_receptor_type": "inhibitory", 
                     "parameters": {
@@ -46,7 +46,7 @@
         ], 
         "input_sources": [
             {
-                "iclamp0": {
+                "i_clamp": {
                     "pynn_input": "DCSource", 
                     "parameters": {
                         "start": 200.0, 
@@ -90,7 +90,7 @@
                 "proj0": {
                     "presynaptic": "pop0", 
                     "postsynaptic": "pop1", 
-                    "synapse": "ampa", 
+                    "synapse": "ampaSyn", 
                     "delay": 2, 
                     "weight": 0.02, 
                     "random_connectivity": {
@@ -102,7 +102,7 @@
                 "proj1": {
                     "presynaptic": "pop0", 
                     "postsynaptic": "pop2", 
-                    "synapse": "gaba", 
+                    "synapse": "gabaSyn", 
                     "delay": 2, 
                     "weight": 0.01, 
                     "random_connectivity": {
@@ -114,7 +114,7 @@
         "inputs": [
             {
                 "stim": {
-                    "input_source": "iclamp0", 
+                    "input_source": "i_clamp", 
                     "population": "pop0", 
                     "percentage": 50.0
                 }
