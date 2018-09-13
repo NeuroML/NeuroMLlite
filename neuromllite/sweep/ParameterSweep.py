@@ -195,6 +195,9 @@ class ParameterSweep():
                 volts = OrderedDict()
                 for tr in traces:
                     if tr.endswith('/v'): volts[tr] = [v*1000. for v in traces[tr]]
+                    if tr.endswith('/r'): volts[tr] = [r for r in traces[tr]]
+                    
+                print_v("Analysing %s..."%traces.keys())
 
                 analysis_data=analysis.NetworkAnalysis(volts,
                                                    times,
@@ -221,7 +224,7 @@ class ParameterSweep():
                 l = len(x)
                 tmax_si = self._get_sim_duration_ms(params)/1000.
                 f_hz = l / tmax_si
-                print_v('This has %s points in %s sec, so %s Hz'%(l,tmax_si, f_hz))
+                #print_v('This has %s points in %s sec, so %s Hz'%(l,tmax_si, f_hz))
                 analysed["mean_spike_frequency"] = f_hz
                 
                 if not ref0 in report_here['analysis']:
@@ -259,6 +262,8 @@ class ParameterSweep():
                             print_v('  ==  Trace %s (%s) downscaled by factor %i from %i to %i points for heatmap; y value: %s=%s'%(y,ref,downscale,len(traces[y]),len(d), param_name, pval))
                             self.hm_y.append(pval)
                             self.hm_z.append(d)
+                            
+            print_v("Finished checking parallel job %i/%i (%s)"%(job_i,len(jobs),ref))
                 
         job_server.print_stats()
         job_server.destroy()
@@ -508,7 +513,7 @@ class NeuroMLliteRunner():
                                           
         print_v("Returned traces: %s, events: %s"%(traces.keys(), events.keys()))
         
-        return traces, events
+        return traces, events 
                     
         
 
@@ -624,8 +629,8 @@ if __name__ == '__main__':
                             vary, 
                             fixed,
                             num_parallel_runs=16,
-                                  plot_all=True, 
-                                  heatmap_all=True,
+                                  plot_all=False, 
+                                  heatmap_all=False,
                                   show_plot_already=False)
 
         report = ps.run()
