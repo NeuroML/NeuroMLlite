@@ -101,22 +101,37 @@ class Population(BaseWithId):
         
         #self.allowed_children = collections.OrderedDict([('positions',('List of explicit positions...',str))])
         
-        self.allowed_fields = collections.OrderedDict([('size',('Size of population',EvaluableExpression)),
-                               ('component',('Type of cell to use in population',str)),
+        self.allowed_fields = collections.OrderedDict([('component',('Type of cell to use in population',str)),
                                ('properties',('Dict of properties (metadata) for the population',dict)),
-                               ('random_layout',('Layout in random region',RandomLayout))])
+                               ('unstructured',('Layout of the population',Unstructured)),
+                               ('random_layout',('Layout of the population',RandomLayout))])
                                
                       
         super(Population, self).__init__(**kwargs)
+ 
+ 
+class Layout(Base):
+    
+    pass
+    
+class Unstructured(Base):
+
+    def __init__(self, **kwargs):
+        
+        self.allowed_fields = collections.OrderedDict([('size',('Size of population',EvaluableExpression))])
+                               
+        super(Unstructured, self).__init__(**kwargs)
  
  
 class RandomLayout(Base):
 
     def __init__(self, **kwargs):
         
-        self.allowed_fields = collections.OrderedDict([('region',('Region in which to place population',str))])
-                               
+        self.allowed_fields = collections.OrderedDict([('region',('Region in which to randomly place population',str)),
+                                                       ('size',('Size of population',EvaluableExpression))])
+        
         super(RandomLayout, self).__init__(**kwargs)
+                               
 
         
 class Projection(BaseWithId):

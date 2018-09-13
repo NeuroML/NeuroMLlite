@@ -21,8 +21,8 @@ r2 = RectangularRegion(id='region2', x=0,y=200,z=0,width=1000,height=100,depth=1
 net.regions.append(r1)
 net.regions.append(r2)
 
-net.populations[0].random_layout = RandomLayout(region=r1.id)
-net.populations[1].random_layout = RandomLayout(region=r2.id)
+net.populations[0].layout = RandomLayout(size=5, region=r1.id)
+net.populations[1].layout = RandomLayout(size=10, region=r2.id)
 
 net.populations[0].component = 'hhcell'
 net.populations[1].component = 'hhcell'
