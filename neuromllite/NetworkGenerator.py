@@ -144,6 +144,9 @@ def generate_network(nl_model,
                         flip = rng.random()
                         #print("Is cell %i conn to %i, prob %s - %s"%(pre_i, post_i, flip, p.random_connectivity.probability))
                         if flip < p.random_connectivity.probability:
+                            weight = evaluate(weight, nl_model.parameters)
+                            delay = evaluate(delay, nl_model.parameters)
+                            #print_v("Adding connection %i with weight: %s, delay: %s"%(conn_count, weight, delay))
                             handler.handle_connection(p.id, 
                                                       conn_count, 
                                                       p.presynaptic, 
@@ -155,12 +158,15 @@ def generate_network(nl_model,
                                                       preFract=0.5, \
                                                       postSegId=0, \
                                                       postFract=0.5, \
-                                                      delay=evaluate(delay, nl_model.parameters), \
-                                                      weight=evaluate(weight, nl_model.parameters))
+                                                      delay=delay, \
+                                                      weight=weight)
                             conn_count += 1
 
             if p.one_to_one_connector:
                 for i in range(min(len(pop_locations[p.presynaptic]), len(pop_locations[p.postsynaptic]))):
+                    weight = evaluate(weight, nl_model.parameters)
+                    delay = evaluate(delay, nl_model.parameters)
+                    #print_v("Adding connection %i with weight: %s, delay: %s"%(conn_count, weight, delay))
                     handler.handle_connection(p.id, 
                                               conn_count, 
                                               p.presynaptic, 
@@ -172,8 +178,8 @@ def generate_network(nl_model,
                                               preFract=0.5, \
                                               postSegId=0, \
                                               postFract=0.5, \
-                                              delay=evaluate(delay, nl_model.parameters), \
-                                              weight=evaluate(weight, nl_model.parameters))
+                                              delay=delay, \
+                                              weight=weight)
                     conn_count += 1
 
             handler.finalise_projection(p.id, 

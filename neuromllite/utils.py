@@ -109,8 +109,9 @@ def evaluate(expr, parameters={}):
             return float(expr)
     except:
         try:
-            print_('Evaluating with python: %s'%expr,verbose)
-            return eval(expr, parameters)
+            v = eval(expr, parameters)
+            print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
+            return v
         except:
             print_('Returning without altering: %s'%expr,verbose)
             return expr
