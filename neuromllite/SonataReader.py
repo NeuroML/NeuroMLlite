@@ -13,11 +13,12 @@ from pyneuroml.lems import generate_lems_file_for_neuroml
 import pprint
 pp = pprint.PrettyPrinter(depth=6)
 
-'''
-    Search the strings in a config file for a substitutable value, e.g. 
-    "morphologies_dir": "$COMPONENT_DIR/morphologies",
-'''
+
 def subs(path, substitutes):
+    """
+        Search the strings in a config file for a substitutable value, e.g. 
+        "morphologies_dir": "$COMPONENT_DIR/morphologies",
+    """
     #print_v('Checking for %s in %s'%(substitutes.keys(),path))
     if type(path) == int or type(path) == float:
         return path
@@ -26,7 +27,11 @@ def subs(path, substitutes):
             path = path.replace(s,substitutes[s])
     return path
 
+
 def _parse_entry(w):
+    """
+    Check whether it's an int, float or string & return with that type
+    """
     try:
         return int(w)
     except:
@@ -34,10 +39,12 @@ def _parse_entry(w):
             return float(w)
         except:
             return w
-'''
-    Load a generic csv file as used in Sonata
-'''
+
+
 def load_csv_props(info_file):
+    """
+    Load a generic csv file as used in Sonata
+    """
     info = {}
     columns = {}
     for line in open(info_file):
@@ -51,14 +58,14 @@ def load_csv_props(info_file):
                 if i!=0:
                     info[int(w[0])][columns[i]] = _parse_entry(w[i])
     return info
-            
-'''
-    Main class for reading a Sonata model. For typical usage, see main method below
-'''
-class SonataReader(NetworkReader):
+    
+    
+class SonataReader(NetworkReader):        
+    """
+        Main class for reading a Sonata model. For typical usage, see main method below
+    """
     
     component_objects = {} # Store cell ids vs objects, e.g. NeuroML2 based object
-    
     
     def __init__(self, **parameters):
                      
@@ -357,6 +364,7 @@ class SonataReader(NetworkReader):
             if info['input_type'] == 'current_clamp':
                 
                 node_set_conds = self.simulation_config['node_sets'][node_set]
+                pp.pprint(self.cell_info)
                 node_info = self.cell_info[node_set_conds['model_type']]
                 comp = 'PG_%s'%input
                 
@@ -503,10 +511,11 @@ class SonataReader(NetworkReader):
         else:
             print_v("Unhandled dataset: %s"%d.name)
         
-    '''
-        Based on cell & synapse properties found, create the corresponding NeuroML components
-    '''
+        
     def add_neuroml_components(self, nml_doc):
+        """
+            Based on cell & synapse properties found, create the corresponding NeuroML components
+        """
         
         #pp.pprint(self.pop_comp_info)
         
@@ -568,10 +577,11 @@ class SonataReader(NetworkReader):
                         pg = PulseGenerator(id=comp_id,delay='%sms'%info['delay'],duration='%sms'%info['duration'],amplitude='%snA'%info['amp'])
                         nml_doc.pulse_generators.append(pg)
     
-    '''
-        Generate a LEMS file to use in simulations of the NeuroML file
-    '''
+    
     def generate_lems_file(self, nml_file_name, nml_doc):
+        """
+            Generate a LEMS file to use in simulations of the NeuroML file
+        """
         
         #pp.pprint(self.simulation_config)
         
@@ -604,9 +614,37 @@ class SonataReader(NetworkReader):
                                        report_file_name = 'report.txt',
                                        copy_neuroml = True,
                                        verbose=True)
+                                       
+                                     
+def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
+    """
+    Return a NeuroMLDocument with (most of) the contents of the Sonata model 
+    """
     
-if __name__ == '__main__':
+    from neuroml.hdf5.NetworkBuilder import NetworkBuilder
+    neuroml_handler = NetworkBuilder()
+    
+    sr = SonataReader(filename=sonata_filename, id=id)
+                      
+    sr.parse(neuroml_handler)  
+    
+    nml_doc = neuroml_handler.get_nml_doc()
+    
+    sr.add_neuroml_components(nml_doc)
+    
+    nml_file_name = '%s.net.nml'%id
+    
+    from neuroml.writers import NeuroMLWriter
+    NeuroMLWriter.write(nml_doc,nml_file_name)
+    print_v('Written to: %s'%nml_file_name)  
+    
+    if generate_lems:
+        sr.generate_lems_file(nml_file_name, nml_doc)
+    
+    return nml_doc
 
+
+def main():
     id = '9_cells'
     id = '300_cells'
     #id = '5_cells_iclamp'
@@ -615,36 +653,24 @@ if __name__ == '__main__':
     #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
     #filename = '../../git/bmtk/docs/examples/point_120cells/config.json'
     
-    #id = '300_intfire'
+    id = '300_intfire'
     #id = '5_cells_iclamp'
     #id = 'small_intfire'
     ## https://github.com/pgleeson/sonata/tree/intfire
-    #filename = '../../git/sonatapg/examples/%s/config.json'%id
+    filename = '../../git/sonatapg/examples/%s/config.json'%id
     #filename = '../../git/sonata/examples/%s/config.json'%id
-     
-    from neuroml.hdf5.NetworkBuilder import NetworkBuilder
-
-    neuroml_handler = NetworkBuilder()
     
-    sr = SonataReader(filename=filename, 
-                      id=id)
-                      
-    sr.parse(neuroml_handler)  
+    nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
     
     nml_file_name = '%s.net.nml'%id
-
-    sr.add_neuroml_components(neuroml_handler.get_nml_doc())
-    
-    from neuroml.writers import NeuroMLWriter
-    NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)
-    print('Written to: %s'%nml_file_name)  
-    
-    sr.generate_lems_file(nml_file_name, neuroml_handler.get_nml_doc())
-    
-    
     nml_file_name += '.h5'
 
     from neuroml.writers import NeuroMLHdf5Writer
-    NeuroMLHdf5Writer.write(neuroml_handler.get_nml_doc(),nml_file_name)
+    NeuroMLHdf5Writer.write(nml_doc,nml_file_name)
     print('Written to: %s'%nml_file_name) 
+    
+if __name__ == '__main__':
+    main()
+
+ 
     
