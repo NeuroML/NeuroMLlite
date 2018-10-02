@@ -71,9 +71,11 @@ class SonataReader(NetworkReader):
                      
         print_v("Creating SonataReader with %s..."%parameters)
         self.parameters = parameters
-        self.current_node = None
+        
+        self.current_sonata_pop = None
         self.current_node_group = None
         self.cell_info = {}
+        
         self.pop_comp_info = {}
         self.syn_comp_info = {}
         self.input_comp_info = {}
@@ -117,7 +119,7 @@ class SonataReader(NetworkReader):
         else:
             id = 'SonataNetwork'
             
-        if id[0].isdigit():
+        if id[0].isdigit():  # id like 9_cells is not a valid id for NeuroML
             id='NML2_%s'%id
         
         ########################################################################
@@ -129,7 +131,8 @@ class SonataReader(NetworkReader):
         handler.handle_document_start(id, notes)
         
         handler.handle_network(id, notes)
-        self.nodes_info = {}
+        
+        self.node_types = {}
         
         ########################################################################
         #  Get info from nodes files    
@@ -145,9 +148,15 @@ class SonataReader(NetworkReader):
             print_v("Opened HDF5 file: %s"%(h5file.filename))
             self.parse_group(h5file.root.nodes)
             h5file.close()
-            self.nodes_info[self.current_node] = load_csv_props(node_types_file)
-            pp.pprint(self.nodes_info)
-            self.current_node = None
+            self.node_types[self.current_sonata_pop] = load_csv_props(node_types_file)
+            print('~~~~~~~~~~~~~~~')
+            print('node_types:')
+            pp.pprint(self.node_types)
+            print('~~~~~~~~~~~~~~~')
+            print('cell_info:')
+            pp.pprint(self.cell_info)
+            print('================')
+            self.current_sonata_pop = None
             
         
         
@@ -176,31 +185,29 @@ class SonataReader(NetworkReader):
         ########################################################################
         #  Use extracted node/cell info to create populations
             
-        for node in self.cell_info:
+        for sonata_pop in self.cell_info:
             types_vs_pops = {}
-            for type in self.cell_info[node]['type_numbers']:
-                info = self.nodes_info[node][type]
-                pop_name = info['pop_name'] if 'pop_name' in info else None
+            for type in self.cell_info[sonata_pop]['type_count']:
+                node_type_info = self.node_types[sonata_pop][type]
                 
-                ref = info['model_name'] if 'model_name' in info else info['model_type']
-                model_type = info['model_type']
-                model_template = info['model_template'] if 'model_template' in info else '- None -'
+                model_name_type = node_type_info['model_name'] if 'model_name' in node_type_info \
+                                  else (node_type_info['pop_name'] if 'pop_name' in node_type_info else node_type_info['model_type'])
                 
-                if pop_name:
-                    pop_id = '%s_%s'%(node,pop_name) 
-                else:
-                    pop_id = '%s_%s_%s'%(node,ref,type) 
+                model_type = node_type_info['model_type']
+                model_template = node_type_info['model_template'] if 'model_template' in node_type_info else '- None -'
+                
+                nml_pop_id = '%s_%s_%s'%(sonata_pop,model_name_type,type) 
                     
-                print_v(" - Adding population: %s which has model info: %s"%(pop_id, info))
+                print_v(" - Adding population: %s which has model info: %s"%(nml_pop_id, node_type_info))
                 
-                size = self.cell_info[node]['type_numbers'][type]
+                size = self.cell_info[sonata_pop]['type_count'][type]
                 
                 if model_type=='point_process' and model_template=='nrn:IntFire1':
                     pop_comp = model_template.replace(':','_')
                     self.pop_comp_info[pop_comp] = {}
                     self.pop_comp_info[pop_comp]['model_type'] = model_type
                     
-                    dynamics_params_file = subs(self.network_config['components']['point_neuron_models_dir'],substitutes) +'/'+info['dynamics_params']
+                    dynamics_params_file = subs(self.network_config['components']['point_neuron_models_dir'],substitutes) +'/'+node_type_info['dynamics_params']
                     self.pop_comp_info[pop_comp]['dynamics_params'] = load_json(dynamics_params_file)
                 else:
                     pop_comp = 'hhcell'
@@ -208,59 +215,61 @@ class SonataReader(NetworkReader):
                 properties = {}
 
                 properties['type_id']=type
-                properties['node_id']=node
-                properties['region']=node
-                for i in info:
-                    properties[i]=info[i]
+                properties['sonata_population']=sonata_pop
+                properties['region']=sonata_pop
+                
+                for i in node_type_info:
+                    properties[i]=node_type_info[i]
                     if i=='ei':
-                        properties['type']=info[i].upper()
+                        properties['type']=node_type_info[i].upper()
                         
                 color = '%s %s %s'%(self.myrandom.random(),self.myrandom.random(),self.myrandom.random())
                 
                 try:
                     import opencortex.utils.color as occ
-                    interneuron = 'SOM' in pop_id or 'PV' in pop_id
-                    if 'L23' in pop_id:
+                    interneuron = 'SOM' in nml_pop_id or 'PV' in nml_pop_id
+                    if 'L23' in nml_pop_id:
                         color = occ.L23_INTERNEURON if interneuron else occ.L23_PRINCIPAL_CELL
                         pop.properties.append(neuroml.Property('region','L23'))
-                    if 'L4' in pop_id:
+                    if 'L4' in nml_pop_id:
                         color = occ.L4_INTERNEURON if interneuron else occ.L4_PRINCIPAL_CELL
                         pop.properties.append(neuroml.Property('region','L4'))
-                    if 'L5' in pop_id:
+                    if 'L5' in nml_pop_id:
                         color = occ.L5_INTERNEURON if interneuron else occ.L5_PRINCIPAL_CELL
                         pop.properties.append(neuroml.Property('region','L5'))
-                    if 'L6' in pop_id:
+                    if 'L6' in nml_pop_id:
                         color = occ.L6_INTERNEURON if interneuron else occ.L6_PRINCIPAL_CELL
                         pop.properties.append(neuroml.Property('region','L6'))
                 except:
                     pass # Don't specify a particular color, use random, not a problem...
                     
                 properties['color']=color
-                if not 'locations' in self.cell_info[node]['0']:
-                    #############  temp for LEMS...
-                    properties={}
+                if not 'locations' in self.cell_info[sonata_pop]['0']:
+                    
+                    properties={}  #############  temp for LEMS...
                 
-                self.handler.handle_population(pop_id, 
+                self.handler.handle_population(nml_pop_id, 
                                          pop_comp, 
                                          size,
                                          component_obj=None,
                                          properties=properties)
-                types_vs_pops[type] = pop_id
-            self.cell_info[node]['pop_count'] = {}  
-            self.cell_info[node]['pop_map'] = {}   
+                                         
+                types_vs_pops[type] = nml_pop_id
+            self.cell_info[sonata_pop]['pop_count'] = {}  
+            self.cell_info[sonata_pop]['pop_map'] = {}   
             
-            for i in self.cell_info[node]['types']:
+            for i in self.cell_info[sonata_pop]['types']:
                 
-                pop = types_vs_pops[self.cell_info[node]['types'][i]]
+                pop = types_vs_pops[self.cell_info[sonata_pop]['types'][i]]
                 
-                if not pop in self.cell_info[node]['pop_count']:
-                    self.cell_info[node]['pop_count'][pop] = 0
+                if not pop in self.cell_info[sonata_pop]['pop_count']:
+                    self.cell_info[sonata_pop]['pop_count'][pop] = 0
                     
-                index = self.cell_info[node]['pop_count'][pop]
-                self.cell_info[node]['pop_map'][i] = (pop, index)
+                index = self.cell_info[sonata_pop]['pop_count'][pop]
+                self.cell_info[sonata_pop]['pop_map'][i] = (pop, index)
                 
-                if i in self.cell_info[node]['0']['locations']:
-                    pos = self.cell_info[node]['0']['locations'][i]
+                if i in self.cell_info[sonata_pop]['0']['locations']:
+                    pos = self.cell_info[sonata_pop]['0']['locations'][i]
                     self.handler.handle_location(index, 
                                                  pop, 
                                                  pop_comp, 
@@ -268,7 +277,7 @@ class SonataReader(NetworkReader):
                                                  pos['y'] if 'y' in pos else 0, 
                                                  pos['z'] if 'z' in pos else 0)
                 
-                self.cell_info[node]['pop_count'][pop]+=1
+                self.cell_info[sonata_pop]['pop_count'][pop]+=1
                 
                 
         ########################################################################
@@ -373,14 +382,14 @@ class SonataReader(NetworkReader):
                 input_lists_added = {}
                 
                 for id in node_info['pop_map']:
-                    pop_id, cell_id = node_info['pop_map'][id] 
-                    print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has current clamp input %s"%(id, node_set, pop_id, cell_id, '???'))
+                    nml_pop_id, cell_id = node_info['pop_map'][id] 
+                    print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has current clamp input %s"%(id, node_set, nml_pop_id, cell_id, '???'))
                     
-                    input_list_id = 'il_%s_%s'%(input,pop_id)
+                    input_list_id = 'il_%s_%s'%(input,nml_pop_id)
                     
                     if not input_list_id in input_lists_added:
                         self.handler.handle_input_list(input_list_id, 
-                                                       pop_id, 
+                                                       nml_pop_id, 
                                                        comp, 
                                                        0)
                         input_lists_added[input_list_id] = 1
@@ -402,8 +411,8 @@ class SonataReader(NetworkReader):
                 ids_times = read_sonata_spikes_hdf5_file(subs(info['input_file'],substitutes))
                 for id in ids_times:
                     times = ids_times[id]
-                    pop_id, cell_id = node_info['pop_map'][id] 
-                    print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has %i spikes"%(id, node_set, pop_id, cell_id, len(times)))
+                    nml_pop_id, cell_id = node_info['pop_map'][id] 
+                    print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has %i spikes"%(id, node_set, nml_pop_id, cell_id, len(times)))
 
                     component = '%s_timedInputs_%i'%(input,cell_id)
 
@@ -411,7 +420,7 @@ class SonataReader(NetworkReader):
 
                     input_list_id = 'il_%s_%i'%(input,cell_id)
                     self.handler.handle_input_list(input_list_id, 
-                                                   pop_id, 
+                                                   nml_pop_id, 
                                                    component, 
                                                    1)
 
@@ -433,18 +442,17 @@ class SonataReader(NetworkReader):
 
             if node._c_classid == 'GROUP':
                 if g._v_name=='nodes':
-                    node_id = node._v_name.replace('-','_')
-                    self.current_node = node_id
-                    self.cell_info[self.current_node] = {}
-                    self.cell_info[self.current_node]['types'] = {}
-                    self.cell_info[self.current_node]['type_numbers'] = {}
-                    #self.pop_locations[self.current_population] = {}
+                    son_pop_id = node._v_name.replace('-','_')
+                    self.current_sonata_pop = son_pop_id
+                    self.cell_info[self.current_sonata_pop] = {}
+                    self.cell_info[self.current_sonata_pop]['types'] = {}
+                    self.cell_info[self.current_sonata_pop]['type_count'] = {}
                     
-                if g._v_name==self.current_node:
+                if g._v_name==self.current_sonata_pop:
                     node_group = node._v_name
                     self.current_node_group = node_group
-                    self.cell_info[self.current_node][self.current_node_group] = {}
-                    self.cell_info[self.current_node][self.current_node_group]['locations'] = {}
+                    self.cell_info[self.current_sonata_pop][self.current_node_group] = {}
+                    self.cell_info[self.current_sonata_pop][self.current_node_group]['locations'] = {}
                     
                 if g._v_name=='edges':
                     edge_id = node._v_name.replace('-','_')
@@ -465,7 +473,6 @@ class SonataReader(NetworkReader):
             if self._is_dataset(node):
                 self.parse_dataset(node)
                 
-        self.current_population = None
         self.current_node_group = None
         
 
@@ -474,17 +481,15 @@ class SonataReader(NetworkReader):
 
 
     def parse_dataset(self, d):
-        print_v("Parsing dataset/array: %s; at node: %s, node_group %s"%(str(d), self.current_node, self.current_node_group))
+        #print_v("Parsing dataset/array: %s; at node: %s, node_group %s"%(str(d), self.current_sonata_pop, self.current_node_group))
                 
-        if self.current_node_group:
-            for i in range(0, d.shape[0]):
-                #index = 0 if d.name=='x' else (1 if d.name=='y' else 2)
+        if self.current_node_group:  # e.g. parent group is 0 with child datasets x,y,z
+            for i in range(0, d.shape[0]):                
+                if not i in self.cell_info[self.current_sonata_pop][self.current_node_group]['locations']:
+                    self.cell_info[self.current_sonata_pop][self.current_node_group]['locations'][i] = {}
+                self.cell_info[self.current_sonata_pop][self.current_node_group]['locations'][i][d.name] = d[i]
                 
-                if not i in self.cell_info[self.current_node][self.current_node_group]['locations']:
-                    self.cell_info[self.current_node][self.current_node_group]['locations'][i] = {}
-                self.cell_info[self.current_node][self.current_node_group]['locations'][i][d.name] = d[i]
-                
-        elif self.current_node:
+        elif self.current_sonata_pop: # e.g. parent group is cortex with child datasets node_id etc.
             
             if d.name=='node_group_id':
                 for i in range(0, d.shape[0]):
@@ -496,10 +501,10 @@ class SonataReader(NetworkReader):
                         raise Exception("Error: only support dataset node_id when index is same as node_id (fails in %s)...!"%d)
             if d.name=='node_type_id':
                 for i in range(0, d.shape[0]):
-                    self.cell_info[self.current_node]['types'][i] = d[i]
-                    if not d[i] in self.cell_info[self.current_node]['type_numbers']:
-                        self.cell_info[self.current_node]['type_numbers'][d[i]]=0
-                    self.cell_info[self.current_node]['type_numbers'][d[i]]+=1
+                    self.cell_info[self.current_sonata_pop]['types'][i] = d[i]
+                    if not d[i] in self.cell_info[self.current_sonata_pop]['type_count']:
+                        self.cell_info[self.current_sonata_pop]['type_count'][d[i]]=0
+                    self.cell_info[self.current_sonata_pop]['type_count'][d[i]]+=1
            
         elif d.name=='source_node_id':
             self.conn_info[self.current_edge]['pre_id'] = [i for i in d]
@@ -647,17 +652,16 @@ def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
 def main():
     id = '9_cells'
     id = '300_cells'
-    #id = '5_cells_iclamp'
-    filename = '../../git/bmtk/docs/examples/bio_basic_features/config_iclamp.json'
+    id = '5_cells_iclamp'
     filename = '../../git/sonata/examples/%s/config.json'%id
     #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
     #filename = '../../git/bmtk/docs/examples/point_120cells/config.json'
     
-    id = '300_intfire'
+    #id = '300_intfire'
     #id = '5_cells_iclamp'
     #id = 'small_intfire'
     ## https://github.com/pgleeson/sonata/tree/intfire
-    filename = '../../git/sonatapg/examples/%s/config.json'%id
+    #filename = '../../git/sonatapg/examples/%s/config.json'%id
     #filename = '../../git/sonata/examples/%s/config.json'%id
     
     nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
