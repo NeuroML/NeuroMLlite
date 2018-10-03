@@ -5,14 +5,13 @@ import random
 
 from neuroml.hdf5.NetworkContainer import *
 from neuromllite.BaseTypes import NetworkReader
-
 from neuromllite.utils import print_v, load_json
-
 from pyneuroml.lems import generate_lems_file_for_neuroml
 
 import pprint
 pp = pprint.PrettyPrinter(depth=6)
 
+DUMMY_CELL = 'dummy_cell'
 
 def _parse_entry(w):
     """
@@ -115,6 +114,10 @@ class SonataReader(NetworkReader):
 
 
     def parse(self, handler):
+        """
+        Main method to parse the Sonata files and call the appropriate methods
+        in the handler
+        """
 
         ########################################################################
         #  load the main configuration scripts    
@@ -230,8 +233,19 @@ class SonataReader(NetworkReader):
                     
                     dynamics_params_file = self.subs(self.network_config['components']['point_neuron_models_dir']) +'/'+node_type_info['dynamics_params']
                     self.pop_comp_info[pop_comp]['dynamics_params'] = load_json(dynamics_params_file)
+                    
+                if model_type=='point_process' and model_template=='nest:iaf_psc_alpha':
+                    pop_comp = model_template.replace(':','_')
+                    self.pop_comp_info[pop_comp] = {}
+                    self.pop_comp_info[pop_comp]['model_type'] = model_type
+                    self.pop_comp_info[pop_comp]['model_template'] = model_template
+                    
+                    dynamics_params_file = self.subs(self.network_config['components']['point_neuron_models_dir']) +'/'+node_type_info['dynamics_params']
+                    self.pop_comp_info[pop_comp]['dynamics_params'] = load_json(dynamics_params_file)
                 else:
-                    pop_comp = 'dummy_cell'
+                    pop_comp = DUMMY_CELL
+                    self.pop_comp_info[pop_comp] = {}
+                    self.pop_comp_info[pop_comp]['model_type'] = pop_comp
                     
                 properties = {}
 
@@ -291,12 +305,13 @@ class SonataReader(NetworkReader):
                 
                 if i in self.cell_info[sonata_pop]['0']['locations']:
                     pos = self.cell_info[sonata_pop]['0']['locations'][i]
+                    #print('Adding pos %i: %s'%(i,pos))
                     self.handler.handle_location(index, 
                                                  pop, 
                                                  pop_comp, 
-                                                 pos['x'] if 'x' in pos else 0, 
-                                                 pos['y'] if 'y' in pos else 0, 
-                                                 pos['z'] if 'z' in pos else 0)
+                                                 pos['x'] if 'x' in pos and pos['x'] is not None else 0, 
+                                                 pos['y'] if 'y' in pos and pos['y'] is not None else 0, 
+                                                 pos['z'] if 'z' in pos and pos['z'] is not None else 0)
                 
                 self.cell_info[sonata_pop]['pop_count'][pop]+=1
                 
@@ -314,10 +329,10 @@ class SonataReader(NetworkReader):
                 pre_id = self.conn_info[conn]['pre_id'][i]
                 post_id = self.conn_info[conn]['post_id'][i]
                 type = self.conn_info[conn]['edge_type_id'][i]
-                # print('   Conn (%s) %s(%s) -> %s(%s)'%(type,pre_node,pre_id,post_node,post_id))
+                #print_v('   Conn (%s) %s(%s) -> %s(%s)'%(type,pre_node,pre_id,post_node,post_id))
                 pre_pop,pre_i = self.cell_info[pre_node]['pop_map'][pre_id]
                 post_pop,post_i = self.cell_info[post_node]['pop_map'][post_id]
-                # print('   Mapped: Conn %s(%s) -> %s(%s)'%(pre_pop,pre_i,post_pop,post_i))
+                #print_v('   Mapped: Conn %s(%s) -> %s(%s)'%(pre_pop,pre_i,post_pop,post_i))
                 # print self.edges_info[conn][type]
                 
                 synapse = self.edges_info[conn][type]['dynamics_params'].split('.')[0]
@@ -400,8 +415,8 @@ class SonataReader(NetworkReader):
                         self.node_set_mappings[sonata_pop][nml_pop] = []
                     self.node_set_mappings[sonata_pop][nml_pop].append(nml_index)
                 
-            pp.pprint(self.simulation_config)
-            pp.pprint(self.pop_comp_info)
+            #pp.pprint(self.simulation_config)
+            #pp.pprint(self.pop_comp_info)
                 
             for node_set in self.simulation_config['node_sets']:
                 self.node_set_mappings[node_set] = {}
@@ -416,7 +431,7 @@ class SonataReader(NetworkReader):
                         nml_index = self.cell_info[sonata_pop]['pop_map'][sindex][1]
                         
                         matches = _matches_node_set_props(type_info, node_set_props)
-                        print_v('Node %i in %s (NML: %s[%i]) has type %s (%s); matches: %s'%(sindex, sonata_pop, nml_pop, nml_index, type, type_info, matches))
+                        #print_v('Node %i in %s (NML: %s[%i]) has type %s (%s); matches: %s'%(sindex, sonata_pop, nml_pop, nml_index, type, type_info, matches))
                         if matches:
                             if not nml_pop in self.node_set_mappings[node_set]:
                                 self.node_set_mappings[node_set][nml_pop] = []
@@ -426,7 +441,7 @@ class SonataReader(NetworkReader):
     
         ########################################################################
         #  Extract info from inputs in simulation_config
-        pp.pprint(self.simulation_config)
+        #pp.pprint(self.simulation_config)
         
         for input in self.simulation_config['inputs']:
             info = self.simulation_config['inputs'][input]
@@ -463,7 +478,7 @@ class SonataReader(NetworkReader):
                 
             elif info['input_type'] == 'spikes':
                 node_info = self.cell_info[node_set]
-                print node_info
+                
                 from pyneuroml.plot.PlotSpikes import read_sonata_spikes_hdf5_file
 
                 ids_times = read_sonata_spikes_hdf5_file(self.subs(info['input_file']))
@@ -580,13 +595,53 @@ class SonataReader(NetworkReader):
             Based on cell & synapse properties found, create the corresponding NeuroML components
         """
         
-        #pp.pprint(self.pop_comp_info)
-        
+        is_nest = False
         print_v("Adding NeuroML cells to: %s"%nml_doc.id)
+        pp.pprint(self.pop_comp_info)
         
         for c in self.pop_comp_info:
             info = self.pop_comp_info[c]
-            if info['model_type'] == 'point_process':
+            
+            model_template = info['model_template'] if 'model_template' in info else \
+                             (info['dynamics_params']['type'] if 'dynamics_params' in info else
+                             info['model_type'])
+            
+            if info['model_type'] == 'point_process' and model_template == 'nest:iaf_psc_alpha':
+                
+                is_nest = True
+                from neuroml import IF_curr_alpha
+                
+                '''
+                From PyNN
+
+                translations = build_translations(
+                    ('v_rest',     'E_L'),
+                    ('v_reset',    'V_reset'),
+                    ('cm',         'C_m',      1000.0),  # C_m is in pF, cm in nF
+                    ('tau_m',      'tau_m'),
+                    ('tau_refrac', 't_ref'),
+                    ('tau_syn_E',  'tau_syn_ex'),
+                    ('tau_syn_I',  'tau_syn_in'),
+                    ('v_thresh',   'V_th'),
+                    ('i_offset',   'I_e',      1000.0),  # I_e is in pA, i_offset in nA
+                )
+                '''
+                
+                pynn0 = IF_curr_alpha(id=c, 
+                                      cm=info['dynamics_params']['C_m']/1000.0, 
+                                      i_offset="0", 
+                                      tau_m=info['dynamics_params']['tau_m'], 
+                                      tau_refrac=info['dynamics_params']['t_ref'], 
+                                      tau_syn_E="99", 
+                                      tau_syn_I="99", 
+                                      v_init=info['dynamics_params']['V_reset'], 
+                                      v_reset=info['dynamics_params']['V_reset'], 
+                                      v_rest=info['dynamics_params']['E_L'], 
+                                      v_thresh=info['dynamics_params']['V_th'])
+                                      
+                nml_doc.IF_curr_alpha.append(pynn0)
+                
+            elif info['model_type'] == 'point_process':
                 
                 from neuroml import IF_curr_alpha
                 
@@ -603,27 +658,43 @@ class SonataReader(NetworkReader):
                                       v_thresh="-52.0")
                 nml_doc.IF_curr_alpha.append(pynn0)
                 
-        
-        from neuroml import IafCell
-        IafCell0 = IafCell(id="dummy_cell",
-                   C="1.0 nF",
-                   thresh = "-50mV",
-                   reset="-65mV",
-                   leak_conductance="10 nS",
-                   leak_reversal="-65mV")
+            else:
+                
+                from neuroml import IafCell
+                IafCell0 = IafCell(id=DUMMY_CELL,
+                           C="1.0 nF",
+                           thresh = "-50mV",
+                           reset="-65mV",
+                           leak_conductance="10 nS",
+                           leak_reversal="-65mV")
 
-        nml_doc.iaf_cells.append(IafCell0)
+                nml_doc.iaf_cells.append(IafCell0)
                 
         print_v("Adding NeuroML synapses to: %s"%nml_doc.id)
         
         #pp.pprint(self.syn_comp_info)
         
         for s in self.syn_comp_info:
-                
-            from neuroml import ExpCurrSynapse
+            dyn_params = self.syn_comp_info[s]['dynamics_params']
             
-            pynnSynn0 = ExpCurrSynapse(id=s, tau_syn="5")
-            nml_doc.exp_curr_synapses.append(pynnSynn0)
+            if 'level_of_detail' in dyn_params and dyn_params['level_of_detail'] == 'exp2syn':
+                from neuroml import ExpTwoSynapse
+
+                syn = ExpTwoSynapse(id=s, 
+                                    gbase="1nS",
+                                    erev="%smV"%dyn_params['erev'],
+                                    tau_rise="%sms"%dyn_params['tau1'],
+                                    tau_decay="%sms"%dyn_params['tau2'])
+                                    
+                print("Adding syn: %s"%syn)
+                nml_doc.exp_two_synapses.append(syn)
+                
+            else:
+                from neuroml import ExpCurrSynapse
+
+                pynnSynn0 = ExpCurrSynapse(id=s, tau_syn="1")
+                print("Adding syn: %s"%pynnSynn0)
+                nml_doc.exp_curr_synapses.append(pynnSynn0)
             
                 
         print_v("Adding NeuroML inputs to: %s"%nml_doc.id)
@@ -632,7 +703,6 @@ class SonataReader(NetworkReader):
         
         for input in self.input_comp_info:
             for input_type in self.input_comp_info[input]:
-                print input_type
                 if input_type == 'spikes':
                     for comp_id in self.input_comp_info[input][input_type]:
                         info = self.input_comp_info[input][input_type][comp_id]
@@ -647,8 +717,9 @@ class SonataReader(NetworkReader):
                     from neuroml import PulseGenerator
                     for comp_id in self.input_comp_info[input][input_type]:
                         info = self.input_comp_info[input][input_type][comp_id]
-                        print info
-                        pg = PulseGenerator(id=comp_id,delay='%sms'%info['delay'],duration='%sms'%info['duration'],amplitude='%snA'%info['amp'])
+                        #TODO remove when https://github.com/AllenInstitute/sonata/issues/42 is fixed!
+                        amp_template = '%spA' if is_nest else '%snA' # 
+                        pg = PulseGenerator(id=comp_id,delay='%sms'%info['delay'],duration='%sms'%info['duration'],amplitude=amp_template%info['amp'])
                         nml_doc.pulse_generators.append(pg)
     
     
@@ -720,14 +791,13 @@ def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
 
 def main():
     id = '9_cells'
-    #id = '300_cells'
+    id = '300_cells'
     id = '5_cells_iclamp'
     filename = '../../git/sonata/examples/%s/config.json'%id
     #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
     #filename = '../../git/bmtk/docs/examples/point_120cells/config.json'
     
     #id = '300_intfire'
-    #id = '5_cells_iclamp'
     #id = 'small_intfire'
     #id = 'small_iclamp'
     ## https://github.com/pgleeson/sonata/tree/intfire
