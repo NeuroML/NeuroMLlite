@@ -14,20 +14,6 @@ import pprint
 pp = pprint.PrettyPrinter(depth=6)
 
 
-def subs(path, substitutes):
-    """
-        Search the strings in a config file for a substitutable value, e.g. 
-        "morphologies_dir": "$COMPONENT_DIR/morphologies",
-    """
-    #print_v('Checking for %s in %s'%(substitutes.keys(),path))
-    if type(path) == int or type(path) == float:
-        return path
-    for s in substitutes:
-        if s in path:
-            path = path.replace(s,substitutes[s])
-    return path
-
-
 def _parse_entry(w):
     """
     Check whether it's an int, float or string & return with that type
@@ -60,6 +46,24 @@ def load_csv_props(info_file):
     return info
     
     
+def _matches_node_set_props(type_info, node_set_props):
+    """
+        Check whether the node_set properties match the given model type definition
+    """
+    matches = None
+    for key in node_set_props:
+        ns_val = node_set_props[key]
+        if key in type_info:
+            if ns_val==type_info[key]:
+                if matches:
+                    matches = matches and True
+                else:
+                    matches = True
+            else:
+                matches = False
+    return matches
+                    
+    
 class SonataReader(NetworkReader):        
     """
         Main class for reading a Sonata model. For typical usage, see main method below
@@ -75,10 +79,14 @@ class SonataReader(NetworkReader):
         self.current_sonata_pop = None
         self.current_node_group = None
         self.cell_info = {}
+        self.node_set_mappings = {}
         
         self.pop_comp_info = {}
         self.syn_comp_info = {}
         self.input_comp_info = {}
+        
+        self.init_substitutes = {}
+        self.substitutes = {}
         
         self.current_edge = None
         
@@ -88,6 +96,24 @@ class SonataReader(NetworkReader):
         self.myrandom = random.Random(12345)
         
 
+    def subs(self, path):
+        """
+            Search the strings in a config file for a substitutable value, e.g. 
+            "morphologies_dir": "$COMPONENT_DIR/morphologies",
+        """
+        #print_v('Checking for %s, %s in %s'%(self.substitutes,self.init_substitutes,path))
+        if type(path) == int or type(path) == float:
+            return path
+        for s in self.init_substitutes:
+            if path.startswith(s):
+                path = path.replace(s,self.init_substitutes[s], 1)
+        for s in self.substitutes:
+            if s in path:
+                path = path.replace(s,self.substitutes[s])
+        #print('Returning %s'%path)
+        return path
+
+
     def parse(self, handler):
 
         ########################################################################
@@ -96,23 +122,25 @@ class SonataReader(NetworkReader):
         main_config_filename = os.path.abspath(self.parameters['filename'])
         
         config = load_json(main_config_filename)
-        substitutes = {'./':'%s/'%os.path.dirname(main_config_filename),
-                       '${configdir}':'%s'%os.path.dirname(main_config_filename),
-                       '../':'%s/'%os.path.dirname(os.path.dirname(main_config_filename))}
+        
+        self.init_substitutes = {'.':'%s/'%os.path.dirname(main_config_filename),
+                                 '../':'%s/'%os.path.dirname(os.path.dirname(main_config_filename))}
+        
+        self.substitutes = {'${configdir}':'%s'%os.path.dirname(main_config_filename)}
         
         if 'network' in config:
-            self.network_config = load_json(subs(config['network'],substitutes))
+            self.network_config = load_json(self.subs(config['network']))
         else:
             self.network_config = config
             
         if 'simulation' in config:
-            self.simulation_config = load_json(subs(config['simulation'],substitutes))
+            self.simulation_config = load_json(self.subs(config['simulation']))
         else:
             self.simulation_config = None
             
         for m in self.network_config['manifest']:
-            path = subs(self.network_config['manifest'][m],substitutes)
-            substitutes[m] = path
+            path = self.subs(self.network_config['manifest'][m])
+            self.substitutes[m] = path
         
         if 'id' in self.parameters:
             id = self.parameters['id']
@@ -138,8 +166,8 @@ class SonataReader(NetworkReader):
         #  Get info from nodes files    
         
         for n in self.network_config['networks']['nodes']:
-            nodes_file = subs(n['nodes_file'],substitutes)
-            node_types_file = subs(n['node_types_file'],substitutes)
+            nodes_file = self.subs(n['nodes_file'])
+            node_types_file = self.subs(n['node_types_file'])
             
             print_v("\nLoading nodes from %s and %s"%(nodes_file,node_types_file))
 
@@ -149,13 +177,6 @@ class SonataReader(NetworkReader):
             self.parse_group(h5file.root.nodes)
             h5file.close()
             self.node_types[self.current_sonata_pop] = load_csv_props(node_types_file)
-            print('~~~~~~~~~~~~~~~')
-            print('node_types:')
-            pp.pprint(self.node_types)
-            print('~~~~~~~~~~~~~~~')
-            print('cell_info:')
-            pp.pprint(self.cell_info)
-            print('================')
             self.current_sonata_pop = None
             
         
@@ -168,8 +189,8 @@ class SonataReader(NetworkReader):
         
         if 'edges' in self.network_config['networks']:
             for e in self.network_config['networks']['edges']:
-                edges_file = subs(e['edges_file'],substitutes)
-                edge_types_file = subs(e['edge_types_file'],substitutes)
+                edges_file = self.subs(e['edges_file'])
+                edge_types_file = self.subs(e['edge_types_file'])
 
                 print_v("\nLoading edges from %s and %s"%(edges_file,edge_types_file))
 
@@ -207,10 +228,10 @@ class SonataReader(NetworkReader):
                     self.pop_comp_info[pop_comp] = {}
                     self.pop_comp_info[pop_comp]['model_type'] = model_type
                     
-                    dynamics_params_file = subs(self.network_config['components']['point_neuron_models_dir'],substitutes) +'/'+node_type_info['dynamics_params']
+                    dynamics_params_file = self.subs(self.network_config['components']['point_neuron_models_dir']) +'/'+node_type_info['dynamics_params']
                     self.pop_comp_info[pop_comp]['dynamics_params'] = load_json(dynamics_params_file)
                 else:
-                    pop_comp = 'hhcell'
+                    pop_comp = 'dummy_cell'
                     
                 properties = {}
 
@@ -302,8 +323,10 @@ class SonataReader(NetworkReader):
                 synapse = self.edges_info[conn][type]['dynamics_params'].split('.')[0]
                 self.syn_comp_info[synapse] = {}
                 #print self.edges_info[conn][type]
-                dynamics_params_file = subs(self.network_config['components']['synaptic_models_dir'],substitutes) +'/'+self.edges_info[conn][type]['dynamics_params']
-                
+                #pp.pprint(self.init_substitutes)
+                #pp.pprint(self.substitutes)
+                dynamics_params_file = self.subs(self.network_config['components']['synaptic_models_dir']) +'/'+self.edges_info[conn][type]['dynamics_params']
+                #print_v('Adding syn %s (at %s)'%(self.edges_info[conn][type]['dynamics_params'], dynamics_params_file))
                 
                 #TODO: don't load this file every connection!!!
                 self.syn_comp_info[synapse]['dynamics_params'] = load_json(dynamics_params_file)
@@ -331,7 +354,14 @@ class SonataReader(NetworkReader):
                                              post_i, \
                                              weight=sign * weight, \
                                              delay=delay)
-                
+        """
+        print('~~~~~~~~~~~~~~~')
+        print('node_types:')
+        pp.pprint(self.node_types)
+        print('~~~~~~~~~~~~~~~')
+        print('cell_info:')
+        pp.pprint(self.cell_info)
+        print('================')"""
 
         ########################################################################
         #  Load simulation info into self.simulation_config
@@ -340,22 +370,59 @@ class SonataReader(NetworkReader):
             
             if self.simulation_config:
                 for m in self.simulation_config['manifest']:
-                    path = subs(self.simulation_config['manifest'][m],substitutes)
-                    substitutes[m] = path
+                    path = self.subs(self.simulation_config['manifest'][m])
+                    self.substitutes[m] = path
                     
             for s1 in ['output']:
                 for k in self.simulation_config[s1]:
-                    self.simulation_config[s1][k] = subs(self.simulation_config[s1][k],substitutes)
+                    self.simulation_config[s1][k] = self.subs(self.simulation_config[s1][k])
                     
             for s1 in ['inputs']:
                 for s2 in self.simulation_config[s1]:
                     for k in self.simulation_config[s1][s2]:
-                        self.simulation_config[s1][s2][k] = subs(self.simulation_config[s1][s2][k],substitutes)
+                        self.simulation_config[s1][s2][k] = self.subs(self.simulation_config[s1][s2][k])
                         
             if 'node_sets_file' in self.simulation_config:
-                node_sets = load_json('%s/%s'%(os.path.dirname(main_config_filename), subs(self.simulation_config['node_sets_file'],substitutes)))
-                self.simulation_config['node_sets'] = node_sets
-                    
+                node_sets = load_json('%s/%s'%(os.path.dirname(main_config_filename), self.subs(self.simulation_config['node_sets_file'])))
+                self.simulation_config['node_sets'] = node_sets 
+                
+            if not 'node_sets' in self.simulation_config:
+                self.simulation_config['node_sets'] = {}
+                
+            for sonata_pop in self.cell_info:
+                self.node_set_mappings[sonata_pop] = {}
+                for sindex in self.cell_info[sonata_pop]['pop_map']:
+                    nml_pop = self.cell_info[sonata_pop]['pop_map'][sindex][0]
+                    nml_index = self.cell_info[sonata_pop]['pop_map'][sindex][1]
+
+                    # Add all in this sonata_pop to a 'node_set' named after the sonata_pop
+                    if not nml_pop in self.node_set_mappings[sonata_pop]:
+                        self.node_set_mappings[sonata_pop][nml_pop] = []
+                    self.node_set_mappings[sonata_pop][nml_pop].append(nml_index)
+                
+            pp.pprint(self.simulation_config)
+            pp.pprint(self.pop_comp_info)
+                
+            for node_set in self.simulation_config['node_sets']:
+                self.node_set_mappings[node_set] = {}
+                node_set_props = self.simulation_config['node_sets'][node_set]
+                print_v('Checking which cells in pops match node_set: %s = %s'%(node_set,node_set_props))
+                
+                for sonata_pop in self.cell_info:
+                    for sindex in self.cell_info[sonata_pop]['pop_map']:
+                        type = self.cell_info[sonata_pop]['types'][sindex]
+                        type_info = self.node_types[sonata_pop][type]
+                        nml_pop = self.cell_info[sonata_pop]['pop_map'][sindex][0]
+                        nml_index = self.cell_info[sonata_pop]['pop_map'][sindex][1]
+                        
+                        matches = _matches_node_set_props(type_info, node_set_props)
+                        print_v('Node %i in %s (NML: %s[%i]) has type %s (%s); matches: %s'%(sindex, sonata_pop, nml_pop, nml_index, type, type_info, matches))
+                        if matches:
+                            if not nml_pop in self.node_set_mappings[node_set]:
+                                self.node_set_mappings[node_set][nml_pop] = []
+                            self.node_set_mappings[node_set][nml_pop].append(nml_index)
+            
+            pp.pprint(self.node_set_mappings)
     
         ########################################################################
         #  Extract info from inputs in simulation_config
@@ -363,7 +430,7 @@ class SonataReader(NetworkReader):
         
         for input in self.simulation_config['inputs']:
             info = self.simulation_config['inputs'][input]
-            print_v(" - Adding input: %s which has info: %s"%(input, info)) 
+            #print_v(" - Adding input: %s which has info: %s"%(input, info)) 
             
             self.input_comp_info[input] = {}
             self.input_comp_info[input][info['input_type']] = {}
@@ -372,35 +439,26 @@ class SonataReader(NetworkReader):
             
             if info['input_type'] == 'current_clamp':
                 
-                node_set_conds = self.simulation_config['node_sets'][node_set]
-                pp.pprint(self.cell_info)
-                node_info = self.cell_info[node_set_conds['model_type']]
                 comp = 'PG_%s'%input
-                
                 self.input_comp_info[input][info['input_type']][comp] = {'amp':info['amp'],'delay':info['delay'],'duration':info['duration']}
                 
-                input_lists_added = {}
-                
-                for id in node_info['pop_map']:
-                    nml_pop_id, cell_id = node_info['pop_map'][id] 
-                    print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has current clamp input %s"%(id, node_set, nml_pop_id, cell_id, '???'))
+                for nml_pop_id in self.node_set_mappings[node_set]:
                     
                     input_list_id = 'il_%s_%s'%(input,nml_pop_id)
+                    indices = self.node_set_mappings[node_set][nml_pop_id]
                     
-                    if not input_list_id in input_lists_added:
-                        self.handler.handle_input_list(input_list_id, 
-                                                       nml_pop_id, 
-                                                       comp, 
-                                                       0)
-                        input_lists_added[input_list_id] = 1
-                    else:
-                        input_lists_added[input_list_id] += 1
-                    
-                    self.handler.handle_single_input(input_list_id, 
-                                                      input_lists_added[input_list_id]-1, 
-                                                      cellId = cell_id, 
-                                                      segId = 0, 
-                                                      fract = 0.5)
+                    self.handler.handle_input_list(input_list_id, 
+                                                   nml_pop_id, 
+                                                   comp, 
+                                                   len(indices))
+                    count = 0
+                    for index in indices:
+                        self.handler.handle_single_input(input_list_id, 
+                                                         count, 
+                                                         cellId = index, 
+                                                         segId = 0, 
+                                                         fract = 0.5)
+                        count+=1
                     
                 
             elif info['input_type'] == 'spikes':
@@ -408,7 +466,7 @@ class SonataReader(NetworkReader):
                 print node_info
                 from pyneuroml.plot.PlotSpikes import read_sonata_spikes_hdf5_file
 
-                ids_times = read_sonata_spikes_hdf5_file(subs(info['input_file'],substitutes))
+                ids_times = read_sonata_spikes_hdf5_file(self.subs(info['input_file']))
                 for id in ids_times:
                     times = ids_times[id]
                     nml_pop_id, cell_id = node_info['pop_map'][id] 
@@ -545,6 +603,17 @@ class SonataReader(NetworkReader):
                                       v_thresh="-52.0")
                 nml_doc.IF_curr_alpha.append(pynn0)
                 
+        
+        from neuroml import IafCell
+        IafCell0 = IafCell(id="dummy_cell",
+                   C="1.0 nF",
+                   thresh = "-50mV",
+                   reset="-65mV",
+                   leak_conductance="10 nS",
+                   leak_reversal="-65mV")
+
+        nml_doc.iaf_cells.append(IafCell0)
+                
         print_v("Adding NeuroML synapses to: %s"%nml_doc.id)
         
         #pp.pprint(self.syn_comp_info)
@@ -559,7 +628,7 @@ class SonataReader(NetworkReader):
                 
         print_v("Adding NeuroML inputs to: %s"%nml_doc.id)
                 
-        pp.pprint(self.input_comp_info)
+        #pp.pprint(self.input_comp_info)
         
         for input in self.input_comp_info:
             for input_type in self.input_comp_info[input]:
@@ -567,7 +636,7 @@ class SonataReader(NetworkReader):
                 if input_type == 'spikes':
                     for comp_id in self.input_comp_info[input][input_type]:
                         info = self.input_comp_info[input][input_type][comp_id]
-                        print_v("Adding input %s: %s"%(comp_id, info))
+                        #print_v("Adding input %s: %s"%(comp_id, info))
                         from neuroml import TimedSynapticInput, Spike
 
                         tsi = TimedSynapticInput(id=comp_id, synapse="instanteneousExc", spike_target="./instanteneousExc")
@@ -651,7 +720,7 @@ def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
 
 def main():
     id = '9_cells'
-    id = '300_cells'
+    #id = '300_cells'
     id = '5_cells_iclamp'
     filename = '../../git/sonata/examples/%s/config.json'%id
     #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
@@ -660,18 +729,19 @@ def main():
     #id = '300_intfire'
     #id = '5_cells_iclamp'
     #id = 'small_intfire'
+    #id = 'small_iclamp'
     ## https://github.com/pgleeson/sonata/tree/intfire
     #filename = '../../git/sonatapg/examples/%s/config.json'%id
     #filename = '../../git/sonata/examples/%s/config.json'%id
     
     nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
-    
+    '''
     nml_file_name = '%s.net.nml'%id
     nml_file_name += '.h5'
 
     from neuroml.writers import NeuroMLHdf5Writer
     NeuroMLHdf5Writer.write(nml_doc,nml_file_name)
-    print('Written to: %s'%nml_file_name) 
+    print('Written to: %s'%nml_file_name) '''
     
 if __name__ == '__main__':
     main()
