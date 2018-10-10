@@ -55,7 +55,11 @@ python Example8.py
 
 jnml -validate *nml
 
+cd ../neuromllite/test
+
 nosetests -vs
+
+cd -
 
 echo
 echo "** All generated and tested! **"
