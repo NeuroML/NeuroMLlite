@@ -45,6 +45,8 @@ class ParameterSweep():
 
         self.sim = load_simulation_json(runner.nmllite_sim)
         
+        self.colormap = 'jet'
+        
         ps_id = 'ParamSweep_%s_%s'%(self.sim.id, time.ctime().replace(' ','_' ).replace(':','.' ))
         
         print_v("Initialising ParameterSweep %s with %s, %s (%i parallel runs)" % (ps_id, vary, fixed, num_parallel_runs))
@@ -195,6 +197,9 @@ class ParameterSweep():
                 volts = OrderedDict()
                 for tr in traces:
                     if tr.endswith('/v'): volts[tr] = [v*1000. for v in traces[tr]]
+                    if tr.endswith('/r'): volts[tr] = [r for r in traces[tr]]
+                    
+                print_v("Analysing %s..."%traces.keys())
 
                 analysis_data=analysis.NetworkAnalysis(volts,
                                                    times,
@@ -221,7 +226,7 @@ class ParameterSweep():
                 l = len(x)
                 tmax_si = self._get_sim_duration_ms(params)/1000.
                 f_hz = l / tmax_si
-                print_v('This has %s points in %s sec, so %s Hz'%(l,tmax_si, f_hz))
+                #print_v('This has %s points in %s sec, so %s Hz'%(l,tmax_si, f_hz))
                 analysed["mean_spike_frequency"] = f_hz
                 
                 if not ref0 in report_here['analysis']:
@@ -259,6 +264,8 @@ class ParameterSweep():
                             print_v('  ==  Trace %s (%s) downscaled by factor %i from %i to %i points for heatmap; y value: %s=%s'%(y,ref,downscale,len(traces[y]),len(d), param_name, pval))
                             self.hm_y.append(pval)
                             self.hm_z.append(d)
+                            
+            print_v("Finished checking parallel job %i/%i (%s)"%(job_i,len(jobs),ref))
                 
         job_server.print_stats()
         job_server.destroy()
@@ -285,17 +292,24 @@ class ParameterSweep():
                                        self.hm_y[0], self.hm_y[-1], len(self.hm_y),
                                        z.min(), z.max(), z.size))
                                        
+            #yvals = [i for i in range(len(self.hm_y))]
+            #yvals = np.array(self.hm_y)
+            
             if not self.heatmap_lims:                         
                 plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
                                               np.array(self.hm_y), 
-                                              z)
+                                              z,
+                                              cmap=self.colormap)
             else:  
                 plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
                                               np.array(self.hm_y), 
                                               z,
                                               vmin=self.heatmap_lims[0],
-                                              vmax=self.heatmap_lims[1])
+                                              vmax=self.heatmap_lims[1],
+                                              cmap=self.colormap)
                 
+            #plt.set_yticks(np.arange(a_n_.shape[0]) + 0.5, minor=False)
+            #self.hm_ax.set_yticklabels(['ff%s'%i for i in range(len(self.hm_y))])
             
             plt.xlabel('Time (ms)')
             plt.ylabel('%s '%self.vary.keys()[0])
@@ -440,6 +454,7 @@ class ParameterSweep():
                                  logx = logx,
                                  logy = logy,
                                  show_plot_already=False,
+                                 legend_position='right',
                                  save_figure_to=save_figure_to)     # Save figure
     
 
@@ -508,7 +523,7 @@ class NeuroMLliteRunner():
                                           
         print_v("Returned traces: %s, events: %s"%(traces.keys(), events.keys()))
         
-        return traces, events
+        return traces, events 
                     
         
 
@@ -624,8 +639,8 @@ if __name__ == '__main__':
                             vary, 
                             fixed,
                             num_parallel_runs=16,
-                                  plot_all=True, 
-                                  heatmap_all=True,
+                                  plot_all=False, 
+                                  heatmap_all=False,
                                   show_plot_already=False)
 
         report = ps.run()
