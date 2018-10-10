@@ -45,6 +45,8 @@ class ParameterSweep():
 
         self.sim = load_simulation_json(runner.nmllite_sim)
         
+        self.colormap = 'jet'
+        
         ps_id = 'ParamSweep_%s_%s'%(self.sim.id, time.ctime().replace(' ','_' ).replace(':','.' ))
         
         print_v("Initialising ParameterSweep %s with %s, %s (%i parallel runs)" % (ps_id, vary, fixed, num_parallel_runs))
@@ -290,17 +292,24 @@ class ParameterSweep():
                                        self.hm_y[0], self.hm_y[-1], len(self.hm_y),
                                        z.min(), z.max(), z.size))
                                        
+            #yvals = [i for i in range(len(self.hm_y))]
+            #yvals = np.array(self.hm_y)
+            
             if not self.heatmap_lims:                         
                 plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
                                               np.array(self.hm_y), 
-                                              z)
+                                              z,
+                                              cmap=self.colormap)
             else:  
                 plot0 = self.hm_ax.pcolormesh(np.array(self.hm_x), 
                                               np.array(self.hm_y), 
                                               z,
                                               vmin=self.heatmap_lims[0],
-                                              vmax=self.heatmap_lims[1])
+                                              vmax=self.heatmap_lims[1],
+                                              cmap=self.colormap)
                 
+            #plt.set_yticks(np.arange(a_n_.shape[0]) + 0.5, minor=False)
+            #self.hm_ax.set_yticklabels(['ff%s'%i for i in range(len(self.hm_y))])
             
             plt.xlabel('Time (ms)')
             plt.ylabel('%s '%self.vary.keys()[0])
@@ -445,6 +454,7 @@ class ParameterSweep():
                                  logx = logx,
                                  logy = logy,
                                  show_plot_already=False,
+                                 legend_position='right',
                                  save_figure_to=save_figure_to)     # Save figure
     
 
