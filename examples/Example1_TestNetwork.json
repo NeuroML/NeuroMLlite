@@ -5,19 +5,23 @@
         "populations": [
             {
                 "pop0": {
-                    "size": 5, 
                     "component": "iaf", 
                     "properties": {
                         "color": "0 .8 0"
+                    }, 
+                    "unstructured": {
+                        "size": 5
                     }
                 }
             }, 
             {
                 "pop1": {
-                    "size": 10, 
                     "component": "iaf", 
                     "properties": {
                         "color": "0 0 .8"
+                    }, 
+                    "unstructured": {
+                        "size": 10
                     }
                 }
             }

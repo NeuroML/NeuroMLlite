@@ -226,6 +226,10 @@ def check_to_generate_or_run(argv, sim):
     print_v("Checking arguments: %s to see whether anything should be run in simulation %s (net: %s)..." % 
                (argv, sim.id, sim.network))
     
+    if len(argv)==1:
+        print_v("No arguments found. Currently supported export formats:")
+        print_v("   -nml | -jnml | -jnmlnrn | -jnmlnetpyne | -netpyne | -pynnnrn | -pynnnest | -pynnbrian | -pynnneuroml | -sonata | -graph[1-6 n/d/f/c]")
+        
     if '-pynnnest' in argv:
         generate_and_run(sim, simulator='PyNN_NEST')
 
@@ -607,8 +611,13 @@ def generate_and_run(simulation,
             engine = engines[simulator[6:]]
         else:
             engine = 'dot'
-            
-        level = int(simulator[5:6])
+        
+        try:
+            level = int(simulator[5:6])
+        except:
+            print_v("Error parsing: %s"%simulator)
+            print_v("Graphs of the network structure can be generated at many levels of detail (1-6, required) and laid out using GraphViz engines (d - dot (default); c - circo; n - neato; f - fdp), so use: -graph3c, -graph2, -graph4f etc.")
+            return
         
         handler = GraphVizHandler(level, engine=engine, nl_network=network)
         

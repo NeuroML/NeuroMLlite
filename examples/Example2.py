@@ -2,11 +2,13 @@ from neuromllite import RandomLayout, Cell, Synapse, InputSource, Input, Rectang
 from neuromllite.NetworkGenerator import generate_network
 from neuromllite.NetworkGenerator import generate_neuroml2_from_network
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
+from neuromllite.utils import load_network_json
 
 ################################################################################
 ###   Reuse network from Example1
 
-from Example1 import net
+filename = 'Example1_TestNetwork.json'
+net = load_network_json(filename)
 
 net.notes = "A simple network with 2 populations & projection between them. "+ \
             "Cells are specified to be NeuroML 2 HH cell models & pre population " \
@@ -21,8 +23,10 @@ r2 = RectangularRegion(id='region2', x=0,y=200,z=0,width=1000,height=100,depth=1
 net.regions.append(r1)
 net.regions.append(r2)
 
-net.populations[0].layout = RandomLayout(size=5, region=r1.id)
-net.populations[1].layout = RandomLayout(size=10, region=r2.id)
+del net.populations[0].fields['unstructured']
+del net.populations[1].fields['unstructured']
+net.populations[0].random_layout = RandomLayout(size=5, region=r1.id)
+net.populations[1].random_layout = RandomLayout(size=10, region=r2.id)
 
 net.populations[0].component = 'hhcell'
 net.populations[1].component = 'hhcell'
@@ -39,27 +43,17 @@ net.inputs.append(Input(id='stim_%s'%net.populations[0].id,
                             percentage=80))
 
 print(net.to_json())
-net.to_json_file('Example2_%s.json'%net.id)
+new_file = net.to_json_file('Example2_%s.json'%net.id)
 
 
 ################################################################################
-###   Use a handler which just prints info on positions, etc.
+###   Export to some formats
+###   Try:
+###        python Example2.py -nml
 
-def_handler = DefaultNetworkHandler()
+from neuromllite.NetworkGenerator import check_to_generate_or_run
+from neuromllite import Simulation
+import sys
 
-generate_network(net, def_handler)
-
-
-################################################################################
-###   Builds a NeuroML 2 representation, save as XML
-
-generate_neuroml2_from_network(net, 
-                               nml_file_name='Example2_%s.net.nml'%net.id)
-
-################################################################################
-###   Builds a NeuroML 2 representation, save as HDF5
-
-generate_neuroml2_from_network(net, 
-                               nml_file_name='Example2_%s.net.nml.h5'%net.id,
-                               format='hdf5')
+check_to_generate_or_run(sys.argv, Simulation(id='SimExample2',network=new_file))
                                

@@ -14,8 +14,9 @@ print(net)
 ################################################################################
 ###   Add some populations
 
+# Unstructured means there's no 3D positions associated with the cells in the population
 p0 = Population(id='pop0', component='iaf', unstructured=Unstructured(size=5), properties={'color':'0 .8 0'})
-p1 = Population(id='pop1', component='iaf', unstructured=Unstructured(size=5), properties={'color':'0 0 .8'})
+p1 = Population(id='pop1', component='iaf', unstructured=Unstructured(size=10), properties={'color':'0 0 .8'})
 
 print(p1.to_json())
 

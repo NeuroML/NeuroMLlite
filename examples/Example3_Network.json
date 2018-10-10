@@ -48,25 +48,25 @@
         "populations": [
             {
                 "pop0": {
-                    "size": 5, 
                     "component": "hhcell", 
                     "properties": {
                         "color": "0 .8 0"
                     }, 
                     "random_layout": {
-                        "region": "region1"
+                        "region": "region1", 
+                        "size": 5
                     }
                 }
             }, 
             {
                 "pop1": {
-                    "size": 10, 
                     "component": "hhcell", 
                     "properties": {
                         "color": "0 0 .8"
                     }, 
                     "random_layout": {
-                        "region": "region2"
+                        "region": "region2", 
+                        "size": 10
                     }
                 }
             }
