@@ -67,3 +67,5 @@ report*.txt
 /neuromllite/9_cells.net.nml
 /neuromllite/9_cells.net.nml.h5
 /neuromllite/LEMS_SonataSim.xml
+/examples/sonatatest/x86_64
+/private
