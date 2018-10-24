@@ -20,7 +20,7 @@
 
     <!-- NeuroML 2 elements... -->
 
-    <spikeGenerator id="spiker" period="12ms"/>
+    <spikeGenerator id="spiker" period="3ms"/>
 
     <spikeArray id="spikes2">
         <spike id="0" time="50ms"/>
@@ -32,11 +32,10 @@
         <spike id="0" time="100ms"/>
     </spikeArray>
     
-    
+   
 
 
-
-    <intFire1Cell id="if1" thresh="1mV" reset="0mV" tau="24ms" C="1e-5uF"/>
+    <intFire1Cell id="if1" thresh="1mV" reset="0mV" tau="24ms" refract="15ms"/>
     
     <iafCell id="iaf1" leakReversal="-60mV" thresh="-35mV" reset="-65mV" C="1e-5uF" leakConductance="5e-7mS"/>
     <iafCell id="iaf2" leakReversal="-60mV" thresh="-35mV" reset="-70mV" C="1e-5uF" leakConductance="5.2e-7mS"/>
@@ -86,7 +85,7 @@
         </projection>
         
         <projection id="projection1b" presynapticPopulation="spikersPop" postsynapticPopulation="if1Pop" synapse="syn0">
-            <connectionWD preCellId="../spikersPop[0]" postCellId="../if1Pop[3]" weight=".4" delay="0ms" />
+            <connectionWD preCellId="../spikersPop[0]" postCellId="../if1Pop[3]" weight=".2" delay="0ms" />
         </projection>
         
 
@@ -98,19 +97,19 @@
 
     <Simulation id="sim1" length="300ms" step="0.005ms" target="net2">
 
-        <Display id="d1" title="Spiking elements" timeScale="1ms" xmin="0" xmax="300" ymin="-5" ymax="105">
+        <Display id="d1" title="Spiking elements" timeScale="1ms" xmin="-20" xmax="320" ymin="-5" ymax="105">
             <Line id="30ms period spiker" quantity="spikersPop[0]/tsince" scale="1ms" color="#000000" timeScale="1ms"/>
             <Line id="Single spike at 100ms" quantity="spike100Pop[0]/tsince" scale="1ms" color="#ffff00" timeScale="1ms"/>
             <Line id="3 spikes" quantity="spikeArrayPop[0]/tsince" scale="1ms" color="#ff0000" timeScale="1ms"/>
         </Display>
 
-        <Display id="d2" title="Single Exp Syns" timeScale="1ms" xmin="0" xmax="300" ymin="-61" ymax="-58">
+        <Display id="d2" title="Single Exp Syns" timeScale="1ms" xmin="-20" xmax="320" ymin="-61" ymax="-58">
             <Line id="No weight/delay" quantity="iafPop[0]/v" scale="1mV" color="#000000" timeScale="1ms"/>
             <Line id="Weight:0.5;delay=10ms" quantity="iafPop[1]/v" scale="1mV" color="#00ff00" timeScale="1ms"/>
             <Line id="Weight:0.25;delay=15ms" quantity="iafPop[2]/v" scale="1mV" color="#ff0000" timeScale="1ms"/>
         </Display>
 
-        <Display id="d3" title="Double Exp Syns" timeScale="1ms" xmin="0" xmax="300" ymin="-61" ymax="-58">
+        <Display id="d3" title="Double Exp Syns" timeScale="1ms" xmin="-20" xmax="320" ymin="-61" ymax="-58">
             <Line id="No weight/delay" quantity="iafPop[3]/v" scale="1mV" color="#000000" timeScale="1ms"/>
             <Line id="Weight:0.5;delay=10ms" quantity="iafPop[4]/v" scale="1mV" color="#00ff00" timeScale="1ms"/>
             <Line id="Weight:0.25;delay=15ms" quantity="iafPop[5]/v" scale="1mV" color="#ff0000" timeScale="1ms"/>
@@ -118,17 +117,18 @@
 
         
         
-        <Display id="d20" title="Inpulse syns: Membrane potentials" timeScale="1ms" xmin="0" xmax="300" ymin="-.1" ymax="1.1">
+        <Display id="d20" title="Inpulse syns: Membrane potentials" timeScale="1ms" xmin="-20" xmax="320" ymin="-.1" ymax="1.1">
             <Line id="v: Weight:0.1;delay=0ms" quantity="if1Pop[0]/v" scale="1mV" color="#000000" timeScale="1ms"/>
             <Line id="v: Weight:0.05;delay=10ms" quantity="if1Pop[1]/v" scale="1mV" color="#00ff00" timeScale="1ms"/>
             <Line id="v: Weight:0.2;delay=15ms" quantity="if1Pop[2]/v" scale="1mV" color="#ff0000" timeScale="1ms"/>
         </Display>
         
-        <Display id="d20b" title="Inpulse syns: Membrane potentials " timeScale="1ms" xmin="0" xmax="300" ymin="-.1" ymax="1.1">
+        <Display id="d20b" title="Inpulse syns: Membrane potentials " timeScale="1ms" xmin="-20" xmax="320" ymin="-.1" ymax="1.1">
             <Line id="v" quantity="if1Pop[3]/v" scale="1mV" color="#000000" timeScale="1ms"/>
+            <Line id="scale" quantity="if1Pop[3]/scale" scale="1" color="#ff0000" timeScale="1ms"/>
         </Display>
         
-        <Display id="d20a" title="Inpulse syns: currents" timeScale="1ms" xmin="0" xmax="300" ymin="-.1" ymax="1.1">
+        <Display id="d20a" title="Inpulse syns: currents" timeScale="1ms" xmin="-20" xmax="320" ymin="-.1" ymax="1.1">
             <Line id="i: Weight:0.1;delay=0ms" quantity="if1Pop[0]/syn0/i" scale="1pS" color="#000000" timeScale="1ms"/>
             <Line id="i: Weight:0.05;delay=10ms" quantity="if1Pop[1]/syn0/i" scale="1pS" color="#fff000" timeScale="1ms"/>
             <Line id="i: Weight:0.2;delay=15ms" quantity="if1Pop[2]/syn0/i" scale="1pS" color="#000fff" timeScale="1ms"/>
