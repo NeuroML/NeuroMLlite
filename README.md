@@ -137,5 +137,14 @@ laid out using [GraphViz](http://graphviz.org/) engines (d - dot (default); c - 
     python Example6.py -graph1n
 
 
+## Other examples
+
+NeuroMLlite is being tested/used in the following repositories on OSB:
+
+- [Wilson & Cowan](https://github.com/OpenSourceBrain/WilsonCowan/blob/master/NeuroML2/GenerateNetworkOverview.py)
+- [Mejias et al. 2016](https://github.com/OpenSourceBrain/MejiasEtAl2016/blob/master/NeuroML2/GenerateNeuroMLlite.py)
+- [Pospischil et al. 2008](https://github.com/OpenSourceBrain/PospischilEtAl2008/tree/master/NeuroML2/cells/summary)
+- [Bezaire et al. 2016](https://github.com/mbezaire/ca1/tree/development/NeuroML2/network/nmllite)
+- [PING networks](https://github.com/OpenSourceBrain/PINGnets/tree/master/NeuroML2) 
 
 [![Build Status](https://travis-ci.org/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.org/NeuroML/NeuroMLlite)
