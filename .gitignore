@@ -73,3 +73,5 @@ report*.txt
 /neuromllite/small_iclamp.net.nml
 /neuromllite/small_intfire.net.nml
 /neuromllite/*.svg
+/neuromllite/instanteneousExc.xml
+/neuromllite/cell_v1_LIF_exc_100.xml

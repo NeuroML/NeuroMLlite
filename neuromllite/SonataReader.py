@@ -70,6 +70,8 @@ class SonataReader(NetworkReader):
     
     component_objects = {} # Store cell ids vs objects, e.g. NeuroML2 based object
     
+    nml_includes = ['PyNN.xml']
+    
     def __init__(self, **parameters):
                      
         print_v("Creating SonataReader with %s..."%parameters)
@@ -228,15 +230,15 @@ class SonataReader(NetworkReader):
                 size = self.cell_info[sonata_pop]['type_count'][type]
                 
                 if model_type=='point_process' and model_template=='nrn:IntFire1':
-                    pop_comp = model_template.replace(':','_')
+                    pop_comp = 'cell_%s'%nml_pop_id #model_template.replace(':','_')
                     self.pop_comp_info[pop_comp] = {}
                     self.pop_comp_info[pop_comp]['model_type'] = model_type
                     
                     dynamics_params_file = self.subs(self.network_config['components']['point_neuron_models_dir']) +'/'+node_type_info['dynamics_params']
                     self.pop_comp_info[pop_comp]['dynamics_params'] = load_json(dynamics_params_file)
                     
-                if model_type=='point_process' and model_template=='nest:iaf_psc_alpha':
-                    pop_comp = model_template.replace(':','_')
+                elif model_type=='point_process' and model_template=='nest:iaf_psc_alpha':
+                    pop_comp = 'cell_%s'%nml_pop_id # = model_template.replace(':','_')
                     self.pop_comp_info[pop_comp] = {}
                     self.pop_comp_info[pop_comp]['model_type'] = model_type
                     self.pop_comp_info[pop_comp]['model_template'] = model_template
@@ -498,8 +500,12 @@ class SonataReader(NetworkReader):
                 
                 sign = self.syn_comp_info[synapse]['dynamics_params']['sign'] if 'sign' in self.syn_comp_info[synapse]['dynamics_params'] else 1
                 weight = self.edges_info[conn][type]['syn_weight'] if 'syn_weight' in self.edges_info[conn][type] else 1.0
+                
                 weight_scale = 0.001
-                #weight_scale = 0.1
+                if 'level_of_detail' in self.syn_comp_info[synapse]['dynamics_params']:
+                    weight_scale = 1
+                
+                
                 weight=weight_scale * sign * weight * nsyns
                 
                 delay = self.edges_info[conn][type]['delay'] if 'delay' in self.edges_info[conn][type] else 0
@@ -655,26 +661,12 @@ class SonataReader(NetworkReader):
                              (info['dynamics_params']['type'] if 'dynamics_params' in info else
                              info['model_type'])
             
+            #print_v(" - Adding %s: %s"%(model_template, info))
+            
             if info['model_type'] == 'point_process' and model_template == 'nest:iaf_psc_alpha':
                 
                 is_nest = True
                 from neuroml import IF_curr_alpha
-                
-                '''
-                From PyNN
-
-                translations = build_translations(
-                    ('v_rest',     'E_L'),
-                    ('v_reset',    'V_reset'),
-                    ('cm',         'C_m',      1000.0),  # C_m is in pF, cm in nF
-                    ('tau_m',      'tau_m'),
-                    ('tau_refrac', 't_ref'),
-                    ('tau_syn_E',  'tau_syn_ex'),
-                    ('tau_syn_I',  'tau_syn_in'),
-                    ('v_thresh',   'V_th'),
-                    ('i_offset',   'I_e',      1000.0),  # I_e is in pA, i_offset in nA
-                )
-                '''
                 
                 pynn0 = IF_curr_alpha(id=c, 
                                       cm=info['dynamics_params']['C_m']/1000.0, 
@@ -690,22 +682,20 @@ class SonataReader(NetworkReader):
                                       
                 nml_doc.IF_curr_alpha.append(pynn0)
                 
-            elif info['model_type'] == 'point_process':
+            elif info['model_type'] == 'point_process' and model_template == 'NEURON_IntFire1':
                 
-                from neuroml import IF_curr_alpha
+                contents = '''<Lems>
+    <intFire1Cell id="%s" thresh="1mV" reset="0mV" tau="%sms" refract="%sms"/>
+</Lems>'''%(c, info['dynamics_params']['tau']*1000, info['dynamics_params']['refrac']*1000)
+
+                cell_file_name = '%s.xml'%c
+                cell_file = open(cell_file_name,'w')
+                cell_file.write(contents)
+                cell_file.close()
                 
-                pynn0 = IF_curr_alpha(id=c, 
-                                      cm="1.0", 
-                                      i_offset="0", 
-                                      tau_m=info['dynamics_params']['tau']*1000, 
-                                      tau_refrac=info['dynamics_params']['refrac']*1000, 
-                                      tau_syn_E="1", 
-                                      tau_syn_I="1", 
-                                      v_init="-70", 
-                                      v_reset="-62.0", 
-                                      v_rest="-65.0", 
-                                      v_thresh="-52.0")
-                nml_doc.IF_curr_alpha.append(pynn0)
+                self.nml_includes.append(cell_file_name)
+                self.nml_includes.append('../examples/sonatatest/IntFireCells.xml')
+                
                 
             else:
                 
@@ -718,11 +708,12 @@ class SonataReader(NetworkReader):
                            leak_conductance="1.2 nS",
                            leak_reversal="0mV")
 
+                #print_v("   - Adding: %s"%IafRefCell0)
                 nml_doc.iaf_ref_cells.append(IafRefCell0)
                 
         print_v("Adding NeuroML synapses to: %s"%nml_doc.id)
         
-        #pp.pprint(self.syn_comp_info)
+        pp.pprint(self.syn_comp_info)
         
         for s in self.syn_comp_info:
             dyn_params = self.syn_comp_info[s]['dynamics_params']
@@ -738,6 +729,20 @@ class SonataReader(NetworkReader):
                                     
                 #print("Adding syn: %s"%syn)
                 nml_doc.exp_two_synapses.append(syn)
+                
+            elif 'level_of_detail' in dyn_params and dyn_params['level_of_detail'] == 'instanteneous':
+                
+                contents = '''<Lems>
+    <impulseSynapse id="%s"/>
+</Lems>'''%(s)
+
+                syn_file_name = '%s.xml'%s
+                syn_file = open(syn_file_name,'w')
+                syn_file.write(contents)
+                syn_file.close()
+                
+                self.nml_includes.append(syn_file_name)
+                self.nml_includes.append('../examples/sonatatest/IntFireCells.xml')
                 
             else:
                 from neuroml import AlphaCurrSynapse
@@ -795,7 +800,7 @@ class SonataReader(NetworkReader):
                                        dt, 
                                        lems_file_name,
                                        target_dir,
-                                       include_extra_files = ['PyNN.xml'],
+                                       include_extra_files = self.nml_includes,
                                        gen_plots_for_all_v = True,
                                        plot_all_segments = False,
                                        gen_plots_for_quantities = {},   #  Dict with displays vs lists of quantity paths
@@ -844,8 +849,8 @@ def main():
     #id = '5_cells_iclamp'
     
     id = '300_intfire'
-    #id = 'small_intfire'
-    #id = 'small_iclamp'
+    id = 'small_intfire'
+    id = 'small_iclamp'
     ## https://github.com/pgleeson/sonata/tree/intfire
     filename = '../../git/sonatapg/examples/%s/config.json'%id
     
