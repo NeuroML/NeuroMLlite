@@ -63,7 +63,7 @@
             
             <OnStart>
                 <StateAssignment variable="v" value="reset"/>
-                <StateAssignment variable="scale" value="5"/>
+                <StateAssignment variable="scale" value="0"/>
             </OnStart>
 
             <OnCondition test="iSyn .gt. 0">

@@ -321,7 +321,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     
     def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
         if self.include_inputs:
-            self.print_input_information('INIT:  '+inputListId, population_id, component, size)
+            #self.print_input_information('INIT:  '+inputListId, population_id, component, size)
 
             self.sizes_ils[inputListId] = 0
             self.pops_ils[inputListId] = population_id
@@ -338,7 +338,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     def finalise_input_source(self, inputListId):
         
         if self.include_inputs:
-            self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
+            #self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
 
             if self.level>=2:
 

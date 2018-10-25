@@ -69,3 +69,7 @@ report*.txt
 /neuromllite/LEMS_SonataSim.xml
 /examples/sonatatest/x86_64
 /private
+/neuromllite/300_intfire.net.nml
+/neuromllite/small_iclamp.net.nml
+/neuromllite/small_intfire.net.nml
+/neuromllite/*.svg

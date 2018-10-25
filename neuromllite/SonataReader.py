@@ -211,6 +211,7 @@ class SonataReader(NetworkReader):
             
         for sonata_pop in self.cell_info:
             types_vs_pops = {}
+            
             for type in self.cell_info[sonata_pop]['type_count']:
                 node_type_info = self.node_types[sonata_pop][type]
                 
@@ -279,15 +280,17 @@ class SonataReader(NetworkReader):
                     pass # Don't specify a particular color, use random, not a problem...
                     
                 properties['color']=color
-                if not 'locations' in self.cell_info[sonata_pop]['0']:
+                if True or not 'locations' in self.cell_info[sonata_pop]['0']:
                     
                     properties={}  #############  temp for LEMS...
+                    
+                if model_type != 'virtual':
                 
-                self.handler.handle_population(nml_pop_id, 
-                                         pop_comp, 
-                                         size,
-                                         component_obj=None,
-                                         properties=properties)
+                    self.handler.handle_population(nml_pop_id, 
+                                             pop_comp, 
+                                             size,
+                                             component_obj=None,
+                                             properties=properties)
                                          
                 types_vs_pops[type] = nml_pop_id
             self.cell_info[sonata_pop]['pop_count'] = {}  
@@ -316,68 +319,6 @@ class SonataReader(NetworkReader):
                 self.cell_info[sonata_pop]['pop_count'][pop]+=1
                 
                 
-        ########################################################################
-        #  Use extracted edge info to create connections
-        
-        projections_created = []
-        for conn in self.conn_info:
-            
-            pre_node = self.conn_info[conn]['pre_node']
-            post_node = self.conn_info[conn]['post_node']
-            
-            for i in range(len(self.conn_info[conn]['pre_id'])):
-                pre_id = self.conn_info[conn]['pre_id'][i]
-                post_id = self.conn_info[conn]['post_id'][i]
-                type = self.conn_info[conn]['edge_type_id'][i]
-                #print_v('   Conn (%s) %s(%s) -> %s(%s)'%(type,pre_node,pre_id,post_node,post_id))
-                pre_pop,pre_i = self.cell_info[pre_node]['pop_map'][pre_id]
-                post_pop,post_i = self.cell_info[post_node]['pop_map'][post_id]
-                #print_v('   Mapped: Conn %s(%s) -> %s(%s)'%(pre_pop,pre_i,post_pop,post_i))
-                # print self.edges_info[conn][type]
-                
-                synapse = self.edges_info[conn][type]['dynamics_params'].split('.')[0]
-                self.syn_comp_info[synapse] = {}
-                #print self.edges_info[conn][type]
-                #pp.pprint(self.init_substitutes)
-                #pp.pprint(self.substitutes)
-                dynamics_params_file = self.subs(self.network_config['components']['synaptic_models_dir']) +'/'+self.edges_info[conn][type]['dynamics_params']
-                #print_v('Adding syn %s (at %s)'%(self.edges_info[conn][type]['dynamics_params'], dynamics_params_file))
-                
-                #TODO: don't load this file every connection!!!
-                self.syn_comp_info[synapse]['dynamics_params'] = load_json(dynamics_params_file)
-                proj_id = '%s_%s_%s'%(pre_pop,post_pop,synapse)
-                
-                sign = self.syn_comp_info[synapse]['dynamics_params']['sign'] if 'sign' in self.syn_comp_info[synapse]['dynamics_params'] else 1
-                weight = self.edges_info[conn][type]['syn_weight'] if 'syn_weight' in self.edges_info[conn][type] else 1.0
-                delay = self.edges_info[conn][type]['delay'] if 'delay' in self.edges_info[conn][type] else 0
-                
-                if not proj_id in projections_created:
-                    
-                    self.handler.handle_projection(proj_id, 
-                                         pre_pop, 
-                                         post_pop, 
-                                         synapse)
-                                         
-                    projections_created.append(proj_id)
-                    
-                self.handler.handle_connection(proj_id, 
-                                             i, 
-                                             pre_pop, 
-                                             post_pop, 
-                                             synapse, \
-                                             pre_i, \
-                                             post_i, \
-                                             weight=sign * weight, \
-                                             delay=delay)
-        """
-        print('~~~~~~~~~~~~~~~')
-        print('node_types:')
-        pp.pprint(self.node_types)
-        print('~~~~~~~~~~~~~~~')
-        print('cell_info:')
-        pp.pprint(self.cell_info)
-        print('================')"""
-
         ########################################################################
         #  Load simulation info into self.simulation_config
         
@@ -482,30 +423,137 @@ class SonataReader(NetworkReader):
                 from pyneuroml.plot.PlotSpikes import read_sonata_spikes_hdf5_file
 
                 ids_times = read_sonata_spikes_hdf5_file(self.subs(info['input_file']))
+                
                 for id in ids_times:
                     times = ids_times[id]
-                    nml_pop_id, cell_id = node_info['pop_map'][id] 
-                    print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has %i spikes"%(id, node_set, nml_pop_id, cell_id, len(times)))
+                    if id in node_info['pop_map']:
+                        nml_pop_id, cell_id = node_info['pop_map'][id] 
+                        print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has %i spikes"%(id, node_set, nml_pop_id, cell_id, len(times)))
 
-                    component = '%s_timedInputs_%i'%(input,cell_id)
+                        component = '%s__%i'%(nml_pop_id,cell_id)
 
-                    self.input_comp_info[input][info['input_type']][component] ={'id': cell_id, 'times': times}
+                        self.input_comp_info[input][info['input_type']][component] ={'id': cell_id, 'times': times}
 
-                    input_list_id = 'il_%s_%i'%(input,cell_id)
+                        '''
+                        input_list_id = 'il_%s_%i'%(input,cell_id)
+                        self.handler.handle_input_list(input_list_id, 
+                                                       nml_pop_id, 
+                                                       component, 
+                                                       1)
+
+                        self.handler.handle_single_input(input_list_id, 
+                                                          0, 
+                                                          cellId = cell_id, 
+                                                          segId = 0, 
+                                                          fract = 0.5)
+                                                         '''
+                    else:
+                        print_v("Cell %i in Sonata node set %s NOT FOUND!"%(id, node_set))
+                
+            else:
+                raise Exception("Sonata input type not yet supported: %s"%(info['input_type']))
+
+
+        ########################################################################
+        #  Use extracted edge info to create connections
+        
+        projections_created = []
+        for conn in self.conn_info:
+            
+            pre_node = self.conn_info[conn]['pre_node']
+            post_node = self.conn_info[conn]['post_node']
+            
+            for i in range(len(self.conn_info[conn]['pre_id'])):
+                pre_id = self.conn_info[conn]['pre_id'][i]
+                post_id = self.conn_info[conn]['post_id'][i]
+                nsyns = self.conn_info[conn]['nsyns'][i] if 'nsyns' in self.conn_info[conn] else 1
+                type = self.conn_info[conn]['edge_type_id'][i]
+                #print_v('   Conn with %i syns, type %s: %s(%s) -> %s(%s)'%(nsyns,type,pre_node,pre_id,post_node,post_id))
+                pre_pop,pre_i = self.cell_info[pre_node]['pop_map'][pre_id]
+                post_pop,post_i = self.cell_info[post_node]['pop_map'][post_id]
+                #print_v('   Mapped: Conn %s(%s) -> %s(%s)'%(pre_pop,pre_i,post_pop,post_i))
+                # print self.edges_info[conn][type]
+                #print self.cell_info[pre_node]
+                #print 11
+                #print self.node_types[pre_node]
+                #print 22
+                cell_type_pre = self.cell_info[pre_node]['types'][pre_id]
+                #print cell_type_pre
+                #print 444
+                pop_type_pre = self.node_types[pre_node][cell_type_pre]['model_type']
+                #print pop_type_pre
+                #print 333
+                
+                synapse = self.edges_info[conn][type]['dynamics_params'].split('.')[0]
+                self.syn_comp_info[synapse] = {}
+                #print self.edges_info[conn][type]
+                #pp.pprint(self.init_substitutes)
+                #pp.pprint(self.substitutes)
+                dynamics_params_file = self.subs(self.network_config['components']['synaptic_models_dir']) +'/'+self.edges_info[conn][type]['dynamics_params']
+                #print_v('Adding syn %s (at %s)'%(self.edges_info[conn][type]['dynamics_params'], dynamics_params_file))
+                
+                #TODO: don't load this file every connection!!!
+                self.syn_comp_info[synapse]['dynamics_params'] = load_json(dynamics_params_file)
+                proj_id = '%s_%s_%s'%(pre_pop,post_pop,synapse)
+                
+                sign = self.syn_comp_info[synapse]['dynamics_params']['sign'] if 'sign' in self.syn_comp_info[synapse]['dynamics_params'] else 1
+                weight = self.edges_info[conn][type]['syn_weight'] if 'syn_weight' in self.edges_info[conn][type] else 1.0
+                weight_scale = 0.001
+                #weight_scale = 0.1
+                weight=weight_scale * sign * weight * nsyns
+                
+                delay = self.edges_info[conn][type]['delay'] if 'delay' in self.edges_info[conn][type] else 0
+                
+                if not pop_type_pre == 'virtual':
+                    if not proj_id in projections_created:
+
+                        self.handler.handle_projection(proj_id, 
+                                             pre_pop, 
+                                             post_pop, 
+                                             synapse)
+
+                        projections_created.append(proj_id)
+
+                    self.handler.handle_connection(proj_id, 
+                                                 i, 
+                                                 pre_pop, 
+                                                 post_pop, 
+                                                 synapse, \
+                                                 pre_i, \
+                                                 post_i, \
+                                                 weight=weight, \
+                                                 delay=delay)
+                                                 
+                else:
+                    component = '%s__%i'%(pre_pop,pre_i)
+                    #print_v('   ---  Connecting %s to %s[%s]'%(component, post_pop, post_i))
+                    
+                    
+                    #self.input_comp_info[input][info['input_type']][component] ={'id': cell_id, 'times': times}
+
+
+                    input_list_id = 'il_%s_%s_%i_%i'%(component,post_pop,post_i,i)
+                    
                     self.handler.handle_input_list(input_list_id, 
-                                                   nml_pop_id, 
+                                                   post_pop, 
                                                    component, 
                                                    1)
 
                     self.handler.handle_single_input(input_list_id, 
                                                       0, 
-                                                      cellId = cell_id, 
+                                                      cellId = post_i, 
                                                       segId = 0, 
-                                                      fract = 0.5)
-            else:
-                raise Exception("Sonata inout type not yet supported: %s"%(info['input_type']))
-
-
+                                                      fract = 0.5,
+                                                      weight=weight)
+                        
+        """
+        print('~~~~~~~~~~~~~~~')
+        print('node_types:')
+        pp.pprint(self.node_types)
+        print('~~~~~~~~~~~~~~~')
+        print('cell_info:')
+        pp.pprint(self.cell_info)
+        print('================')"""
 
     def parse_group(self, g):
         #print("+++++++++++++++Parsing group: "+ str(g)+", name: "+g._v_name)
@@ -585,7 +633,8 @@ class SonataReader(NetworkReader):
             self.conn_info[self.current_edge]['edge_type_id'] = [int(i) for i in d]
         elif d.name=='target_node_id':
             self.conn_info[self.current_edge]['post_id'] = [i for i in d]
-              
+        elif d.name=='nsyns':
+            self.conn_info[self.current_edge]['nsyns'] = [i for i in d]
         else:
             print_v("Unhandled dataset: %s"%d.name)
         
@@ -632,9 +681,9 @@ class SonataReader(NetworkReader):
                                       i_offset="0", 
                                       tau_m=info['dynamics_params']['tau_m'], 
                                       tau_refrac=info['dynamics_params']['t_ref'], 
-                                      tau_syn_E="99", 
-                                      tau_syn_I="99", 
-                                      v_init=info['dynamics_params']['V_reset'], 
+                                      tau_syn_E="1", 
+                                      tau_syn_I="1", 
+                                      v_init='-70', 
                                       v_reset=info['dynamics_params']['V_reset'], 
                                       v_rest=info['dynamics_params']['E_L'], 
                                       v_thresh=info['dynamics_params']['V_th'])
@@ -650,9 +699,9 @@ class SonataReader(NetworkReader):
                                       i_offset="0", 
                                       tau_m=info['dynamics_params']['tau']*1000, 
                                       tau_refrac=info['dynamics_params']['refrac']*1000, 
-                                      tau_syn_E="0.5", 
-                                      tau_syn_I="0.5", 
-                                      v_init="-65", 
+                                      tau_syn_E="1", 
+                                      tau_syn_I="1", 
+                                      v_init="-70", 
                                       v_reset="-62.0", 
                                       v_rest="-65.0", 
                                       v_thresh="-52.0")
@@ -660,15 +709,16 @@ class SonataReader(NetworkReader):
                 
             else:
                 
-                from neuroml import IafCell
-                IafCell0 = IafCell(id=DUMMY_CELL,
-                           C="1.0 nF",
-                           thresh = "-50mV",
-                           reset="-65mV",
-                           leak_conductance="10 nS",
-                           leak_reversal="-65mV")
+                from neuroml import IafRefCell
+                IafRefCell0 = IafRefCell(id=DUMMY_CELL,
+                           C=".2 nF",
+                           thresh = "1mV",
+                           reset="0mV",
+                           refract="3ms",
+                           leak_conductance="1.2 nS",
+                           leak_reversal="0mV")
 
-                nml_doc.iaf_cells.append(IafCell0)
+                nml_doc.iaf_ref_cells.append(IafRefCell0)
                 
         print_v("Adding NeuroML synapses to: %s"%nml_doc.id)
         
@@ -686,15 +736,14 @@ class SonataReader(NetworkReader):
                                     tau_rise="%sms"%dyn_params['tau1'],
                                     tau_decay="%sms"%dyn_params['tau2'])
                                     
-                print("Adding syn: %s"%syn)
+                #print("Adding syn: %s"%syn)
                 nml_doc.exp_two_synapses.append(syn)
                 
             else:
-                from neuroml import ExpCurrSynapse
-
-                pynnSynn0 = ExpCurrSynapse(id=s, tau_syn="1")
-                print("Adding syn: %s"%pynnSynn0)
-                nml_doc.exp_curr_synapses.append(pynnSynn0)
+                from neuroml import AlphaCurrSynapse
+                pynnSynn0 = AlphaCurrSynapse(id=s, tau_syn="2")
+                #print("Adding syn: %s"%pynnSynn0)
+                nml_doc.alpha_curr_synapses.append(pynnSynn0)
             
                 
         print_v("Adding NeuroML inputs to: %s"%nml_doc.id)
@@ -792,17 +841,13 @@ def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
 def main():
     id = '9_cells'
     id = '300_cells'
-    id = '5_cells_iclamp'
-    filename = '../../git/sonata/examples/%s/config.json'%id
-    #filename = '../../git/bmtk/docs/examples/bio_14cells/config.json'
-    #filename = '../../git/bmtk/docs/examples/point_120cells/config.json'
+    #id = '5_cells_iclamp'
     
-    #id = '300_intfire'
+    id = '300_intfire'
     #id = 'small_intfire'
     #id = 'small_iclamp'
     ## https://github.com/pgleeson/sonata/tree/intfire
-    #filename = '../../git/sonatapg/examples/%s/config.json'%id
-    #filename = '../../git/sonata/examples/%s/config.json'%id
+    filename = '../../git/sonatapg/examples/%s/config.json'%id
     
     nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
     '''
