@@ -166,7 +166,10 @@ class MatrixHandler(DefaultNetworkHandler):
         plt.title(title)
         fig.canvas.set_window_title(title)
         import matplotlib
-        cm = matplotlib.cm.get_cmap('gist_stern_r')
+        if 'inhibitory' in self.proj_types.values():
+            cm = matplotlib.cm.get_cmap('bwr')
+        else:
+            cm = matplotlib.cm.get_cmap('binary')
         
         
         im = plt.imshow(weight_array, cmap=cm, interpolation='nearest',norm=None)
