@@ -34,7 +34,7 @@ class MatrixHandler(DefaultNetworkHandler):
     max_weight = -1e100
     min_weight = 1e100
     
-    weight_array = None
+    weight_arrays = {}
     
     def __init__(self, 
                  level=10, 
@@ -63,6 +63,14 @@ class MatrixHandler(DefaultNetworkHandler):
             return '%s'%ff
         return '%s%s'%('~' if approx else '',ff)
         
+    def _get_proj_class(self, proj_type):
+        if proj_type == 'excitatory' or proj_type == 'inhibitory':
+            return 'chemical'
+        elif proj_type == 'excitatorycontinuous' or proj_type == 'inhibitorycontinuous':
+            return 'continuous'
+        else:
+            return proj_type
+        
         
     def finalise_document(self):
         
@@ -76,7 +84,15 @@ class MatrixHandler(DefaultNetworkHandler):
 
         all_pops = sorted(all_pops)
         
-        weight_array = np.zeros((len(all_pops),len(all_pops)))
+        title_single_conns = '%s (single conns)'
+        title_number_conns = '%s (number conns)'
+        title_total_conns = '%s (weight*number)'
+        
+        for proj_type in self.proj_types.values():
+            pclass = self._get_proj_class(proj_type)
+            self.weight_arrays[title_single_conns%pclass] = np.zeros((len(all_pops),len(all_pops)))
+            self.weight_arrays[title_number_conns%pclass] = np.zeros((len(all_pops),len(all_pops)))
+            self.weight_arrays[title_total_conns%pclass] = np.zeros((len(all_pops),len(all_pops)))
                 
         for projName in self.proj_weights:
             
@@ -84,17 +100,25 @@ class MatrixHandler(DefaultNetworkHandler):
             pre_pop_i = all_pops.index(pre_pop)
             post_pop = self.proj_post_pops[projName]
             post_pop_i = all_pops.index(post_pop)
+            proj_type = self.proj_types[projName]
             
-            if self.max_weight==self.min_weight:
-                fweight = 1
-                lweight = 1
-            else:
-                fweight = (self.proj_weights[projName]-self.min_weight)/(self.max_weight-self.min_weight)
-                lweight = 0.5 + fweight*2.0
 
             if self.level>=2:
-                print_v("PROJ: %s (%s -> %s, %s): weight %s; all: %s -> %s; fw: %s; lw: %s"%(projName, pre_pop, post_pop, self.proj_types[projName], self.proj_weights[projName], self.max_weight,self.min_weight,fweight,lweight))
-                weight_array[pre_pop_i][post_pop_i] = self.proj_weights[projName] * (-1 if self.proj_types[projName]=='inhibitory' else 1)
+                pclass = self._get_proj_class(proj_type)
+                sign = -1 if 'inhibitory' in proj_type else 1
+                
+                print_v("MATRIX PROJ: %s (%s -> %s, %s): w %s; wtot: %s; sign: %s; all: %s -> %s"%(projName, pre_pop, post_pop, proj_type, self.proj_weights[projName], self.proj_tot_weight[projName], sign, self.max_weight,self.min_weight))
+
+                self.weight_arrays[title_total_conns%pclass][pre_pop_i][post_pop_i] = \
+                     abs(self.proj_tot_weight[projName]) * sign
+                     
+                if abs(self.proj_tot_weight[projName])!=abs(self.proj_weights[projName]):
+
+                    self.weight_arrays[title_single_conns%pclass][pre_pop_i][post_pop_i] = \
+                         abs(self.proj_weights[projName]) * sign
+                         
+                    self.weight_arrays[title_number_conns%pclass][pre_pop_i][post_pop_i] = \
+                         abs(self.proj_conns[projName])
                 
                 '''
                 self.f.attr('edge', 
@@ -159,44 +183,61 @@ class MatrixHandler(DefaultNetworkHandler):
         #print_v("Writing file...: %s"%id)
         
         #self.f.view()
+        
         import matplotlib.pyplot as plt
-
-        fig, ax = plt.subplots()
-        title = '...'
-        plt.title(title)
-        fig.canvas.set_window_title(title)
         import matplotlib
-        if 'inhibitory' in self.proj_types.values():
-            cm = matplotlib.cm.get_cmap('bwr')
-        else:
-            cm = matplotlib.cm.get_cmap('binary')
         
-        
-        im = plt.imshow(weight_array, cmap=cm, interpolation='nearest',norm=None)
+        for proj_type in self.weight_arrays:
+            weight_array = self.weight_arrays[proj_type]
+            if not (weight_array.max()==0 and weight_array.min()==0):
 
-        ax = plt.gca();
+                fig, ax = plt.subplots()
+                title = 'Connections: %s'%(proj_type)
+                plt.title(title)
+                fig.canvas.set_window_title(title)
 
-        # Gridlines based on minor ticks
-        if weight_array.shape[0]<40:
-            ax.grid(which='minor', color='grey', linestyle='-', linewidth=.3)
+                abs_max_w = max(weight_array.max(), -1*(weight_array.min()))
+                
+                if weight_array.min()<0:
+                    cm = matplotlib.cm.get_cmap('bwr')
+                else:
+                    cm = matplotlib.cm.get_cmap('binary')
+                    if 'number' in proj_type:
+                        cm = matplotlib.cm.get_cmap('jet')
+                        
 
-        xt = np.arange(weight_array.shape[1]) + 0
-        ax.set_xticks(xt)
-        ax.set_xticks(xt[:-1]+0.5,minor=True)
-        ax.set_yticks(np.arange(weight_array.shape[0]) + 0)
-        ax.set_yticks(np.arange(weight_array.shape[0]) + 0.5,minor=True)
-        
+                print_v("Plotting weight matrix: %s with values from %s to %s"%(title, weight_array.min(), weight_array.max()))
 
-        ax.set_yticklabels(all_pops)
-        ax.set_xticklabels(all_pops)
-        ax.set_ylabel('presynaptic')
-        tick_size = 10 if weight_array.shape[0]<20 else (8 if weight_array.shape[0]<40 else 6)
-        ax.tick_params(axis='y', labelsize=tick_size)
-        ax.set_xlabel('postsynaptic')
-        ax.tick_params(axis='x', labelsize=tick_size)
-        fig.autofmt_xdate()
-    
-        cbar = plt.colorbar(im)
+                im = plt.imshow(weight_array, cmap=cm, interpolation='nearest',norm=None)
+
+                if weight_array.min()<0:
+                    plt.clim(-1*abs_max_w,abs_max_w)
+                else:
+                    plt.clim(0,abs_max_w)
+
+                ax = plt.gca();
+
+                # Gridlines based on minor ticks
+                if weight_array.shape[0]<40:
+                    ax.grid(which='minor', color='grey', linestyle='-', linewidth=.3)
+
+                xt = np.arange(weight_array.shape[1]) + 0
+                ax.set_xticks(xt)
+                ax.set_xticks(xt[:-1]+0.5,minor=True)
+                ax.set_yticks(np.arange(weight_array.shape[0]) + 0)
+                ax.set_yticks(np.arange(weight_array.shape[0]) + 0.5,minor=True)
+
+
+                ax.set_yticklabels(all_pops)
+                ax.set_xticklabels(all_pops)
+                ax.set_ylabel('presynaptic')
+                tick_size = 10 if weight_array.shape[0]<20 else (8 if weight_array.shape[0]<40 else 6)
+                ax.tick_params(axis='y', labelsize=tick_size)
+                ax.set_xlabel('postsynaptic')
+                ax.tick_params(axis='x', labelsize=tick_size)
+                fig.autofmt_xdate()
+
+                cbar = plt.colorbar(im)
         plt.show()
         
 
@@ -261,6 +302,7 @@ class MatrixHandler(DefaultNetworkHandler):
 
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
             
+        
         weight = 1.0
         self.proj_pre_pops[projName] = prePop
         self.proj_post_pops[projName] = postPop
@@ -273,6 +315,7 @@ class MatrixHandler(DefaultNetworkHandler):
                 
         if type=='electricalProjection':
             proj_type = 'gap_junction'
+            
             
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
@@ -293,6 +336,9 @@ class MatrixHandler(DefaultNetworkHandler):
                     if proj_weight<0:
                         proj_type = 'inhibitory'
                     weight = abs(proj_weight)
+                    
+        if type=='continuousProjection':
+            proj_type += 'continuous'
                         
         self.max_weight = max(self.max_weight, weight)
         self.min_weight = min(self.min_weight, weight)
@@ -319,7 +365,8 @@ class MatrixHandler(DefaultNetworkHandler):
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
-        print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
+        print_v("Projection finalising: "+projName+" -> "+prePop+" to "+postPop+" completed (%s; w: %s, conns: %s, tot w: %s)" % \
+                   (self.proj_types[projName], self.proj_weights[projName], self.proj_conns[projName], self.proj_tot_weight[projName]))
 
     sizes_ils = {}
     pops_ils = {}
