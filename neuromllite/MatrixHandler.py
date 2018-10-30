@@ -10,6 +10,7 @@ from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 from neuromllite.utils import evaluate
             
 from pyneuroml.pynml import convert_to_units
+import numpy as np
 
 
 class MatrixHandler(DefaultNetworkHandler):
@@ -65,7 +66,24 @@ class MatrixHandler(DefaultNetworkHandler):
         
     def finalise_document(self):
         
+        all_pops = []
+        for v in self.proj_pre_pops.values():
+            if not v in all_pops:
+                all_pops.append(v)
+        for v in self.proj_post_pops.values():
+            if not v in all_pops:
+                all_pops.append(v)
+
+        all_pops = sorted(all_pops)
+        
+        weight_array = np.zeros((len(all_pops),len(all_pops)))
+                
         for projName in self.proj_weights:
+            
+            pre_pop = self.proj_pre_pops[projName]
+            pre_pop_i = all_pops.index(pre_pop)
+            post_pop = self.proj_post_pops[projName]
+            post_pop_i = all_pops.index(post_pop)
             
             if self.max_weight==self.min_weight:
                 fweight = 1
@@ -75,7 +93,9 @@ class MatrixHandler(DefaultNetworkHandler):
                 lweight = 0.5 + fweight*2.0
 
             if self.level>=2:
-                print_v("%s: weight %s -> %s; fw: %s; lw: %s"%(projName, self.max_weight,self.min_weight,fweight,lweight))
+                print_v("PROJ: %s (%s -> %s, %s): weight %s; all: %s -> %s; fw: %s; lw: %s"%(projName, pre_pop, post_pop, self.proj_types[projName], self.proj_weights[projName], self.max_weight,self.min_weight,fweight,lweight))
+                weight_array[pre_pop_i][post_pop_i] = self.proj_weights[projName] * (-1 if self.proj_types[projName]=='inhibitory' else 1)
+                
                 '''
                 self.f.attr('edge', 
                             style = self.proj_lines[projName], 
@@ -139,6 +159,42 @@ class MatrixHandler(DefaultNetworkHandler):
         #print_v("Writing file...: %s"%id)
         
         #self.f.view()
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots()
+        title = '...'
+        plt.title(title)
+        fig.canvas.set_window_title(title)
+        import matplotlib
+        cm = matplotlib.cm.get_cmap('gist_stern_r')
+        
+        
+        im = plt.imshow(weight_array, cmap=cm, interpolation='nearest',norm=None)
+
+        ax = plt.gca();
+
+        # Gridlines based on minor ticks
+        if weight_array.shape[0]<40:
+            ax.grid(which='minor', color='grey', linestyle='-', linewidth=.3)
+
+        xt = np.arange(weight_array.shape[1]) + 0
+        ax.set_xticks(xt)
+        ax.set_xticks(xt[:-1]+0.5,minor=True)
+        ax.set_yticks(np.arange(weight_array.shape[0]) + 0)
+        ax.set_yticks(np.arange(weight_array.shape[0]) + 0.5,minor=True)
+        
+
+        ax.set_yticklabels(all_pops)
+        ax.set_xticklabels(all_pops)
+        ax.set_ylabel('presynaptic')
+        tick_size = 10 if weight_array.shape[0]<20 else (8 if weight_array.shape[0]<40 else 6)
+        ax.tick_params(axis='y', labelsize=tick_size)
+        ax.set_xlabel('postsynaptic')
+        ax.tick_params(axis='x', labelsize=tick_size)
+        fig.autofmt_xdate()
+    
+        cbar = plt.colorbar(im)
+        plt.show()
         
 
     def handle_network(self, network_id, notes, temperature=None):
@@ -181,9 +237,11 @@ class MatrixHandler(DefaultNetworkHandler):
         if properties and 'type' in properties:
             self.pop_types[population_id] = properties['type']
             if properties['type']=='E':
-                shape = self.EXC_POP_SHAPE
+                pass
+                #shape = self.EXC_POP_SHAPE
             if properties['type']=='I':
-                shape = self.INH_POP_SHAPE
+                pass
+                #shape = self.INH_POP_SHAPE
             
         self.pop_colors[population_id] = color
         
