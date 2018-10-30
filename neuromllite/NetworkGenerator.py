@@ -264,7 +264,9 @@ def check_to_generate_or_run(argv, sim):
         
     else:
         for a in argv:
-            if 'graph' in a:
+            if 'graph' in a: # e.g. -graph3c
+                generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
+            if 'matrix' in a: # e.g. -matrix2
                 generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
                 
         
@@ -352,6 +354,7 @@ def generate_neuroml2_from_network(nl_model,
                                    seed=1234, 
                                    format='xml', 
                                    base_dir=None,
+                                   copy_included_elements=False,
                                    target_dir=None,
                                    validate=False):
     """
@@ -440,11 +443,7 @@ def generate_neuroml2_from_network(nl_model,
                 incl = neuroml.IncludeType(_locate_file(s.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl) 
-            '''
-            if s.lems_source_file:
-                incl = neuroml.IncludeType(s.lems_source_file)
-                if not incl in nml_doc.includes:
-                    nml_doc.includes.append(incl)'''
+                    
        
     # Look for and add the PyNN based elements to the NeuroMLDocument 
     _extract_pynn_components_to_neuroml(nl_model, nml_doc)
@@ -624,6 +623,24 @@ def generate_and_run(simulation,
         generate_network(network, handler, always_include_props=True, base_dir=base_dir)
     
         print_v("Done with GraphViz...")
+        
+    elif simulator.lower().startswith('matrix'): # Will not "run" obviously...
+                           
+        from neuromllite.MatrixHandler import MatrixHandler
+        
+        
+        try:
+            level = int(simulator[6:7])
+        except:
+            print_v("Error parsing: %s"%simulator)
+            print_v("Matrices of the network structure can be generated at many levels of detail (1-n, required), so use: -matrix1, -matrix2, etc.")
+            return
+        
+        handler = MatrixHandler(level, nl_network=network)
+        
+        generate_network(network, handler, always_include_props=True, base_dir=base_dir)
+    
+        print_v("Done with MatrixHandler...")
         
 
     elif simulator.startswith('PyNN'):
