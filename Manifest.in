@@ -1,0 +1,8 @@
+# include readme
+include README.md
+
+# include license file
+LICENSE.lesser
+
+# include everything in examples
+recursive-include examples *
