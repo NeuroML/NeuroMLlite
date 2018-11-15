@@ -1,6 +1,6 @@
 {
     "Example8_Extension": {
-        "version": "NeuroMLlite v0.1.4", 
+        "version": "NeuroMLlite v0.1.5", 
         "parameters": {
             "weightInput": 1, 
             "fractionE": 0.8, 
