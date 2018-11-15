@@ -162,7 +162,7 @@ def generate_network(nl_model,
                                                       weight=weight)
                             conn_count += 1
 
-            if p.one_to_one_connector:
+            elif p.one_to_one_connector:
                 for i in range(min(len(pop_locations[p.presynaptic]), len(pop_locations[p.postsynaptic]))):
                     weight = evaluate(weight, nl_model.parameters)
                     delay = evaluate(delay, nl_model.parameters)
@@ -764,13 +764,14 @@ def generate_and_run(simulation,
         
         from netpyne import specs
         from netpyne import sim
-        from netpyne import neuromlFuncs
+        # Note NetPyNE from this branch is required: https://github.com/Neurosim-lab/netpyne/tree/neuroml_updates
+        from netpyne.conversion.neuromlFormat import NetPyNEBuilder
         
         import pprint; pp = pprint.PrettyPrinter(depth=6)
         
         netParams = specs.NetParams()
         simConfig = specs.SimConfig()
-        netpyne_handler = neuromlFuncs.NetPyNEBuilder(netParams, simConfig=simConfig, verbose=True)
+        netpyne_handler = NetPyNEBuilder(netParams, simConfig=simConfig, verbose=True)
         
         generate_network(network, netpyne_handler, base_dir=base_dir)
         
@@ -839,7 +840,7 @@ def generate_and_run(simulation,
 
                 connParam['synMech'] = synapse
 
-                if post_id in sim.net.lid2gid:  # check if postsyn is in this node's list of gids
+                if post_id in sim.net.gid2lid:  # check if postsyn is in this node's list of gids
                     sim.net._addCellConn(connParam, pre_id, post_id)
                     
                     
