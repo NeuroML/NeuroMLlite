@@ -1,10 +1,10 @@
-<neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="TestNetwork">
-    <notes>Generated network: TestNetwork
+<neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="Example2_TestNetwork">
+    <notes>Generated network: Example2_TestNetwork
     Generation seed: 1234</notes>
     <include href="test_files/inputs.nml"/>
     <include href="test_files/hhcell.cell.nml"/>
     <expTwoSynapse id="ampa" gbase="2nS" erev="0mV" tauDecay="2ms" tauRise="1ms"/>
-    <network id="TestNetwork">
+    <network id="Example2_TestNetwork">
         <notes>A simple network with 2 populations &amp; projection between them. Cells are specified to be NeuroML 2 HH cell models &amp; pre population is given a spiking input.</notes>
         <population id="pop0" component="hhcell" size="5" type="populationList">
             <property tag="color" value="0 .8 0"/>

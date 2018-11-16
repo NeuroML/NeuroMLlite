@@ -340,8 +340,11 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
         if i.pynn_input:
             import pyNN.neuroml
             input_params = i.parameters if i.parameters else {}
-            temp_input = eval('pyNN.neuroml.%s(**input_params)' % i.pynn_input)
+            exec('input__%s = pyNN.neuroml.%s(**input_params)' % (i.id, i.pynn_input))
+            exec('temp_input = input__%s' % i.id)
             pg_id = temp_input.add_to_nml_doc(nml_doc, None)
+            #for pp in nml_doc.pulse_generators:
+            #    print('PG: %s: %s'%(pp,pp.id))
             pg = nml_doc.get_by_id(pg_id)
             pg.id = i.id
             
