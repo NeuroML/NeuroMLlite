@@ -102,16 +102,17 @@ class SonataReader(NetworkReader):
             Search the strings in a config file for a substitutable value, e.g. 
             "morphologies_dir": "$COMPONENT_DIR/morphologies",
         """
-        #print_v('Checking for %s, %s in %s'%(self.substitutes,self.init_substitutes,path))
+        #print_v('Checking for: \n  %s, \n  %s \n  in %s'%(self.substitutes,self.init_substitutes,path))
         if type(path) == int or type(path) == float:
             return path
         for s in self.init_substitutes:
             if path.startswith(s):
                 path = path.replace(s,self.init_substitutes[s], 1)
+        #print_v('  So far: %s'%path)
         for s in self.substitutes:
             if s in path:
                 path = path.replace(s,self.substitutes[s])
-        #print('Returning %s'%path)
+        #print_v('  Returning: %s'%path)
         return path
 
 
@@ -341,7 +342,7 @@ class SonataReader(NetworkReader):
                         self.simulation_config[s1][s2][k] = self.subs(self.simulation_config[s1][s2][k])
                         
             if 'node_sets_file' in self.simulation_config:
-                node_sets = load_json('%s/%s'%(os.path.dirname(main_config_filename), self.subs(self.simulation_config['node_sets_file'])))
+                node_sets = load_json(self.subs(self.simulation_config['node_sets_file']))
                 self.simulation_config['node_sets'] = node_sets 
                 
             if not 'node_sets' in self.simulation_config:

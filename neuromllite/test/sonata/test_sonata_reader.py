@@ -3,6 +3,8 @@ from neuromllite.SonataReader import get_neuroml_from_sonata
 def main():
     
     ids = ['5_cells_iclamp','9_cells','300_intfire', 'small_intfire','small_iclamp','300_cells']
+    ids = ['5_cells_iclamp','9_cells','300_intfire','300_cells']
+    ids += ['sim_tests/intfire/one_cell_iclamp/input']
     
     #id = '300_intfire'
     #id = 
@@ -11,8 +13,12 @@ def main():
     
     for id in ids:
         print("***************************************************************")
-        print("****        Testing %s         \n"%id)
         filename = '../../../../git/sonatapg/examples/%s/config.json'%id
+        if '/' in id:
+            id = id.split('/')[-2]
+            
+        print("****        Testing %s (%s)         \n"%(id,filename))
+        
 
         nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
         
