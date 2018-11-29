@@ -11,6 +11,7 @@ python Example1.py
 echo
 echo "**** Running Example 2 ****"
 python Example2.py
+python Example2.py -nml
 
 echo
 echo "**** Running Example 3 ****"

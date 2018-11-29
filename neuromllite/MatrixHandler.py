@@ -236,6 +236,26 @@ class MatrixHandler(DefaultNetworkHandler):
                 ax.set_xlabel('postsynaptic')
                 ax.tick_params(axis='x', labelsize=tick_size)
                 fig.autofmt_xdate()
+                
+                
+                for i in range(len(all_pops)):
+                    alpha = 1
+                    lwidth = 7
+                    offset = -1*lwidth*len(all_pops)/500.
+                    
+                    if self.pop_colors[all_pops[i]]:
+                        from matplotlib import lines
+                        x,y = [[-0.5+offset,-0.5+offset], [i-0.5,i+0.5]]
+                        line = lines.Line2D(x, y, lw=lwidth, color=self.pop_colors[all_pops[i]], alpha=alpha)
+                        line.set_solid_capstyle('butt')
+                        line.set_clip_on(False)
+                        ax.add_line(line)
+                        
+                        x,y = [[i-0.5,i+0.5], [len(all_pops)-0.5-offset,len(all_pops)-0.5-offset]]
+                        line = lines.Line2D(x, y, lw=lwidth, color=self.pop_colors[all_pops[i]], alpha=alpha)
+                        line.set_solid_capstyle('butt')
+                        line.set_clip_on(False)
+                        ax.add_line(line)
 
                 cbar = plt.colorbar(im)
         plt.show()
@@ -261,7 +281,7 @@ class MatrixHandler(DefaultNetworkHandler):
             
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
         
-        color = '#444444' 
+        color = None 
         
         
         if properties and 'color' in properties:

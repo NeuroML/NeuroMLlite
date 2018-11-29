@@ -5,6 +5,7 @@ def main():
     ids = ['5_cells_iclamp','9_cells','300_intfire', 'small_intfire','small_iclamp','300_cells']
     ids = ['5_cells_iclamp','9_cells','300_intfire','300_cells']
     ids += ['sim_tests/intfire/one_cell_iclamp/input']
+    ids = ['sim_tests/intfire/10_cells_iclamp/input']
     
     #id = '300_intfire'
     #id = 
@@ -19,6 +20,10 @@ def main():
             
         print("****        Testing %s (%s)         \n"%(id,filename))
         
+        try:
+            int(id[0])
+        except:
+            id = '_%s'%id
 
         nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
         

@@ -84,3 +84,4 @@ report*.txt
 /neuromllite/test/sonata/instanteneousInh.xml
 /neuromllite/test/sonata/*.gv
 /neuromllite/test/sonata/*.gv.png
+/lines.py
