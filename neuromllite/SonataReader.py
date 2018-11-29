@@ -785,9 +785,9 @@ class SonataReader(NetworkReader):
         
         #pp.pprint(self.simulation_config)
         
-        sim_id = 'SonataSim'
         
         target = nml_doc.networks[0].id
+        sim_id = 'Sim_%s'%target
         
         duration = self.simulation_config['run']['tstop']
         dt = self.simulation_config['run']['dt']
