@@ -34,6 +34,7 @@ system_site_packages: true
 install:
     - pip install pyneuroml
     - pip install tables
+    - pip install scipy==1.1.0
     - pip install . 
     
     
