@@ -60,25 +60,30 @@ Can be simulated using:
 
 
 ### Ex. 5: A network with the Blue Brain Project connectivity data
-<img alt="Ex4" src="examples/images/Ex5_BBP_5percent.png" height="150"/> 
+<img alt="Ex5" src="examples/images/Ex5_BBP_5percent.png" height="150"/> 
+
+<img alt="Ex5_1" src="examples/images/bbp1.png" height="200"/>  <img alt="Ex5_2" src="examples/images/bbp2.png" height="200"/> <img alt="Ex5_3" src="examples/images/bbp3.png" height="200"/> 
 
 [JSON](examples/BBP_5percent.json) | [Python script](examples/Example5.py) 
 
 Can be exported to:
 - **NeuroML 2** (XML or HDF5 format)
 - **Graph** (see above) 
+- **Matrix** (see above) 
 
 Can be simulated using:
 - **NetPyNE**
 
 ### Ex. 6: A network based on Potjans and Diesmann 2014 (work in progress)
 <img alt="Ex6d" src="examples/images/Ex6.dot.png" height="100"/> <img alt="Ex6f" src="examples/images/Ex6.fdp.png" height="100"/>  <img alt="Ex6c" src="examples/images/Ex6.circo.png" height="100"/> 
+<img alt="Ex6matrix" src="examples/images/Ex6matrix.png" height="300"/> 
 
 [JSON](examples/Example6_PyNN.json) | [Python script](examples/Example6.py) | [Generated NeuroML2](examples/Example6_PyNN.net.nml) 
 
 Can be exported to:
 - **NeuroML 2** (XML or HDF5 format)
 - **Graph** (see above) 
+- **Matrix** (see above) 
 
 ### Ex. 7: A network based on Brunel 2000 (work in progress)
 <img alt="Ex7" src="examples/images/Ex7.png" height="250"/> 
