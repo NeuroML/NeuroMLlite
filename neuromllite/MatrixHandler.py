@@ -84,7 +84,7 @@ class MatrixHandler(DefaultNetworkHandler):
 
         all_pops = sorted(all_pops)
         
-        title_single_conns = '%s (single conns)'
+        title_single_conns = '%s (weight per conn)'
         title_number_conns = '%s (number conns)'
         title_total_conns = '%s (weight*number)'
         
@@ -266,7 +266,7 @@ class MatrixHandler(DefaultNetworkHandler):
         print_v("Network: %s"%network_id)
             
 
-    def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}):
+    def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}, notes=None):
         sizeInfo = " as yet unspecified size"
         
         if size>=0:
@@ -385,8 +385,9 @@ class MatrixHandler(DefaultNetworkHandler):
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
-        print_v("Projection finalising: "+projName+" -> "+prePop+" to "+postPop+" completed (%s; w: %s, conns: %s, tot w: %s)" % \
-                   (self.proj_types[projName], self.proj_weights[projName], self.proj_conns[projName], self.proj_tot_weight[projName]))
+        pass
+        #print_v("Projection finalising: "+projName+" -> "+prePop+" to "+postPop+" completed (%s; w: %s, conns: %s, tot w: %s)" % \
+        #           (self.proj_types[projName], self.proj_weights[projName], self.proj_conns[projName], self.proj_tot_weight[projName]))
 
     sizes_ils = {}
     pops_ils = {}

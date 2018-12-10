@@ -92,7 +92,7 @@ def generate_network(nl_model,
         if p.random_layout:
             properties['region'] = p.random_layout.region
             
-        if not p.random_layout and not always_include_props:
+        if not p.random_layout and not p.single_location and not always_include_props:
             
             # If there are no positions (abstract network), and <property>
             # is added to <population>, jLems doesn't like it... (it has difficulty 
@@ -100,11 +100,19 @@ def generate_network(nl_model,
             # So better not to give properties...
             properties = {} 
             
-        handler.handle_population(p.id, 
-                                  p.component, 
-                                  size, 
-                                  cell_objects[p.component] if p.component in cell_objects else None,
-                                  properties=properties)
+        if p.notes:
+            handler.handle_population(p.id, 
+                                      p.component, 
+                                      size, 
+                                      cell_objects[p.component] if p.component in cell_objects else None,
+                                      properties=properties,
+                                      notes=p.notes)
+        else:
+            handler.handle_population(p.id, 
+                                      p.component, 
+                                      size, 
+                                      cell_objects[p.component] if p.component in cell_objects else None,
+                                      properties=properties)
                                  
         pop_locations[p.id] = np.zeros((size, 3))
         
@@ -119,6 +127,16 @@ def generate_network(nl_model,
 
                 handler.handle_location(i, p.id, p.component, x, y, z)
                 
+            if p.single_location:
+                loc = p.single_location.location
+                x = loc.x
+                y = loc.y
+                z = loc.z
+                pop_locations[p.id][i] = (x, y, z)
+
+                handler.handle_location(i, p.id, p.component, x, y, z)
+                
+                
         if hasattr(handler, 'finalise_population'):
             handler.finalise_population(p.id)
         
@@ -132,6 +150,7 @@ def generate_network(nl_model,
                                       p.postsynaptic, 
                                       p.synapse,
                                       synapse_obj=synapse_objects[p.synapse] if p.synapse in synapse_objects else None,
+                                      pre_synapse_obj=synapse_objects[p.pre_synapse] if p.pre_synapse in synapse_objects else None,
                                       type=type)
 
             delay = p.delay if p.delay else 0
@@ -228,7 +247,8 @@ def check_to_generate_or_run(argv, sim):
     
     if len(argv)==1:
         print_v("No arguments found. Currently supported export formats:")
-        print_v("   -nml | -jnml | -jnmlnrn | -jnmlnetpyne | -netpyne | -pynnnrn | -pynnnest | -pynnbrian | -pynnneuroml | -sonata | -graph[1-6 n/d/f/c]")
+        print_v("   -nml | -jnml | -jnmlnrn | -jnmlnetpyne | -netpyne | -pynnnrn "+\
+                "| -pynnnest | -pynnbrian | -pynnneuroml | -sonata | -matrix[1-2] | -graph[1-6 n/d/f/c]")
         
     if '-pynnnest' in argv:
         generate_and_run(sim, simulator='PyNN_NEST')

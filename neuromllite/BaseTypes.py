@@ -120,6 +120,9 @@ class Base(object):
     
     def to_json(self, pre_indent='', indent='    ', wrap=True):
         
+        verbose = False
+        #print('Converting to JSON: %s, id: %s (wrapping: %s)'%(self.get_type(),self.get_id(), wrap))
+        
         s = pre_indent+('{ ' if wrap else '')
         if self.get_id():
             s += '"%s": {'%(self.get_id())
@@ -147,11 +150,10 @@ class Base(object):
         if wrap:
             s += "\n"+pre_indent+"}" 
             
-        verbose = False
         if verbose:
             print()
-            print("=========== pre %s ============="%self)
-            print(s)
+            print("=========== pre <%s> ============="%self)
+            print('<%s>'%s)
             
         yy = json.loads(s, object_pairs_hook=OrderedDict)
         ret = json.dumps(yy,indent=4)

@@ -98,7 +98,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                     lweight = 0.5 + fweight*2.0
 
                 if self.level>=2:
-                    #print("%s: weight %s -> %s; fw: %s; lw: %s"%(projName, self.max_weight,self.min_weight,fweight,lweight))
+                    #print("%s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, self.proj_weights[projName], self.max_weight,self.min_weight,fweight,lweight))
                     self.f.attr('edge', 
                                 style = self.proj_lines[projName], 
                                 arrowhead = self.proj_shapes[projName], 
@@ -169,7 +169,7 @@ class GraphVizHandler(DefaultNetworkHandler):
         self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=self.engine, format='png')
         
 
-    def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}):
+    def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}, notes=None):
         sizeInfo = " as yet unspecified size"
         
         if size>=0:
@@ -313,7 +313,8 @@ class GraphVizHandler(DefaultNetworkHandler):
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
-        print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
+        pass
+        #print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
 
     sizes_ils = {}
     pops_ils = {}

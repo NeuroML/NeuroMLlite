@@ -104,7 +104,8 @@ class Population(BaseWithId):
         self.allowed_fields = collections.OrderedDict([('size',('Size of population',EvaluableExpression)),
                                ('component',('Type of cell to use in population',str)),
                                ('properties',('Dict of properties (metadata) for the population',dict)),
-                               ('random_layout',('Layout in random region',RandomLayout))])
+                               ('random_layout',('Layout in random region',RandomLayout)),
+                               ('single_location',('Explicit location',SingleLocation))])
                                
                       
         super(Population, self).__init__(**kwargs)
@@ -117,7 +118,28 @@ class RandomLayout(Base):
         self.allowed_fields = collections.OrderedDict([('region',('Region in which to place population',str))])
                                
         super(RandomLayout, self).__init__(**kwargs)
+ 
+ 
+class SingleLocation(Base):
 
+    def __init__(self, **kwargs):
+        
+        #self.allowed_children = collections.OrderedDict([('locations',('The locations...',Location))])
+        self.allowed_fields = collections.OrderedDict([('location',('The location...',Location))])
+                               
+        super(SingleLocation, self).__init__(**kwargs)
+
+
+class Location(Base):
+
+    def __init__(self, **kwargs):
+        
+        self.allowed_fields = collections.OrderedDict([('x',('x coordinate',float)),
+                               ('y',('y coordinate',float)),
+                               ('z',('z coordinate',float))])
+                               
+        super(Location, self).__init__(**kwargs)
+        
         
 class Projection(BaseWithId):
 
@@ -125,6 +147,7 @@ class Projection(BaseWithId):
         self.allowed_fields = collections.OrderedDict([('presynaptic',('Presynaptic population',str)),
                                ('postsynaptic',('Postsynaptic population',str)),
                                ('synapse',('Synapse to use',str)),
+                               ('pre_synapse',('For continuous connections, what presynaptic component to use (default: silent analog synapse)',str)),
                                ('type',('type of projection: projection (default; standard chemical, event triggered), electricalProjection (for gap junctions) or continuousProjection (for analogue/graded synapses)',str)),
                                ('delay',('Delay to use (default: 0)',EvaluableExpression)),
                                ('weight',('Weight to use (default: 1)',EvaluableExpression)),
