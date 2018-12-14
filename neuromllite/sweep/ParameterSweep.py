@@ -446,7 +446,7 @@ class ParameterSweep():
                                  "Plot of %s vs %s in %s"%(value, first_param, self.sim),              
                                  xaxis = first_param,            
                                  yaxis = yaxis,          
-                                 labels = labels,       
+                                 labels = labels if len(labels)>1 else None,       
                                  markers = markers,    
                                  colors = colors,  
                                  xlim = xlim,
@@ -599,6 +599,39 @@ if __name__ == '__main__':
         ps.print_report()
 
         ps.plotLines('stim_amp','mean_spike_frequency',save_figure_to='mean_spike_frequency_hh.png')
+
+        import matplotlib.pyplot as plt
+
+        plt.show()
+
+    elif '-dt' in sys.argv:
+        fixed = {'stim_amp':'500pA'}
+
+        vary = {'dt':[0.025,0.02,0.015,0.01,0.005,0.0025]}
+        vary = {'dt':[0.1,0.05,0.025,0.01,0.005,0.0025,0.001]}
+        
+        simulator='jNeuroML_NetPyNE'
+        simulator='NetPyNE'
+        simulator='jNeuroML'
+        simulator='jNeuroML_NEURON'
+        
+        nmllr = NeuroMLliteRunner('Sim_HHTest.json',
+                                  simulator=simulator)        
+
+        ps = ParameterSweep(nmllr, 
+                            vary, 
+                            fixed,
+                            num_parallel_runs=16,
+                            save_plot_all_to='dt_traces_hh.png',
+                            heatmap_all=True,
+                            save_heatmap_to='heatmap_dt_hh.png',
+                            plot_all=True, 
+                            show_plot_already=False)
+
+        report = ps.run()
+        ps.print_report()
+
+        ps.plotLines('dt','mean_spike_frequency',save_figure_to='mean_spike_frequency_dt_hh.png', logx=True)
 
         import matplotlib.pyplot as plt
 
