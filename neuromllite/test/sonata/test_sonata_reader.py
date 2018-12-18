@@ -6,6 +6,7 @@ def main():
     ids = ['5_cells_iclamp','9_cells','300_intfire']
     ids += ['sim_tests/intfire/one_cell_iclamp/input']
     ids += ['sim_tests/intfire/ten_cells_iclamp/input']
+    ids += ['sim_tests/intfire/ten_cells_spikes/input']
     
     #id = '300_intfire'
     #id = 

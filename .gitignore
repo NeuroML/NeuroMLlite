@@ -85,3 +85,5 @@ report*.txt
 /neuromllite/test/sonata/*.gv
 /neuromllite/test/sonata/*.gv.png
 /lines.py
+/neuromllite/test/sonata/x86_64
+/neuromllite/test/sonata/cell_post_Exc_100.xml

@@ -695,7 +695,7 @@ class SonataReader(NetworkReader):
                 cell_file.close()
                 
                 self.nml_includes.append(cell_file_name)
-                self.nml_includes.append('../examples/sonatatest/IntFireCells.xml')
+                self.nml_includes.append('../../../examples/sonatatest/IntFireCells.xml')
                 
                 
             else:
@@ -743,7 +743,7 @@ class SonataReader(NetworkReader):
                 syn_file.close()
                 
                 self.nml_includes.append(syn_file_name)
-                self.nml_includes.append('../examples/sonatatest/IntFireCells.xml')
+                #self.nml_includes.append('../examples/sonatatest/IntFireCells.xml')
                 
             else:
                 from neuroml import AlphaCurrSynapse
@@ -854,6 +854,9 @@ def main():
     id = 'small_iclamp'
     ## https://github.com/pgleeson/sonata/tree/intfire
     filename = '../../git/sonatapg/examples/%s/config.json'%id
+    
+    id = 'pynn'
+    filename = '/home/padraig/PyNN_PG/test/system/tmp_serialization_test/circuit_config.json'
     
     nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
     '''
