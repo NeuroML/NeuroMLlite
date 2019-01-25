@@ -40,6 +40,7 @@ echo
 echo "**** Running Example 6 ****"
 python Example6.py
 python Example6.py -nml
+python Example6.py -nml -noinputs
 
 echo
 echo "**** Running Example 7 ****"
