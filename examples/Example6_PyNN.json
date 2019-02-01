@@ -37,7 +37,7 @@
         "synapses": [
             {
                 "ampa": {
-                    "pynn_synapse_type": "curr_alpha", 
+                    "pynn_synapse_type": "curr_exp", 
                     "pynn_receptor_type": "excitatory", 
                     "parameters": {
                         "tau_syn": 0.5
@@ -46,7 +46,7 @@
             }, 
             {
                 "gaba": {
-                    "pynn_synapse_type": "curr_alpha", 
+                    "pynn_synapse_type": "curr_exp", 
                     "pynn_receptor_type": "inhibitory", 
                     "parameters": {
                         "tau_syn": 0.5

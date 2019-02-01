@@ -39,12 +39,12 @@ def generate(ref='Example6_PyNN', add_inputs=True):
 
     e_syn = Synapse(id='ampa', 
                     pynn_receptor_type='excitatory', 
-                    pynn_synapse_type='curr_alpha', 
+                    pynn_synapse_type='curr_exp',
                     parameters={'tau_syn':0.5})
     net.synapses.append(e_syn)
     i_syn = Synapse(id='gaba', 
                     pynn_receptor_type='inhibitory', 
-                    pynn_synapse_type='curr_alpha', 
+                    pynn_synapse_type='curr_exp', 
                     parameters={'tau_syn':0.5})
     net.synapses.append(i_syn)
 

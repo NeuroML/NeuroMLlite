@@ -441,6 +441,12 @@ def generate_neuroml2_from_network(nl_model,
             if not incl in nml_doc.includes:
                 nml_doc.includes.append(incl) 
                 
+        '''  Needed???
+        if c.lems_source_file:      
+            incl = neuroml.IncludeType(_locate_file(c.lems_source_file, base_dir))
+            if not incl in nml_doc.includes:
+                nml_doc.includes.append(incl)'''
+                
         if c.neuroml2_cell: 
             
             cell_params = c.parameters if c.parameters else {}
@@ -919,7 +925,7 @@ def generate_and_run(simulation,
                 for i in range(size):
                     quantity = '%s/%i/%s/r' % (p.id, i, p.component)
                     gen_plots_for_quantities['%s_%i_r' % (p.id, i)] = [quantity]
-                    gen_saves_for_quantities['%s_%i_r.dat' % (p.id, i)] = [quantity]
+                    gen_saves_for_quantities['%s_%i.r.dat' % (p.id, i)] = [quantity]
                 
         
         generate_lems_file_for_neuroml(simulation.id, 
