@@ -32,6 +32,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     EXC_CONN_ARROW_SHAPE = 'normal'
     INH_CONN_ARROW_SHAPE = 'dot'
     GAP_CONN_ARROW_SHAPE = 'tee'
+    CONT_CONN_ARROW_SHAPE = 'vee'
     INPUT_ARROW_SHAPE = 'empty'
     
     positions = {}
@@ -40,31 +41,50 @@ class GraphVizHandler(DefaultNetworkHandler):
     pop_colors = {}
     pop_types = {}
     
-    proj_weights = {}
+    projection_weights = {}
     proj_shapes = {}
     proj_lines = {}
     proj_pre_pops = {}
     proj_post_pops = {}
+    proj_types = {}
     proj_conns = {}
     proj_tot_weight = {}
     proj_syn_objs = {}
     
     
-    
-    max_weight = -1e100
-    min_weight = 1e100
-    
     def __init__(self, 
                  level=10, 
                  engine='dot', 
                  nl_network=None,
-                 include_inputs=True):
+                 include_inputs=True,
+                 scale_by_post_pop_size = True,
+                 scale_by_post_pop_cond = True,
+                 min_weight_to_show=0):
                      
         self.nl_network = nl_network
         self.level = level
         self.engine = engine
         self.include_inputs = include_inputs
+        self.scale_by_post_pop_size = scale_by_post_pop_size
+        self.scale_by_post_pop_cond = scale_by_post_pop_cond
+        self.min_weight_to_show = min_weight_to_show
+        
         print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
+        
+        
+    def print_settings(self):
+        print_v('**************************************')
+        print_v('* Settings for GraphVizHandler: ')
+        print_v('*')
+        print_v('*    engine:                  %s'%self.engine)
+        print_v('*    level:                   %s'%self.level)
+        print_v('*    CUTOFF_INH_SYN_MV:       %s'%self.CUTOFF_INH_SYN_MV)
+        print_v('*    include_inputs:          %s'%self.include_inputs)
+        print_v('*    scale_by_post_pop_size:  %s'%self.scale_by_post_pop_size)
+        print_v('*    scale_by_post_pop_cond:  %s'%self.scale_by_post_pop_cond)
+        print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
+        print_v('*')
+        print_v('**************************************')
     
 
     def handle_document_start(self, id, notes):
@@ -84,80 +104,155 @@ class GraphVizHandler(DefaultNetworkHandler):
         return '%s%s'%('~' if approx else '',ff)
         
         
+    def get_size_pre_pop(self, projName):
+        return self.pop_sizes(self.proj_pre_pops(projName))
+    
+    
+    def get_size_post_pop(self, projName):
+        return self.pop_sizes[self.proj_post_pops[projName]]
+        
+        
+    def _get_gbase_nS(self, projName, return_orig_string_also=False):
+    
+        gbase_nS = None
+        gbase = '???'
+        #print('Getting gbase for %s'%projName)
+        if projName in self.proj_syn_objs:
+            syn = self.proj_syn_objs[projName]
+            if hasattr(syn,'gbase'):
+                gbase = syn.gbase
+                gbase_nS = convert_to_units(gbase, 'nS')
+            elif hasattr(syn,'conductance'):
+                gbase = syn.conductance
+                gbase_nS = convert_to_units(gbase, 'nS')
+                
+        if return_orig_string_also:
+            return gbase_nS, gbase
+        
+        return gbase_nS
+        
+        
+    def _scale_weight(self, weight, projName):
+
+        orig_weight = weight
+        if self.scale_by_post_pop_size:
+            weight /= self.get_size_post_pop(projName)
+
+        if self.scale_by_post_pop_cond:
+            gbase_nS = self._get_gbase_nS(projName)
+            if gbase_nS:
+                weight *= gbase_nS
+        
+        if not orig_weight==weight:
+            #print(' - Weight for %s modified %s->%s'%(projName, orig_weight, weight))
+            pass
+            
+        return weight
+            
+        
     def finalise_document(self):
         
-        for projName in self.proj_weights:
+        max_abs_weight = -1e100
+        min_abs_weight = 1e100
+    
+        for projName in self.proj_tot_weight:
             
-            if self.proj_weights[projName]!=0:
+            if self.proj_tot_weight[projName]!=0:
+                weight_used = float(self.proj_tot_weight[projName])
+                
+                weight_used = self._scale_weight(weight_used, projName)
+                
+                if abs(weight_used)>=self.min_weight_to_show:
 
-                if self.max_weight==self.min_weight:
-                    fweight = 1
-                    lweight = 1
+                    max_abs_weight = max(max_abs_weight, abs(weight_used))
+                    min_abs_weight = min(min_abs_weight, abs(weight_used))
+                    print_v("EDGE: %s: weight %s (all so far: %s -> %s)"%(projName, weight_used, max_abs_weight,min_abs_weight))
+                
                 else:
-                    fweight = (self.proj_weights[projName]-self.min_weight)/(self.max_weight-self.min_weight)
-                    lweight = 0.5 + fweight*2.0
+                    print_v("IGNORING EDGE: %s: weight %s, less than %s (all used so far: %s -> %s)"%(projName, weight_used, self.min_weight_to_show, max_abs_weight,min_abs_weight))
+                    
+                
+        for projName in self.proj_tot_weight:
+            
+            if self.proj_tot_weight[projName]!=0:
+                                
+                #weight_used = self.proj_weights[projName]
+                weight_used = float(self.proj_tot_weight[projName])
+                weight_used = self._scale_weight(weight_used, projName)
+                
+                
+                if abs(weight_used)>=self.min_weight_to_show:
 
-                if self.level>=2:
-                    #print("%s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, self.proj_weights[projName], self.max_weight,self.min_weight,fweight,lweight))
-                    self.f.attr('edge', 
-                                style = self.proj_lines[projName], 
-                                arrowhead = self.proj_shapes[projName], 
-                                arrowsize = '%s'%(min(1,lweight)), 
-                                penwidth = '%s'%(lweight), 
-                                color=self.pop_colors[self.proj_pre_pops[projName]],
-                                fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
+                    if max_abs_weight==min_abs_weight:
+                        fweight = 1
+                        lweight = 1
+                    elif self.proj_types[projName] == 'electricalProjection':
+                        # Dotted lines look bad when thick...
+                        fweight = 1
+                        lweight = 1
+                    else:
+                        fweight = (abs(weight_used)-min_abs_weight)/(max_abs_weight-min_abs_weight)
+                        lweight = .7 + fweight*3.5
 
-                    if self.level>=4:
-                        label='<'
+                    if self.level>=2:
+                        print_v("EDGE: %s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, weight_used, max_abs_weight,min_abs_weight,fweight,lweight))
 
-                        if self.level>=5:
-                            if projName in self.proj_syn_objs:
-                                syn = self.proj_syn_objs[projName]
-                                label+='%s<br/> '%syn.id
+                        self.f.attr('edge', 
+                                    style = self.proj_lines[projName], 
+                                    arrowhead = self.proj_shapes[projName], 
+                                    arrowsize = '%s'%(min(1,lweight)), 
+                                    penwidth = '%s'%(lweight), 
+                                    color=self.pop_colors[self.proj_pre_pops[projName]],
+                                    fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
 
-                        if self.proj_weights[projName]!=1.0:
-                            label+='weight: %s<br/> '%self.format_float(self.proj_weights[projName])
+                        if self.level>=4:
+                            label='<'
 
-                        if self.proj_tot_weight[projName]>0:
-                            avg_weight = float(float(self.proj_tot_weight[projName])/self.proj_conns[projName])
-                            label+='avg weight: %s<br/> '%self.format_float(avg_weight, approx=True)
-
-                        if self.nl_network:
-                            proj = self.nl_network.get_child(projName,'projections')
-                            if proj and proj.random_connectivity:
-                                label += 'p: %s<br/> '%proj.random_connectivity.probability
-
-                        if self.proj_conns[projName]>0:
-                            label += '%s conns<br/> '%self.proj_conns[projName]
-
-                        if self.level>=5:
-
-                            if self.proj_conns[projName]>0:
-
-                                pre_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_pre_pops[projName]]
-                                post_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_post_pops[projName]]
-
-                                label+=' %s/pre &#8594; %s/post<br/> '%(self.format_float(pre_avg,approx=True), self.format_float(post_avg,approx=True))
-
+                            if self.level>=5:
                                 if projName in self.proj_syn_objs:
                                     syn = self.proj_syn_objs[projName]
+                                    label+='%s<br/> '%syn.id
 
-                                    if hasattr(syn,'gbase'):
-                                        gbase = syn.gbase
-                                    elif hasattr(syn,'conductance'):
-                                        gbase = syn.conductance
+                            if self.proj_tot_weight[projName]>0:
+                                avg_weight = float(float(self.proj_tot_weight[projName])/self.proj_conns[projName])
+                                label+='avg weight: %s<br/> '%self.format_float(avg_weight, approx=True)
 
-                                    gbase_si = convert_to_units(gbase, 'nS')
-                                    label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), gbase, self.format_float(post_avg*avg_weight*gbase_si))
+                            if self.nl_network:
+                                proj = self.nl_network.get_child(projName,'projections')
+                                if proj and proj.random_connectivity:
+                                    label += 'p: %s<br/> '%proj.random_connectivity.probability
 
-                        if not label[-1]=='>':
-                            label += '>'
+                            if self.proj_conns[projName]>0:
+                                label += '%s conns<br/> '%self.proj_conns[projName]
 
-                        self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
-                    else:
-                        self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
+                            if self.level>=5:
 
-        print_v("Writing file...: %s"%id)
+                                if self.proj_conns[projName]>0:
+
+                                    pre_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_pre_pops[projName]]
+                                    post_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_post_pops[projName]]
+
+                                    label+=' %s/pre &#8594; %s/post<br/> '%(self.format_float(pre_avg,approx=True), self.format_float(post_avg,approx=True))
+
+                                    gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
+
+                                    if gbase_nS:
+                                        label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), gbase, self.format_float(post_avg*avg_weight*gbase_nS))
+
+                            if self.level>=6 and weight_used!=1.0:
+                                label+='scaled weight: %s<br/> '%(self.format_float(weight_used))
+                                label+='fract: %s<br/> '%(self.format_float(fweight))
+                                label+='line: %s<br/> '%(lweight)
+
+                            if not label[-1]=='>':
+                                label += '>'
+
+                            self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
+                        else:
+                            self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
+
+        print_v("Generating graph for: %s"%self.network_id)
+        self.print_settings()
         
         self.f.view()
         
@@ -165,6 +260,7 @@ class GraphVizHandler(DefaultNetworkHandler):
     def handle_network(self, network_id, notes, temperature=None):
             
         print_v("Network: %s"%network_id)
+        self.network_id = network_id
             
         self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=self.engine, format='png')
         
@@ -255,9 +351,13 @@ class GraphVizHandler(DefaultNetworkHandler):
         shape = self.EXC_CONN_ARROW_SHAPE
         line = 'solid'
             
-        weight = 1.0
+        # Could be used in a network with no explicit connections, but weight 
+        # between populations set at high level projection element in NeuroMLlite
+        projection_weight = 1.0
+        
         self.proj_pre_pops[projName] = prePop
         self.proj_post_pops[projName] = postPop
+        self.proj_types[projName] = type
         
         if prePop in self.pop_types:
             if 'I' in self.pop_types[prePop]:
@@ -266,6 +366,10 @@ class GraphVizHandler(DefaultNetworkHandler):
         if type=='electricalProjection':
                 shape = self.GAP_CONN_ARROW_SHAPE
                 line = 'dashed'
+                
+        if type=='continuousProjection':
+                shape = self.CONT_CONN_ARROW_SHAPE
+                line = 'solid'
             
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
@@ -285,12 +389,10 @@ class GraphVizHandler(DefaultNetworkHandler):
                     proj_weight = evaluate(proj.weight, self.nl_network.parameters)
                     if proj_weight<0:
                         shape = self.INH_CONN_ARROW_SHAPE
-                    weight = abs(proj_weight)
+                    projection_weight = abs(proj_weight)
                         
-        self.max_weight = max(self.max_weight, weight)
-        self.min_weight = min(self.min_weight, weight)
         
-        self.proj_weights[projName] = weight
+        self.projection_weights[projName] = projection_weight
         self.proj_shapes[projName] = shape
         self.proj_lines[projName] = line
         self.proj_conns[projName] = 0
@@ -313,9 +415,14 @@ class GraphVizHandler(DefaultNetworkHandler):
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
+        #weight = self.proj_tot_weight[projName]
+        #self.max_weight = max(self.max_weight, weight)
+        #self.min_weight = min(self.min_weight, weight)
+        #print_v("Now weights range %s->%s"%(self.min_weight, self.max_weight))
         pass
         #print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
-
+    
+    
     sizes_ils = {}
     pops_ils = {}
     weights_ils = {}
