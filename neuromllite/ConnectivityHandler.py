@@ -25,6 +25,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
         
     CUTOFF_INH_SYN_MV = -50 # erev below -50mV => inhibitory, above => excitatory
     
+    include_inputs = False
     
     positions = {}
     
