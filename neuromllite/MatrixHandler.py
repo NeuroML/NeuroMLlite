@@ -5,7 +5,7 @@
 #
 
 from neuromllite.utils import print_v
-from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
+from neuromllite.ConnectivityHandler import ConnectivityHandler
 
 from neuromllite.utils import evaluate
             
@@ -13,182 +13,134 @@ from pyneuroml.pynml import convert_to_units
 import numpy as np
 
 
-class MatrixHandler(DefaultNetworkHandler):
+class MatrixHandler(ConnectivityHandler):
         
-    CUTOFF_INH_SYN_MV = -50 # erev below -50mV => inhibitory, above => excitatory
-    
-    positions = {}
-    
-    pop_sizes = {}
-    pop_colors = {}
-    pop_types = {}
-    
-    proj_weights = {}
-    proj_types = {}
-    proj_pre_pops = {}
-    proj_post_pops = {}
-    proj_conns = {}
-    proj_tot_weight = {}
-    proj_syn_objs = {}
-    
     max_weight = -1e100
     min_weight = 1e100
     
     weight_arrays = {}
+    proj_individual_weights = {}
     
     def __init__(self, 
                  level=10, 
-                 nl_network=None,
-                 include_inputs=True):
+                 nl_network=None):
                      
         self.nl_network = nl_network
         self.level = level
-        self.include_inputs = include_inputs
         print_v("Initiating Matrix handler, level %i"%(level))
     
+    
+    def print_settings(self):
+        print_v('**************************************')
+        print_v('* Settings for MatrixHandler: ')
+        print_v('*')
+        #print_v('*    engine:                  %s'%self.engine)
+        print_v('*    level:                   %s'%self.level)
+        print_v('*    CUTOFF_INH_SYN_MV:       %s'%self.CUTOFF_INH_SYN_MV)
+        #print_v('*    include_inputs:          %s'%self.include_inputs)
+        #print_v('*    scale_by_post_pop_size:  %s'%self.scale_by_post_pop_size)
+        #print_v('*    scale_by_post_pop_cond:  %s'%self.scale_by_post_pop_cond)
+        #print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
+        print_v('*')
+        print_v('**************************************')
+    
+    
+    def is_cell_level(self):
+        return self.level<=0
 
-    def handle_document_start(self, id, notes):
-            
-        print_v("Document: %s"%id)
-        
-        
-    def format_float(self, f, d=3, approx=False):
-        if int(f)==f:
-            return int(f)
-        
-        template = '%%.%if' % d # e.g. '%.2f'
-        
-        ff = float(template%f)
-        if f==ff:
-            return '%s'%ff
-        return '%s%s'%('~' if approx else '',ff)
-        
-    def _get_proj_class(self, proj_type):
-        if proj_type == 'excitatory' or proj_type == 'inhibitory':
-            return 'chemical'
-        elif proj_type == 'excitatorycontinuous' or proj_type == 'inhibitorycontinuous':
-            return 'continuous'
-        else:
-            return proj_type
-        
         
     def finalise_document(self):
         
-        all_pops = []
-        for v in self.proj_pre_pops.values():
-            if not v in all_pops:
-                all_pops.append(v)
-        for v in self.proj_post_pops.values():
-            if not v in all_pops:
-                all_pops.append(v)
-
-        all_pops = sorted(all_pops)
+        entries = []
+        
+        for pop in self.proj_pre_pops.values() + self.proj_post_pops.values():
+            print pop
+            if self.is_cell_level():
+                for i in range(self.pop_sizes[pop]):
+                    pi = '%s_%i'%(pop,i)
+                    if not pi in entries: entries.append(pi)
+            else:
+                if not pop in entries:
+                    entries.append(pop)
+                
+        entries = sorted(entries)
+        print entries
+        
+        title_per_cell = '%s (individual conn weights)'
+        title_per_cell_cond = '%s (indiv conns*syn cond)'
         
         title_single_conns = '%s (weight per conn)'
         title_number_conns = '%s (number conns)'
         title_total_conns = '%s (weight*number)'
+        title_total_conns_per_cell = '%s (weight*number*cond/postpopsize)'
         
         for proj_type in self.proj_types.values():
             pclass = self._get_proj_class(proj_type)
-            self.weight_arrays[title_single_conns%pclass] = np.zeros((len(all_pops),len(all_pops)))
-            self.weight_arrays[title_number_conns%pclass] = np.zeros((len(all_pops),len(all_pops)))
-            self.weight_arrays[title_total_conns%pclass] = np.zeros((len(all_pops),len(all_pops)))
+            
+            self.weight_arrays[title_single_conns%pclass] = np.zeros((len(entries),len(entries)))
+            self.weight_arrays[title_number_conns%pclass] = np.zeros((len(entries),len(entries)))
+            self.weight_arrays[title_total_conns%pclass] = np.zeros((len(entries),len(entries)))
+            self.weight_arrays[title_total_conns_per_cell%pclass] = np.zeros((len(entries),len(entries)))
+            
+            if self.is_cell_level():
+                self.weight_arrays[title_per_cell%pclass] = np.zeros((len(entries),len(entries)))
+                self.weight_arrays[title_per_cell_cond%pclass] = np.zeros((len(entries),len(entries)))
                 
         for projName in self.proj_weights:
             
-            pre_pop = self.proj_pre_pops[projName]
-            pre_pop_i = all_pops.index(pre_pop)
+            pre_pop = self.proj_pre_pops[projName] 
             post_pop = self.proj_post_pops[projName]
-            post_pop_i = all_pops.index(post_pop)
             proj_type = self.proj_types[projName]
             
+            gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
 
-            if self.level>=2:
-                pclass = self._get_proj_class(proj_type)
-                sign = -1 if 'inhibitory' in proj_type else 1
+            pclass = self._get_proj_class(proj_type)
+            sign = -1 if 'inhibitory' in proj_type else 1
+            
+            num_pre = self.get_size_pre_pop(projName)
+            num_post = self.get_size_post_pop(projName)
+
+            print_v("MATRIX PROJ: %s (%s (%i) -> %s (%i), %s): w %s; wtot: %s; sign: %s; cond: %s nS (%s); all: %s -> %s"%(projName, pre_pop, num_pre, post_pop, num_post, proj_type, self.proj_weights[projName], self.proj_tot_weight[projName], sign, gbase_nS, gbase, self.max_weight,self.min_weight))
+
+            if self.is_cell_level():
                 
-                print_v("MATRIX PROJ: %s (%s -> %s, %s): w %s; wtot: %s; sign: %s; all: %s -> %s"%(projName, pre_pop, post_pop, proj_type, self.proj_weights[projName], self.proj_tot_weight[projName], sign, self.max_weight,self.min_weight))
+                for pre_i in range(self.pop_sizes[pre_pop]):
+                    for post_i in range(self.pop_sizes[post_pop]):
+                        pre_pop_i = entries.index( '%s_%i'%(pre_pop,pre_i))
+                        post_pop_i = entries.index( '%s_%i'%(post_pop,post_i))
+                        
+                        self.weight_arrays[title_per_cell%pclass][pre_pop_i][post_pop_i] = self.proj_individual_weights[projName][pre_i][post_i]
+                        if projName in self.proj_syn_objs:
+                            self.weight_arrays[title_per_cell_cond%pclass][pre_pop_i][post_pop_i] = self.proj_individual_weights[projName][pre_i][post_i]*gbase_nS
+
+                        
+            else:
+                pre_pop_i = entries.index(pre_pop)
+                post_pop_i = entries.index(post_pop)
 
                 self.weight_arrays[title_total_conns%pclass][pre_pop_i][post_pop_i] = \
                      abs(self.proj_tot_weight[projName]) * sign
-                     
+
                 if abs(self.proj_tot_weight[projName])!=abs(self.proj_weights[projName]):
 
                     self.weight_arrays[title_single_conns%pclass][pre_pop_i][post_pop_i] = \
                          abs(self.proj_weights[projName]) * sign
-                         
+
                     self.weight_arrays[title_number_conns%pclass][pre_pop_i][post_pop_i] = \
                          abs(self.proj_conns[projName])
+                         
+                    cond_scale = gbase_nS if gbase_nS else 1.0
+                    self.weight_arrays[title_total_conns_per_cell%pclass][pre_pop_i][post_pop_i] = \
+                         abs(self.proj_tot_weight[projName]) * cond_scale / num_post
                 
-                '''
-                self.f.attr('edge', 
-                            style = self.proj_lines[projName], 
-                            arrowhead = self.proj_shapes[projName], 
-                            arrowsize = '%s'%(min(1,lweight)), 
-                            penwidth = '%s'%(lweight), 
-                            color=self.pop_colors[self.proj_pre_pops[projName]],
-                            fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
-
-                if self.level>=4:
-                    label='<'
-                    
-                    if self.level>=5:
-                        if projName in self.proj_syn_objs:
-                            syn = self.proj_syn_objs[projName]
-                            label+='%s<br/> '%syn.id
-                        
-                    if self.proj_weights[projName]!=1.0:
-                        label+='weight: %s<br/> '%self.format_float(self.proj_weights[projName])
-                       
-                    if self.proj_tot_weight[projName]>0:
-                        avg_weight = float(float(self.proj_tot_weight[projName])/self.proj_conns[projName])
-                        label+='avg weight: %s<br/> '%self.format_float(avg_weight, approx=True)
-
-                    if self.nl_network:
-                        proj = self.nl_network.get_child(projName,'projections')
-                        if proj and proj.random_connectivity:
-                            label += 'p: %s<br/> '%proj.random_connectivity.probability
-                        
-                    if self.proj_conns[projName]>0:
-                        label += '%s conns<br/> '%self.proj_conns[projName]
-                        
-                    if self.level>=5:
-                        
-                        if self.proj_conns[projName]>0:
-                            
-                            pre_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_pre_pops[projName]]
-                            post_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_post_pops[projName]]
-                            
-                            label+=' %s/pre &#8594; %s/post<br/> '%(self.format_float(pre_avg,approx=True), self.format_float(post_avg,approx=True))
-                            
-                            if projName in self.proj_syn_objs:
-                                syn = self.proj_syn_objs[projName]
-                                
-                                if hasattr(syn,'gbase'):
-                                    gbase = syn.gbase
-                                elif hasattr(syn,'conductance'):
-                                    gbase = syn.conductance
-                                    
-                                gbase_si = convert_to_units(gbase, 'nS')
-                                label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), gbase, self.format_float(post_avg*avg_weight*gbase_si))
-                        
-                    if not label[-1]=='>':
-                        label += '>'
-                    
-                    self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
-                else:
-                    self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
-                '''
-        
-        #print_v("Writing file...: %s"%id)
-        
-        #self.f.view()
         
         import matplotlib.pyplot as plt
         import matplotlib
         
         for proj_type in self.weight_arrays:
             weight_array = self.weight_arrays[proj_type]
+            
+            print_v("Plotting proj_type: %s with values from %s to %s"%(proj_type, weight_array.min(), weight_array.max()))
             if not (weight_array.max()==0 and weight_array.min()==0):
 
                 fig, ax = plt.subplots()
@@ -196,7 +148,7 @@ class MatrixHandler(DefaultNetworkHandler):
                 plt.title(title)
                 fig.canvas.set_window_title(title)
 
-                abs_max_w = max(weight_array.max(), -1*(weight_array.min()))
+                abs_max_w = max(weight_array.max(), -1.0*(weight_array.min()))
                 
                 if weight_array.min()<0:
                     cm = matplotlib.cm.get_cmap('bwr')
@@ -228,8 +180,8 @@ class MatrixHandler(DefaultNetworkHandler):
                 ax.set_yticks(np.arange(weight_array.shape[0]) + 0.5,minor=True)
 
 
-                ax.set_yticklabels(all_pops)
-                ax.set_xticklabels(all_pops)
+                ax.set_yticklabels(entries)
+                ax.set_xticklabels(entries)
                 ax.set_ylabel('presynaptic')
                 tick_size = 10 if weight_array.shape[0]<20 else (8 if weight_array.shape[0]<40 else 6)
                 ax.tick_params(axis='y', labelsize=tick_size)
@@ -238,32 +190,37 @@ class MatrixHandler(DefaultNetworkHandler):
                 fig.autofmt_xdate()
                 
                 
-                for i in range(len(all_pops)):
+                for i in range(len(entries)):
                     alpha = 1
                     lwidth = 7
-                    offset = -1*lwidth*len(all_pops)/500.
+                    offset = -1*lwidth*len(entries)/500.
                     
-                    if self.pop_colors[all_pops[i]]:
+                    if self.pop_colors[entries[i]]:
                         from matplotlib import lines
                         x,y = [[-0.5+offset,-0.5+offset], [i-0.5,i+0.5]]
-                        line = lines.Line2D(x, y, lw=lwidth, color=self.pop_colors[all_pops[i]], alpha=alpha)
+                        line = lines.Line2D(x, y, lw=lwidth, color=self.pop_colors[entries[i]], alpha=alpha)
                         line.set_solid_capstyle('butt')
                         line.set_clip_on(False)
                         ax.add_line(line)
                         
-                        x,y = [[i-0.5,i+0.5], [len(all_pops)-0.5-offset,len(all_pops)-0.5-offset]]
-                        line = lines.Line2D(x, y, lw=lwidth, color=self.pop_colors[all_pops[i]], alpha=alpha)
+                        x,y = [[i-0.5,i+0.5], [len(entries)-0.5-offset,len(entries)-0.5-offset]]
+                        line = lines.Line2D(x, y, lw=lwidth, color=self.pop_colors[entries[i]], alpha=alpha)
                         line.set_solid_capstyle('butt')
                         line.set_clip_on(False)
                         ax.add_line(line)
 
                 cbar = plt.colorbar(im)
+                
+        print_v("Generating matrix for: %s"%self.network_id)
+        self.print_settings()
+        
         plt.show()
         
 
     def handle_network(self, network_id, notes, temperature=None):
             
         print_v("Network: %s"%network_id)
+        self.network_id = network_id
             
 
     def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}, notes=None):
@@ -277,12 +234,9 @@ class MatrixHandler(DefaultNetworkHandler):
         else:
             compInfo=""
             
-        self.pop_sizes[population_id] = size
-            
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
         
         color = None 
-        
         
         if properties and 'color' in properties:
             rgb = properties['color'].split()
@@ -298,31 +252,27 @@ class MatrixHandler(DefaultNetworkHandler):
                 
             print_v('Color %s -> %s -> %s'%(properties['color'], rgb, color))
         
+        pop_type = None
         if properties and 'type' in properties:
-            self.pop_types[population_id] = properties['type']
-            if properties['type']=='E':
-                pass
-                #shape = self.EXC_POP_SHAPE
-            if properties['type']=='I':
-                pass
-                #shape = self.INH_POP_SHAPE
+            pop_type = properties['type']
             
-        self.pop_colors[population_id] = color
+        self.pop_sizes[population_id] = size
         
-        label = population_id
+        if not self.is_cell_level():
+            self.pop_colors[population_id] = color
+            if pop_type:
+                self.pop_types[population_id] = pop_type
+        else:
+            for i in range(size):
+                cell_pop = '%s_%i'%(population_id,i)
+                self.pop_colors[cell_pop] = color
+                if pop_type:
+                    self.pop_types[cell_pop] = pop_type
         
-        region=properties['region'] if 'region' in properties else None
-    
-        
- 
-    def handle_location(self, id, population_id, component, x, y, z):
-        
-        pass
         
 
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
             
-        
         weight = 1.0
         self.proj_pre_pops[projName] = prePop
         self.proj_post_pops[projName] = postPop
@@ -335,7 +285,6 @@ class MatrixHandler(DefaultNetworkHandler):
                 
         if type=='electricalProjection':
             proj_type = 'gap_junction'
-            
             
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
@@ -355,7 +304,7 @@ class MatrixHandler(DefaultNetworkHandler):
                     proj_weight = evaluate(proj.weight, self.nl_network.parameters)
                     if proj_weight<0:
                         proj_type = 'inhibitory'
-                    weight = abs(proj_weight)
+                    weight = float(abs(proj_weight))
                     
         if type=='continuousProjection':
             proj_type += 'continuous'
@@ -363,10 +312,17 @@ class MatrixHandler(DefaultNetworkHandler):
         self.max_weight = max(self.max_weight, weight)
         self.min_weight = min(self.min_weight, weight)
         
-        self.proj_weights[projName] = weight
+        self.proj_weights[projName] = float(weight)
         self.proj_types[projName] = proj_type
         self.proj_conns[projName] = 0
         self.proj_tot_weight[projName] = 0
+        
+        if self.is_cell_level():
+            pre_size = self.pop_sizes[prePop]
+            post_size = self.pop_sizes[postPop]
+            self.proj_individual_weights[projName] = np.zeros((pre_size, post_size))
+        
+        print_v("New projection: %s, %s->%s, weights? %s, type: %s"%(projName, prePop, postPop, weight, proj_type))
 
 
     def handle_connection(self, projName, id, prePop, postPop, synapseType, \
@@ -377,11 +333,13 @@ class MatrixHandler(DefaultNetworkHandler):
                                                     postSegId = 0, \
                                                     postFract = 0.5, \
                                                     delay = 0, \
-                                                    weight = 1):
-        
+                                                    weight = 1.0):
+        #print_v(" - Connection for %s, cell %i -> %i, w: %s"%(projName, preCellId, postCellId, weight))
         self.proj_conns[projName]+=1
         self.proj_tot_weight[projName]+=weight
-
+        if self.is_cell_level():
+            self.proj_individual_weights[projName][preCellId][postCellId] = weight
+  
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
@@ -395,96 +353,7 @@ class MatrixHandler(DefaultNetworkHandler):
     input_comp_obj_ils = {}
     
     
-    def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
-        if self.include_inputs:
-            #self.print_input_information('INIT:  '+inputListId, population_id, component, size)
-            self.sizes_ils[inputListId] = 0
-            self.pops_ils[inputListId] = population_id
-            self.input_comp_obj_ils[inputListId] = input_comp_obj
-            self.weights_ils[inputListId] = 0
-            
-
-    def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
-        if self.include_inputs:
-            self.sizes_ils[inputListId]+=1
-            self.weights_ils[inputListId]+=weight
-        
 
     def finalise_input_source(self, inputListId):
         
-        if self.include_inputs:
-            #self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
-
-            if self.level>=2:
-
-                pass
-                '''
-                label = '<%s'%inputListId
-                if self.level>=3:
-                    size = self.sizes_ils[inputListId]
-                    label += '<br/><i>%s input%s</i>'%( size, '' if size==1 else 's')
-
-                if self.level>=4:
-
-                    from neuroml import PulseGenerator
-                    from neuroml import TransientPoissonFiringSynapse
-                    from neuroml import PoissonFiringSynapse
-                    from pyneuroml.pynml import convert_to_units
-
-                    input_comp_obj = self.input_comp_obj_ils[inputListId]
-
-                    if input_comp_obj and isinstance(input_comp_obj,PulseGenerator):
-                        start = convert_to_units(input_comp_obj.delay, 'ms')
-                        if start == int(start): start = int(start)
-                        duration = convert_to_units(input_comp_obj.duration,'ms')
-                        if duration == int(duration): duration = int(duration)
-                        amplitude = convert_to_units(input_comp_obj.amplitude,'pA')
-                        if amplitude == int(amplitude): amplitude = int(amplitude)
-
-                        label += '<br/>Pulse %s-%sms@%spA'%(start,start+duration, amplitude)
-
-                    if input_comp_obj and isinstance(input_comp_obj,PoissonFiringSynapse):
-
-                        average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
-                        if average_rate == int(average_rate): average_rate = int(average_rate)
-
-                        label += '<br/>Syn: %s @ %sHz'%(input_comp_obj.synapse, average_rate)
-
-                    if input_comp_obj and isinstance(input_comp_obj,TransientPoissonFiringSynapse):
-
-                        start = convert_to_units(input_comp_obj.delay, 'ms')
-                        if start == int(start): start = int(start)
-                        duration = convert_to_units(input_comp_obj.duration,'ms')
-                        if duration == int(duration): duration = int(duration)
-                        average_rate = convert_to_units(input_comp_obj.average_rate,'Hz')
-                        if average_rate == int(average_rate): average_rate = int(average_rate)
-
-                        label += '<br/>Syn: %s<br/>%s-%sms @ %sHz'%(input_comp_obj.synapse,start,start+duration, average_rate)
-
-                label += '>'
-
-                self.f.attr('node', color='#444444', style='', fontcolor = '#444444')
-                self.f.node(inputListId, label=label)
-
-                label = None
-                if self.level>=5:
-                    label='<'
-                    if self.sizes_ils[inputListId]>0:
-                        percent = 100*float(self.sizes_ils[inputListId])/self.pop_sizes[self.pops_ils[inputListId]]
-
-                        if percent<=100:
-                            label+='%s%s%% of population<br/> '%(' ' if percent!=100 else '', self.format_float(percent))
-                        else:
-                            label+='%s%s per cell<br/> '%(' ', self.format_float(percent/100))
-
-                        avg_weight = float(self.weights_ils[inputListId])/self.sizes_ils[inputListId]
-                        label+='avg weight: %s<br/> '%(self.format_float(avg_weight,approx=True))
-
-                    if not label[-1]=='>':
-                        label += '>'
-
-                self.f.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE, label=label)
-                
-                '''
-                
-                
+        pass

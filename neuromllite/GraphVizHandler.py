@@ -5,7 +5,7 @@
 #
 
 from neuromllite.utils import print_v
-from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
+from neuromllite.ConnectivityHandler import ConnectivityHandler
 
 from graphviz import Digraph
 
@@ -21,9 +21,8 @@ engines = {'d':'dot',
            's':'sfdp',
            'p':'patchwork'}
 
-class GraphVizHandler(DefaultNetworkHandler):
+class GraphVizHandler(ConnectivityHandler):
         
-    CUTOFF_INH_SYN_MV = -50 # erev below -50mV => inhibitory, above => excitatory
     
     DEFAULT_POP_SHAPE = 'ellipse'
     EXC_POP_SHAPE = 'ellipse'
@@ -34,22 +33,6 @@ class GraphVizHandler(DefaultNetworkHandler):
     GAP_CONN_ARROW_SHAPE = 'tee'
     CONT_CONN_ARROW_SHAPE = 'vee'
     INPUT_ARROW_SHAPE = 'empty'
-    
-    positions = {}
-    
-    pop_sizes = {}
-    pop_colors = {}
-    pop_types = {}
-    
-    projection_weights = {}
-    proj_shapes = {}
-    proj_lines = {}
-    proj_pre_pops = {}
-    proj_post_pops = {}
-    proj_types = {}
-    proj_conns = {}
-    proj_tot_weight = {}
-    proj_syn_objs = {}
     
     
     def __init__(self, 
@@ -86,70 +69,7 @@ class GraphVizHandler(DefaultNetworkHandler):
         print_v('*')
         print_v('**************************************')
     
-
-    def handle_document_start(self, id, notes):
             
-        print_v("Document: %s"%id)
-        
-        
-    def format_float(self, f, d=3, approx=False):
-        if int(f)==f:
-            return int(f)
-        
-        template = '%%.%if' % d # e.g. '%.2f'
-        
-        ff = float(template%f)
-        if f==ff:
-            return '%s'%ff
-        return '%s%s'%('~' if approx else '',ff)
-        
-        
-    def get_size_pre_pop(self, projName):
-        return self.pop_sizes(self.proj_pre_pops(projName))
-    
-    
-    def get_size_post_pop(self, projName):
-        return self.pop_sizes[self.proj_post_pops[projName]]
-        
-        
-    def _get_gbase_nS(self, projName, return_orig_string_also=False):
-    
-        gbase_nS = None
-        gbase = '???'
-        #print('Getting gbase for %s'%projName)
-        if projName in self.proj_syn_objs:
-            syn = self.proj_syn_objs[projName]
-            if hasattr(syn,'gbase'):
-                gbase = syn.gbase
-                gbase_nS = convert_to_units(gbase, 'nS')
-            elif hasattr(syn,'conductance'):
-                gbase = syn.conductance
-                gbase_nS = convert_to_units(gbase, 'nS')
-                
-        if return_orig_string_also:
-            return gbase_nS, gbase
-        
-        return gbase_nS
-        
-        
-    def _scale_weight(self, weight, projName):
-
-        orig_weight = weight
-        if self.scale_by_post_pop_size:
-            weight /= self.get_size_post_pop(projName)
-
-        if self.scale_by_post_pop_cond:
-            gbase_nS = self._get_gbase_nS(projName)
-            if gbase_nS:
-                weight *= gbase_nS
-        
-        if not orig_weight==weight:
-            #print(' - Weight for %s modified %s->%s'%(projName, orig_weight, weight))
-            pass
-            
-        return weight
-            
-        
     def finalise_document(self):
         
         max_abs_weight = -1e100
@@ -340,11 +260,6 @@ class GraphVizHandler(DefaultNetworkHandler):
             self.f.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
             self.f.node(population_id, label=label)
         
- 
-    def handle_location(self, id, population_id, component, x, y, z):
-        
-        pass
-        
 
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
 
@@ -392,7 +307,7 @@ class GraphVizHandler(DefaultNetworkHandler):
                     projection_weight = abs(proj_weight)
                         
         
-        self.projection_weights[projName] = projection_weight
+        self.proj_weights[projName] = projection_weight
         self.proj_shapes[projName] = shape
         self.proj_lines[projName] = line
         self.proj_conns[projName] = 0
@@ -422,27 +337,6 @@ class GraphVizHandler(DefaultNetworkHandler):
         pass
         #print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
     
-    
-    sizes_ils = {}
-    pops_ils = {}
-    weights_ils = {}
-    input_comp_obj_ils = {}
-    
-    
-    def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
-        if self.include_inputs:
-            #self.print_input_information('INIT:  '+inputListId, population_id, component, size)
-
-            self.sizes_ils[inputListId] = 0
-            self.pops_ils[inputListId] = population_id
-            self.input_comp_obj_ils[inputListId] = input_comp_obj
-            self.weights_ils[inputListId] = 0
-            
-
-    def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
-        if self.include_inputs:
-            self.sizes_ils[inputListId]+=1
-            self.weights_ils[inputListId]+=weight
         
 
     def finalise_input_source(self, inputListId):
