@@ -31,6 +31,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
     proj_tot_weight = {}
     proj_syn_objs = {}
     proj_individual_weights = {}
+    proj_individual_scaled_weights = {}
     proj_individual_conn_numbers = {}
     
     
@@ -111,7 +112,23 @@ class ConnectivityHandler(DefaultNetworkHandler):
         return gbase_nS
         
         
-    def _scale_weight(self, weight, projName):
+    def _scale_individual_weight(self, weight, projName):
+
+        orig_weight = weight
+
+        if self.scale_by_post_pop_cond:
+            gbase_nS = self._get_gbase_nS(projName)
+            if gbase_nS:
+                weight *= gbase_nS
+        
+        if not orig_weight==weight:
+            #print(' - Weight for %s modified %s->%s'%(projName, orig_weight, weight))
+            pass
+            
+        return weight
+    
+        
+    def _scale_population_weight(self, weight, projName):
 
         orig_weight = weight
         if self.scale_by_post_pop_size:
@@ -144,15 +161,18 @@ class ConnectivityHandler(DefaultNetworkHandler):
                                                     delay = 0, \
                                                     weight = 1.0):
                                                         
-        print_v(" - Connection for %s, cell %i -> %i, w: %s"%(projName, preCellId, postCellId, weight))
+        #print_v(" - Connection for %s, cell %i -> %i, w: %s"%(projName, preCellId, postCellId, weight))
         self.proj_conns[projName]+=1
         self.proj_tot_weight[projName]+=weight
         if self.is_cell_level():
             self.proj_individual_weights[projName][preCellId][postCellId] += weight
+            self.proj_individual_scaled_weights[projName][preCellId][postCellId] += self._scale_individual_weight(weight,projName)
             self.proj_individual_conn_numbers[projName][preCellId][postCellId] += 1
-            print_v("   - Now weight between these cells is %s from %i individual conns" % \
+            '''
+            print_v("   - Now total weight between these cells is %s (scaled: %s) from %i individual conns" % \
                        (self.proj_individual_weights[projName][preCellId][postCellId],
-                       self.proj_individual_conn_numbers[projName][preCellId][postCellId]))
+                       self.proj_individual_scaled_weights[projName][preCellId][postCellId],
+                       self.proj_individual_conn_numbers[projName][preCellId][postCellId]))'''
 
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):

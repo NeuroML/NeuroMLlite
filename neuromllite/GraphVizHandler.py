@@ -80,7 +80,7 @@ class GraphVizHandler(ConnectivityHandler):
         print_v('**************************************')
     
     
-    def get_weight_scaled(self, w, max_w, min_w):
+    def get_weight_fraction_and_line(self, w, max_w, min_w):
         
         if max_w==min_w:
             return 1.0, 1.0
@@ -99,27 +99,31 @@ class GraphVizHandler(ConnectivityHandler):
             
     def finalise_document(self):
         
-        max_abs_weight = -1e100
-        min_abs_weight = 1e100
+        max_abs_weight = {}
+        min_abs_weight = {}
+        
+        for t in ['projection','inhibitory','excitatory','electricalProjection','continuousProjection']:
+            max_abs_weight[t] = -1e100
+            min_abs_weight[t] = 1e100
         
         if self.is_cell_level() and self.level <= -1:
             
             for projName in self.proj_weights:
-                ws = self.proj_individual_weights[projName]
+                #ws = self.proj_individual_weights[projName]
+                ws = self.proj_individual_scaled_weights[projName]
+                t = self.proj_types[projName]
                 if np.max(ws)>0:
-                    max_abs_weight = max(max_abs_weight, np.max(ws[np.nonzero(ws)]))
-                    min_abs_weight = min(min_abs_weight, np.min(ws[np.nonzero(ws)]))
-                    if self.scale_by_post_pop_cond:
-                        gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
-                        cond_scale = gbase_nS if gbase_nS else 1.0
-                        max_abs_weight*=cond_scale
-                        min_abs_weight*=cond_scale
+                    max_abs_weight[t] = max(max_abs_weight[t], np.max(ws[np.nonzero(ws)]))
+                    min_abs_weight[t] = min(min_abs_weight[t], np.min(ws[np.nonzero(ws)]))
+                    
                 
             for projName in self.proj_weights:
 
                 pre_pop = self.proj_pre_pops[projName] 
                 post_pop = self.proj_post_pops[projName]
                 proj_type = self.proj_types[projName]
+                num_pre = self.get_size_pre_pop(projName)
+                num_post = self.get_size_post_pop(projName)
                 
                 if self.proj_types[projName] == 'electricalProjection':
                     show = self.show_elect_conns
@@ -134,33 +138,31 @@ class GraphVizHandler(ConnectivityHandler):
                     pclass = self._get_proj_class(proj_type)
                     sign = -1 if 'inhibitory' in proj_type else 1
 
-                    num_pre = self.get_size_pre_pop(projName)
-                    num_post = self.get_size_post_pop(projName)
-
                     print_v("GRAPH PROJ: %s (%s (%i) -> %s (%i), %s): w %s; wtot: %s; sign: %s; cond: %s nS (%s); all: %s -> %s"%(projName, pre_pop, num_pre, post_pop, num_post, proj_type, self.proj_weights[projName], self.proj_tot_weight[projName], sign, gbase_nS, gbase, max_abs_weight,min_abs_weight))
 
-                    #print_v('Weights: ')
-                    #print(self.proj_individual_weights[projName])
-                    
                     for pre_i in range(num_pre):
                         for post_i in range(num_post):
                             pre_pop_i = self.get_cell_identifier(pre_pop,  pre_i)
                             post_pop_i = self.get_cell_identifier(post_pop, post_i)
 
-                            w = self.proj_individual_weights[projName][pre_i][post_i]
+                            w = self.proj_individual_scaled_weights[projName][pre_i][post_i]
+                            w_unscaled = self.proj_individual_weights[projName][pre_i][post_i]
+                            
                             num_indiv_conns = self.proj_individual_conn_numbers[projName][pre_i][post_i]
 
                             if w != 0:
 
                                 weight_used = w
+                                
                                 cond_scale = None
                                 if self.scale_by_post_pop_cond:
                                     cond_scale = gbase_nS if gbase_nS else 1.0
-                                    weight_used = weight_used*cond_scale
                                     
                                 print_v(' - conn %s -> %s: %s (%s)'%(pre_pop_i, post_pop_i, w, weight_used))
 
-                                fweight, lweight = self.get_weight_scaled(weight_used, max_abs_weight, min_abs_weight)
+                                fweight, lweight = self.get_weight_fraction_and_line(weight_used, 
+                                                                                     max_abs_weight[proj_type], 
+                                                                                     min_abs_weight[proj_type])
 
                                 self.f.attr('edge', 
                                             style = self.proj_lines[projName], 
@@ -171,13 +173,13 @@ class GraphVizHandler(ConnectivityHandler):
                                             fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
 
                                 label='<'
-                                label += 'w: %s <br/> '%self.format_float(w)
+                                label += 'w: %s <br/> '%self.format_float(w_unscaled)
                                 label += 'num: %i <br/> '%num_indiv_conns
                                 
                                 if num_indiv_conns!=1:
-                                    wc = float(w)/num_indiv_conns
+                                    wc = float(w_unscaled)/num_indiv_conns
                                     label += 'w/conn: %s <br/> '%self.format_float(wc)
-                                    if cond_scale:
+                                    if w!=w_unscaled:
                                         label +='%s*%s*%snS = %snS<br/> '%(self.format_float(wc), num_indiv_conns, self.format_float(cond_scale), self.format_float(weight_used))
                                 else:
                                     label +='%s*%snS = %snS<br/> '%(self.format_float(w), self.format_float(cond_scale), self.format_float(weight_used))
@@ -198,33 +200,36 @@ class GraphVizHandler(ConnectivityHandler):
         else:
 
             for projName in self.proj_tot_weight:
+                t = self.proj_types[projName]
 
                 if self.proj_tot_weight[projName]!=0:
 
                     weight_used = float(self.proj_tot_weight[projName])
-                    weight_used = self._scale_weight(weight_used, projName)
+                    weight_used = self._scale_population_weight(weight_used, projName)
 
                     if abs(weight_used)>=self.min_weight_to_show:
 
-                        max_abs_weight = max(max_abs_weight, abs(weight_used))
-                        min_abs_weight = min(min_abs_weight, abs(weight_used))
-                        print_v("EDGE: %s: weight %s (all so far: %s -> %s)"%(projName, weight_used, max_abs_weight,min_abs_weight))
+                        max_abs_weight[t] = max(max_abs_weight[t], abs(weight_used))
+                        min_abs_weight[t] = min(min_abs_weight[t], abs(weight_used))
+                        print_v("EDGE: %s: weight %s (all so far: %s -> %s)"%(projName, weight_used, max_abs_weight[t],min_abs_weight[t]))
 
                     else:
-                        print_v("IGNORING EDGE: %s: weight %s, less than %s (all used so far: %s -> %s)"%(projName, weight_used, self.min_weight_to_show, max_abs_weight,min_abs_weight))
+                        print_v("IGNORING EDGE: %s: weight %s, less than %s (all used so far: %s -> %s)"%(projName, weight_used, self.min_weight_to_show, max_abs_weight[t],min_abs_weight[t]))
 
 
             for projName in self.proj_tot_weight:
+                
+                proj_type = self.proj_types[projName]
 
                 if self.proj_tot_weight[projName]!=0:
 
                     #weight_used = self.proj_weights[projName]
                     weight_used = float(self.proj_tot_weight[projName])
-                    weight_used = self._scale_weight(weight_used, projName)
+                    weight_used = self._scale_population_weight(weight_used, projName)
 
                     if abs(weight_used)>=self.min_weight_to_show:
 
-                        if max_abs_weight==min_abs_weight:
+                        if max_abs_weight[proj_type]==min_abs_weight[proj_type]:
                             fweight = 1
                             lweight = 1
                         elif self.proj_types[projName] == 'electricalProjection':
@@ -232,7 +237,7 @@ class GraphVizHandler(ConnectivityHandler):
                             fweight = 1
                             lweight = 1
                         else:
-                            fweight, lweight = self.get_weight_scaled(weight_used, max_abs_weight, min_abs_weight)
+                            fweight, lweight = self.get_weight_fraction_and_line(weight_used, max_abs_weight[proj_type], min_abs_weight[proj_type])
                                                     
                         if self.proj_types[projName] == 'electricalProjection':
                             show = self.show_elect_conns
@@ -242,7 +247,7 @@ class GraphVizHandler(ConnectivityHandler):
                             show = self.show_chem_conns
 
                         if self.level>=2 and show:
-                            print_v("EDGE: %s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, weight_used, max_abs_weight,min_abs_weight,fweight,lweight))
+                            print_v("EDGE: %s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, weight_used, max_abs_weight[proj_type],min_abs_weight[proj_type],fweight,lweight))
 
                             self.f.attr('edge', 
                                         style = self.proj_lines[projName], 
@@ -457,6 +462,7 @@ class GraphVizHandler(ConnectivityHandler):
             post_size = self.pop_sizes[postPop]
             self.proj_individual_weights[projName] = np.zeros((pre_size, post_size))
             self.proj_individual_conn_numbers[projName] = np.zeros((pre_size, post_size))
+            self.proj_individual_scaled_weights[projName] = np.zeros((pre_size, post_size))
 
 
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):

@@ -15,11 +15,9 @@ import numpy as np
 
 class MatrixHandler(ConnectivityHandler):
         
-    max_weight = -1e100
-    min_weight = 1e100
     colormaps_used = []
     
-    weight_arrays = {}
+    weight_arrays_to_show = {}
     
     def __init__(self, 
                  level=10, 
@@ -28,6 +26,7 @@ class MatrixHandler(ConnectivityHandler):
         self.nl_network = nl_network
         self.level = level
         print_v("Initiating Matrix handler, level %i"%(level))
+        self.scale_by_post_pop_cond = True
     
     
     def print_settings(self):
@@ -44,8 +43,6 @@ class MatrixHandler(ConnectivityHandler):
         #print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
         print_v('*')
         print_v('* Used values: ')
-        #print_v('*    min_weight:              %s'%self.min_weight)
-        #print_v('*    max_weight:              %s'%self.max_weight)
         print_v('*    colormaps_used:          %s'%self.colormaps_used)
         print_v('*    zero_weight_color:       %s'%self.zero_weight_color)
         print_v('*')
@@ -67,51 +64,52 @@ class MatrixHandler(ConnectivityHandler):
                 
         entries = sorted(entries)
         
-        title_per_cell = '%s (weight per indiv conn)'
-        title_per_cell_cond = '%s (indiv conn weight*syn cond)'
+        matrix_per_cell = '%s (weight per indiv conn)'
+        matrix_per_cell_cond = '%s (indiv conn weight*syn cond)'
         
-        title_single_conns = '%s (avg weight per existant conn)'
-        title_number_conns = '%s (number conns)'
-        title_total_conns = '%s (sum of weights of conns)'
-        title_total_conns_per_cell = '%s ((sum of weights)*cond/postpopsize)'
+        matrix_single_conns = '%s (avg weight per existant conn)'
+        matrix_number_conns = '%s (number conns)'
+        matrix_total_conns = '%s (sum of weights of conns)'
+        matrix_total_conns_per_cell = '%s ((sum of weights)*cond/postpopsize)'
         
         cbar_labels = {}
         for proj_type in self.proj_types.values():
             pclass = self._get_proj_class(proj_type)
             
-            self.weight_arrays[title_single_conns%pclass] = np.zeros((len(entries),len(entries)))
-            self.weight_arrays[title_number_conns%pclass] = np.zeros((len(entries),len(entries)))
-            self.weight_arrays[title_total_conns%pclass] = np.zeros((len(entries),len(entries)))
-            self.weight_arrays[title_total_conns_per_cell%pclass] = np.zeros((len(entries),len(entries)))
-
-            cbar_labels[title_per_cell%pclass] = 'weight'
-            cbar_labels[title_per_cell_cond%pclass] = 'conductance (nS)'
-            cbar_labels[title_number_conns%pclass] = 'number'
-            
-            cbar_labels[title_single_conns%pclass] = 'weight' # (red: exc; blue: inh)'
-            cbar_labels[title_total_conns%pclass] = 'total weight' # (red: exc; blue: inh)'
-            
-            cbar_labels[title_total_conns_per_cell%pclass] = 'conductance (nS)'
+            all_matrices = [matrix_single_conns, matrix_number_conns,matrix_total_conns, matrix_total_conns_per_cell]
             
             if self.is_cell_level():
-                self.weight_arrays[title_per_cell%pclass] = np.zeros((len(entries),len(entries)))
-                self.weight_arrays[title_per_cell_cond%pclass] = np.zeros((len(entries),len(entries)))
+                all_matrices = [matrix_per_cell, matrix_per_cell_cond]
+                
+            for m in all_matrices:
+                label = m%pclass
+                
+                self.weight_arrays_to_show[label] = np.zeros((len(entries),len(entries)))
+                
+
+            cbar_labels[matrix_per_cell%pclass] = 'weight'
+            cbar_labels[matrix_per_cell_cond%pclass] = 'conductance (nS)'
+            
+            cbar_labels[matrix_number_conns%pclass] = 'number'
+            cbar_labels[matrix_single_conns%pclass] = 'weight' # (red: exc; blue: inh)'
+            cbar_labels[matrix_total_conns%pclass] = 'total weight' # (red: exc; blue: inh)'
+            cbar_labels[matrix_total_conns_per_cell%pclass] = 'conductance (nS)'
+            
                 
         for projName in self.proj_weights:
             
             pre_pop = self.proj_pre_pops[projName] 
             post_pop = self.proj_post_pops[projName]
             proj_type = self.proj_types[projName]
+            num_pre = self.get_size_pre_pop(projName)
+            num_post = self.get_size_post_pop(projName)
             
             gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
 
             pclass = self._get_proj_class(proj_type)
             sign = -1 if 'inhibitory' in proj_type else 1
-            
-            num_pre = self.get_size_pre_pop(projName)
-            num_post = self.get_size_post_pop(projName)
 
-            print_v("MATRIX PROJ: %s (%s (%i) -> %s (%i), %s): w %s; wtot: %s; sign: %s; cond: %s nS (%s); all: %s -> %s"%(projName, pre_pop, num_pre, post_pop, num_post, proj_type, self.proj_weights[projName], self.proj_tot_weight[projName], sign, gbase_nS, gbase, self.max_weight,self.min_weight))
+            print_v("MATRIX PROJ: %s (%s (%i) -> %s (%i), %s): w %s; wtot: %s; sign: %s; cond: %s nS (%s)"%(projName, pre_pop, num_pre, post_pop, num_post, proj_type, self.proj_weights[projName], self.proj_tot_weight[projName], sign, gbase_nS, gbase))
 
             if self.is_cell_level():
                 
@@ -120,35 +118,35 @@ class MatrixHandler(ConnectivityHandler):
                         pre_pop_i =  entries.index( self.get_cell_identifier(pre_pop,  pre_i))
                         post_pop_i = entries.index( self.get_cell_identifier(post_pop, post_i))
                         
-                        self.weight_arrays[title_per_cell%pclass][pre_pop_i][post_pop_i] = self.proj_individual_weights[projName][pre_i][post_i]
+                        self.weight_arrays_to_show[matrix_per_cell%pclass][pre_pop_i][post_pop_i] += self.proj_individual_weights[projName][pre_i][post_i]
                         if projName in self.proj_syn_objs:
-                            self.weight_arrays[title_per_cell_cond%pclass][pre_pop_i][post_pop_i] = self.proj_individual_weights[projName][pre_i][post_i]*gbase_nS
+                            self.weight_arrays_to_show[matrix_per_cell_cond%pclass][pre_pop_i][post_pop_i] += self.proj_individual_scaled_weights[projName][pre_i][post_i]
 
             else:
                 pre_pop_i = entries.index(pre_pop)
                 post_pop_i = entries.index(post_pop)
 
-                self.weight_arrays[title_total_conns%pclass][pre_pop_i][post_pop_i] = \
+                self.weight_arrays_to_show[matrix_total_conns%pclass][pre_pop_i][post_pop_i] += \
                      abs(self.proj_tot_weight[projName]) * sign
 
                 if abs(self.proj_tot_weight[projName])!=abs(self.proj_weights[projName]):
 
-                    self.weight_arrays[title_single_conns%pclass][pre_pop_i][post_pop_i] = \
+                    self.weight_arrays_to_show[matrix_single_conns%pclass][pre_pop_i][post_pop_i] += \
                          abs(self.proj_weights[projName]) * sign
 
-                    self.weight_arrays[title_number_conns%pclass][pre_pop_i][post_pop_i] = \
+                    self.weight_arrays_to_show[matrix_number_conns%pclass][pre_pop_i][post_pop_i] += \
                          abs(self.proj_conns[projName])
                          
                     cond_scale = gbase_nS if gbase_nS else 1.0
-                    self.weight_arrays[title_total_conns_per_cell%pclass][pre_pop_i][post_pop_i] = \
+                    self.weight_arrays_to_show[matrix_total_conns_per_cell%pclass][pre_pop_i][post_pop_i] += \
                          abs(self.proj_tot_weight[projName]) * cond_scale / num_post
                 
         
         import matplotlib.pyplot as plt
         import matplotlib
         
-        for proj_type in self.weight_arrays:
-            weight_array = self.weight_arrays[proj_type]
+        for proj_type in self.weight_arrays_to_show:
+            weight_array = self.weight_arrays_to_show[proj_type]
             
             print_v("Plotting proj_type: %s with values from %s to %s"%(proj_type, weight_array.min(), weight_array.max()))
             if not (weight_array.max()==0 and weight_array.min()==0):
@@ -325,8 +323,6 @@ class MatrixHandler(ConnectivityHandler):
         if type=='continuousProjection':
             proj_type += 'continuous'
                         
-        self.max_weight = max(self.max_weight, weight)
-        self.min_weight = min(self.min_weight, weight)
         
         self.proj_weights[projName] = float(weight)
         self.proj_types[projName] = proj_type
@@ -338,6 +334,7 @@ class MatrixHandler(ConnectivityHandler):
             post_size = self.pop_sizes[postPop]
             self.proj_individual_weights[projName] = np.zeros((pre_size, post_size))
             self.proj_individual_conn_numbers[projName] = np.zeros((pre_size, post_size))
+            self.proj_individual_scaled_weights[projName] = np.zeros((pre_size, post_size))
         
         print_v("New projection: %s, %s->%s, weights? %s, type: %s"%(projName, prePop, postPop, weight, proj_type))
 
