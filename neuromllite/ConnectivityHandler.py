@@ -1,25 +1,13 @@
 #
 #
-#   Helper class for parsing connectivity data
+#   Helper class for parsing connectivity data for structuring data on weights etc.
 #
 #
 
 from neuromllite.utils import print_v
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
-
-from graphviz import Digraph
-
-from neuromllite.utils import evaluate
-            
 from pyneuroml.pynml import convert_to_units
 
-engines = {'d':'dot',
-           'c':'circo',
-           'n':'neato',
-           't':'twopi',
-           'f':'fdp',
-           's':'sfdp',
-           'p':'patchwork'}
 
 class ConnectivityHandler(DefaultNetworkHandler):
         
@@ -42,14 +30,27 @@ class ConnectivityHandler(DefaultNetworkHandler):
     proj_conns = {}
     proj_tot_weight = {}
     proj_syn_objs = {}
+    proj_individual_weights = {}
+    proj_individual_conn_numbers = {}
     
+    
+    sizes_ils = {}
+    pops_ils = {}
+    weights_ils = {}
+    input_comp_obj_ils = {}
     
 
     def handle_document_start(self, id, notes):
             
         print_v("Document: %s"%id)
         
+
+    def handle_network(self, network_id, notes, temperature=None):
+            
+        print_v("Network: %s"%network_id)
+        self.network_id = network_id
         
+    # Nice clean number for use in graphs, labels etc.
     def format_float(self, f, d=3, approx=False):
         if int(f)==f:
             return int(f)
@@ -62,6 +63,17 @@ class ConnectivityHandler(DefaultNetworkHandler):
         return '%s%s'%('~' if approx else '',ff)
         
         
+    # Is the graph to be generated at the level of populations or individual cells?
+    def is_cell_level(self):
+        return self.level<=0
+    
+
+    def get_cell_identifier(self, population, index):
+        size = self.pop_sizes[population]
+        i = '%s%i'%('0'*(len(str(size-1))-len(str(index))),index)
+        return '%s_%s'%(population, i)
+        
+        
     def _get_proj_class(self, proj_type):
         if proj_type == 'excitatory' or proj_type == 'inhibitory':
             return 'chemical'
@@ -69,6 +81,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
             return 'continuous'
         else:
             return proj_type
+        
         
     def get_size_pre_pop(self, projName):
         return self.pop_sizes[self.proj_pre_pops[projName]]
@@ -115,15 +128,31 @@ class ConnectivityHandler(DefaultNetworkHandler):
             
         return weight
             
-        
-        
  
     def handle_location(self, id, population_id, component, x, y, z):
         
         pass
         
 
-
+    def handle_connection(self, projName, id, prePop, postPop, synapseType, \
+                                                    preCellId, \
+                                                    postCellId, \
+                                                    preSegId = 0, \
+                                                    preFract = 0.5, \
+                                                    postSegId = 0, \
+                                                    postFract = 0.5, \
+                                                    delay = 0, \
+                                                    weight = 1.0):
+                                                        
+        print_v(" - Connection for %s, cell %i -> %i, w: %s"%(projName, preCellId, postCellId, weight))
+        self.proj_conns[projName]+=1
+        self.proj_tot_weight[projName]+=weight
+        if self.is_cell_level():
+            self.proj_individual_weights[projName][preCellId][postCellId] += weight
+            self.proj_individual_conn_numbers[projName][preCellId][postCellId] += 1
+            print_v("   - Now weight between these cells is %s from %i individual conns" % \
+                       (self.proj_individual_weights[projName][preCellId][postCellId],
+                       self.proj_individual_conn_numbers[projName][preCellId][postCellId]))
 
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
@@ -136,16 +165,9 @@ class ConnectivityHandler(DefaultNetworkHandler):
         #print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
     
     
-    sizes_ils = {}
-    pops_ils = {}
-    weights_ils = {}
-    input_comp_obj_ils = {}
-    
-    
     def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
         if self.include_inputs:
             #self.print_input_information('INIT:  '+inputListId, population_id, component, size)
-
             self.sizes_ils[inputListId] = 0
             self.pops_ils[inputListId] = population_id
             self.input_comp_obj_ils[inputListId] = input_comp_obj

@@ -1,6 +1,6 @@
 import collections
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
@@ -152,6 +152,7 @@ class Projection(BaseWithId):
                                ('delay',('Delay to use (default: 0)',EvaluableExpression)),
                                ('weight',('Weight to use (default: 1)',EvaluableExpression)),
                                ('random_connectivity',('Use random connectivity',RandomConnectivity)),
+                               ('convergent_connectivity',('Use ConvergentConnectivity',ConvergentConnectivity)),
                                ('one_to_one_connector',('Connect cell index i in pre pop to cell index i in post pop for all i',OneToOneConnector))])
 
         super(Projection, self).__init__(**kwargs)
@@ -185,6 +186,15 @@ class OneToOneConnector(Base):
     def __init__(self, **kwargs):
                                
         super(OneToOneConnector, self).__init__(**kwargs)
+        
+# Temp! to redefine more generally!
+class ConvergentConnectivity(Base):
+
+    def __init__(self, **kwargs):
+        
+        self.allowed_fields = collections.OrderedDict([('num_per_post',('Number per post synaptic neuron',float))])
+                               
+        super(ConvergentConnectivity, self).__init__(**kwargs)
         
         
   

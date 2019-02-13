@@ -180,6 +180,37 @@ def generate_network(nl_model,
                                                       delay=delay, \
                                                       weight=weight)
                             conn_count += 1
+                            
+            if p.convergent_connectivity:
+                
+                for post_i in range(len(pop_locations[p.postsynaptic])):
+                
+                    for count in range(int(p.convergent_connectivity.num_per_post)):
+                        found = False
+                        while not found:
+                            pre_i = int(rng.random()*len(pop_locations[p.presynaptic]))
+                            if p.presynaptic==p.postsynaptic and pre_i==post_i:
+                                found=False
+                            else:
+                                found=True
+
+                        weight = evaluate(weight, nl_model.parameters)
+                        delay = evaluate(delay, nl_model.parameters)
+                        print_v("Adding connection %i (%i->%i; %i to %s of post) with weight: %s, delay: %s"%(conn_count, pre_i, post_i, count, p.convergent_connectivity.num_per_post, weight, delay))
+                        handler.handle_connection(p.id, 
+                                                  conn_count, 
+                                                  p.presynaptic, 
+                                                  p.postsynaptic, 
+                                                  p.synapse, \
+                                                  pre_i, \
+                                                  post_i, \
+                                                  preSegId=0, \
+                                                  preFract=0.5, \
+                                                  postSegId=0, \
+                                                  postFract=0.5, \
+                                                  delay=delay, \
+                                                  weight=weight)
+                        conn_count += 1
 
             elif p.one_to_one_connector:
                 for i in range(min(len(pop_locations[p.presynaptic]), len(pop_locations[p.postsynaptic]))):
@@ -265,9 +296,6 @@ def check_to_generate_or_run(argv, sim):
     elif '-jnmlnrn' in argv:
         generate_and_run(sim, simulator='jNeuroML_NEURON')
 
-    elif '-jnmlnetpyne' in argv:
-        generate_and_run(sim, simulator='jNeuroML_NetPyNE')
-
     elif '-netpyne' in argv:
         generate_and_run(sim, simulator='NetPyNE')
 
@@ -284,9 +312,15 @@ def check_to_generate_or_run(argv, sim):
         
     else:
         for a in argv:
-            if 'graph' in a: # e.g. -graph3c
+            
+            if '-jnmlnetpyne' in a:
+                num_processors = 1
+                if len(a)>len('-jnmlnetpyne'):
+                    num_processors = int(a[12:])
+                generate_and_run(sim, simulator='jNeuroML_NetPyNE',num_processors=num_processors)
+            elif 'graph' in a: # e.g. -graph3c
                 generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
-            if 'matrix' in a: # e.g. -matrix2
+            elif 'matrix' in a: # e.g. -matrix2
                 generate_and_run(sim, simulator=a[1:]) # Will not "run" obviously...
                 
         
@@ -592,7 +626,8 @@ def generate_and_run(simulation,
                      network=None, 
                      return_results=False, 
                      base_dir=None,
-                     target_dir=None):
+                     target_dir=None,
+                     num_processors=1):
     """
     Generates the network in the specified simulator and runs, if appropriate
     """
@@ -635,14 +670,20 @@ def generate_and_run(simulation,
                            
         from neuromllite.GraphVizHandler import GraphVizHandler, engines
         
-        if len(simulator) == 7:
-            engine = engines[simulator[6:]]
-        else:
-            engine = 'dot'
-        
+
         try:
-            level = int(simulator[5:6])
-        except:
+            if simulator[-1].isalpha():
+                print simulator
+                print simulator[5:]
+                print simulator[5:-1]
+                engine = engines[simulator[-1]]
+                level = int(simulator[5:-1])
+            else:
+                engine = 'dot'
+                level = int(simulator[5:])
+        
+        except Exception as e:
+            print e
             print_v("Error parsing: %s"%simulator)
             print_v("Graphs of the network structure can be generated at many levels of detail (1-6, required) and laid out using GraphViz engines (d - dot (default); c - circo; n - neato; f - fdp), so use: -graph3c, -graph2, -graph4f etc.")
             return
@@ -653,13 +694,13 @@ def generate_and_run(simulation,
     
         print_v("Done with GraphViz...")
         
+        
     elif simulator.lower().startswith('matrix'): # Will not "run" obviously...
                            
         from neuromllite.MatrixHandler import MatrixHandler
         
-        
         try:
-            level = int(simulator[6:7])
+            level = int(simulator[6:])
         except:
             print_v("Error parsing: %s"%simulator)
             print_v("Matrices of the network structure can be generated at many levels of detail (1-n, required), so use: -matrix1, -matrix2, etc.")
@@ -784,7 +825,6 @@ def generate_and_run(simulation,
             return traces, events
 
     elif simulator == 'NetPyNE':
-        
         
         if target_dir==None:
             target_dir='./'
@@ -962,11 +1002,22 @@ def generate_and_run(simulation,
         lems_file_name = _locate_file(lems_file_name, target_dir)
         
         if simulator == 'jNeuroML':
-            results = pynml.run_lems_with_jneuroml(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)
+            results = pynml.run_lems_with_jneuroml(lems_file_name, 
+                                                   nogui=True, 
+                                                   load_saved_data=return_results, 
+                                                   reload_events=return_results)
         elif simulator == 'jNeuroML_NEURON':
-            results = pynml.run_lems_with_jneuroml_neuron(lems_file_name, nogui=True, load_saved_data=return_results, reload_events=return_results)
+            results = pynml.run_lems_with_jneuroml_neuron(lems_file_name, 
+                                                          nogui=True, 
+                                                          load_saved_data=return_results, 
+                                                          reload_events=return_results)
         elif simulator == 'jNeuroML_NetPyNE':
-            results = pynml.run_lems_with_jneuroml_netpyne(lems_file_name, nogui=True, verbose=True, load_saved_data=return_results, reload_events=return_results)
+            results = pynml.run_lems_with_jneuroml_netpyne(lems_file_name, 
+                                                           nogui=True, 
+                                                           verbose=True, 
+                                                           load_saved_data=return_results, 
+                                                           reload_events=return_results,
+                                                           num_processors=num_processors)
 
         print_v("Finished running LEMS file %s in %s (returning results: %s)" % (lems_file_name, simulator, return_results))
 

@@ -1,6 +1,6 @@
 {
     "Example7_Brunel2000": {
-        "version": "NeuroMLlite v0.1.5", 
+        "version": "NeuroMLlite v0.1.6", 
         "parameters": {
             "epsilon": 0.1, 
             "J": 0.1, 

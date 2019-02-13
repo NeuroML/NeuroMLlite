@@ -6,12 +6,12 @@
 
 from neuromllite.utils import print_v
 from neuromllite.ConnectivityHandler import ConnectivityHandler
-
-from graphviz import Digraph
-
 from neuromllite.utils import evaluate
             
 from pyneuroml.pynml import convert_to_units
+
+from graphviz import Digraph
+import numpy as np
 
 engines = {'d':'dot',
            'c':'circo',
@@ -31,7 +31,7 @@ class GraphVizHandler(ConnectivityHandler):
     EXC_CONN_ARROW_SHAPE = 'normal'
     INH_CONN_ARROW_SHAPE = 'dot'
     GAP_CONN_ARROW_SHAPE = 'tee'
-    CONT_CONN_ARROW_SHAPE = 'vee'
+    CONT_CONN_ARROW_SHAPE = 'normal'
     INPUT_ARROW_SHAPE = 'empty'
     
     
@@ -42,6 +42,9 @@ class GraphVizHandler(ConnectivityHandler):
                  include_inputs=True,
                  scale_by_post_pop_size = True,
                  scale_by_post_pop_cond = True,
+                 show_chem_conns = True,
+                 show_elect_conns = True,
+                 show_cont_conns = True,
                  min_weight_to_show=0):
                      
         self.nl_network = nl_network
@@ -51,6 +54,9 @@ class GraphVizHandler(ConnectivityHandler):
         self.scale_by_post_pop_size = scale_by_post_pop_size
         self.scale_by_post_pop_cond = scale_by_post_pop_cond
         self.min_weight_to_show = min_weight_to_show
+        self.show_chem_conns = show_chem_conns
+        self.show_elect_conns = show_elect_conns
+        self.show_cont_conns = show_cont_conns
         
         print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
         
@@ -61,119 +67,240 @@ class GraphVizHandler(ConnectivityHandler):
         print_v('*')
         print_v('*    engine:                  %s'%self.engine)
         print_v('*    level:                   %s'%self.level)
+        print_v('*    is_cell_level:           %s'%self.is_cell_level())
         print_v('*    CUTOFF_INH_SYN_MV:       %s'%self.CUTOFF_INH_SYN_MV)
         print_v('*    include_inputs:          %s'%self.include_inputs)
         print_v('*    scale_by_post_pop_size:  %s'%self.scale_by_post_pop_size)
         print_v('*    scale_by_post_pop_cond:  %s'%self.scale_by_post_pop_cond)
         print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
+        print_v('*    show_chem_conns:         %s'%self.show_chem_conns)
+        print_v('*    show_elect_conns:        %s'%self.show_elect_conns)
+        print_v('*    show_cont_conns:         %s'%self.show_cont_conns)
         print_v('*')
         print_v('**************************************')
+    
+    
+    def get_weight_scaled(self, w, max_w, min_w):
+        
+        if max_w==min_w:
+            return 1.0, 1.0
+        # fractional weight, 0->1
+        fweight = (abs(w)-min_w)/(max_w-min_w)
+        if fweight<0:
+            fweight=0
+        if fweight>1:
+            fweight=1
+            
+        # Good weight for line based on fraction
+        lweight = .7 + fweight*3.5
+        
+        return fweight, lweight
     
             
     def finalise_document(self):
         
         max_abs_weight = -1e100
         min_abs_weight = 1e100
-    
-        for projName in self.proj_tot_weight:
+        
+        if self.is_cell_level() and self.level <= -1:
             
-            if self.proj_tot_weight[projName]!=0:
-                weight_used = float(self.proj_tot_weight[projName])
+            for projName in self.proj_weights:
+                ws = self.proj_individual_weights[projName]
+                if np.max(ws)>0:
+                    max_abs_weight = max(max_abs_weight, np.max(ws[np.nonzero(ws)]))
+                    min_abs_weight = min(min_abs_weight, np.min(ws[np.nonzero(ws)]))
+                    if self.scale_by_post_pop_cond:
+                        gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
+                        cond_scale = gbase_nS if gbase_nS else 1.0
+                        max_abs_weight*=cond_scale
+                        min_abs_weight*=cond_scale
                 
-                weight_used = self._scale_weight(weight_used, projName)
-                
-                if abs(weight_used)>=self.min_weight_to_show:
+            for projName in self.proj_weights:
 
-                    max_abs_weight = max(max_abs_weight, abs(weight_used))
-                    min_abs_weight = min(min_abs_weight, abs(weight_used))
-                    print_v("EDGE: %s: weight %s (all so far: %s -> %s)"%(projName, weight_used, max_abs_weight,min_abs_weight))
+                pre_pop = self.proj_pre_pops[projName] 
+                post_pop = self.proj_post_pops[projName]
+                proj_type = self.proj_types[projName]
                 
+                if self.proj_types[projName] == 'electricalProjection':
+                    show = self.show_elect_conns
+                elif self.proj_types[projName] == 'continuousProjection':
+                    show = self.show_cont_conns
                 else:
-                    print_v("IGNORING EDGE: %s: weight %s, less than %s (all used so far: %s -> %s)"%(projName, weight_used, self.min_weight_to_show, max_abs_weight,min_abs_weight))
+                    show = self.show_chem_conns
+
+                if show:
+                    gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
+
+                    pclass = self._get_proj_class(proj_type)
+                    sign = -1 if 'inhibitory' in proj_type else 1
+
+                    num_pre = self.get_size_pre_pop(projName)
+                    num_post = self.get_size_post_pop(projName)
+
+                    print_v("GRAPH PROJ: %s (%s (%i) -> %s (%i), %s): w %s; wtot: %s; sign: %s; cond: %s nS (%s); all: %s -> %s"%(projName, pre_pop, num_pre, post_pop, num_post, proj_type, self.proj_weights[projName], self.proj_tot_weight[projName], sign, gbase_nS, gbase, max_abs_weight,min_abs_weight))
+
+                    #print_v('Weights: ')
+                    #print(self.proj_individual_weights[projName])
                     
-                
-        for projName in self.proj_tot_weight:
-            
-            if self.proj_tot_weight[projName]!=0:
+                    for pre_i in range(num_pre):
+                        for post_i in range(num_post):
+                            pre_pop_i = self.get_cell_identifier(pre_pop,  pre_i)
+                            post_pop_i = self.get_cell_identifier(post_pop, post_i)
+
+                            w = self.proj_individual_weights[projName][pre_i][post_i]
+                            num_indiv_conns = self.proj_individual_conn_numbers[projName][pre_i][post_i]
+
+                            if w != 0:
+
+                                weight_used = w
+                                cond_scale = None
+                                if self.scale_by_post_pop_cond:
+                                    cond_scale = gbase_nS if gbase_nS else 1.0
+                                    weight_used = weight_used*cond_scale
+                                    
+                                print_v(' - conn %s -> %s: %s (%s)'%(pre_pop_i, post_pop_i, w, weight_used))
+
+                                fweight, lweight = self.get_weight_scaled(weight_used, max_abs_weight, min_abs_weight)
+
+                                self.f.attr('edge', 
+                                            style = self.proj_lines[projName], 
+                                            arrowhead = self.proj_shapes[projName], 
+                                            arrowsize = '%s'%(min(1,lweight)), 
+                                            penwidth = '%s'%(lweight), 
+                                            color=self.pop_colors[self.proj_pre_pops[projName]],
+                                            fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
+
+                                label='<'
+                                label += 'w: %s <br/> '%self.format_float(w)
+                                label += 'num: %i <br/> '%num_indiv_conns
                                 
-                #weight_used = self.proj_weights[projName]
-                weight_used = float(self.proj_tot_weight[projName])
-                weight_used = self._scale_weight(weight_used, projName)
-                
-                
-                if abs(weight_used)>=self.min_weight_to_show:
+                                if num_indiv_conns!=1:
+                                    wc = float(w)/num_indiv_conns
+                                    label += 'w/conn: %s <br/> '%self.format_float(wc)
+                                    if cond_scale:
+                                        label +='%s*%s*%snS = %snS<br/> '%(self.format_float(wc), num_indiv_conns, self.format_float(cond_scale), self.format_float(weight_used))
+                                else:
+                                    label +='%s*%snS = %snS<br/> '%(self.format_float(w), self.format_float(cond_scale), self.format_float(weight_used))
+                                        
+                                    
+                                label +='scaled: %s<br/> '%(self.format_float(weight_used))
+                                
+                                label += 'f: %s <br/> '%fweight
+                                label += 'l: %s <br/> '%lweight
 
-                    if max_abs_weight==min_abs_weight:
-                        fweight = 1
-                        lweight = 1
-                    elif self.proj_types[projName] == 'electricalProjection':
-                        # Dotted lines look bad when thick...
-                        fweight = 1
-                        lweight = 1
+                                if not label[-1]=='>':
+                                    label += '>'
+                                if self.level<=-2:
+                                    self.f.edge(pre_pop_i, post_pop_i, label=label)
+                                else:
+                                    self.f.edge(pre_pop_i, post_pop_i)
+                                
+        else:
+
+            for projName in self.proj_tot_weight:
+
+                if self.proj_tot_weight[projName]!=0:
+
+                    weight_used = float(self.proj_tot_weight[projName])
+                    weight_used = self._scale_weight(weight_used, projName)
+
+                    if abs(weight_used)>=self.min_weight_to_show:
+
+                        max_abs_weight = max(max_abs_weight, abs(weight_used))
+                        min_abs_weight = min(min_abs_weight, abs(weight_used))
+                        print_v("EDGE: %s: weight %s (all so far: %s -> %s)"%(projName, weight_used, max_abs_weight,min_abs_weight))
+
                     else:
-                        fweight = (abs(weight_used)-min_abs_weight)/(max_abs_weight-min_abs_weight)
-                        lweight = .7 + fweight*3.5
+                        print_v("IGNORING EDGE: %s: weight %s, less than %s (all used so far: %s -> %s)"%(projName, weight_used, self.min_weight_to_show, max_abs_weight,min_abs_weight))
 
-                    if self.level>=2:
-                        print_v("EDGE: %s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, weight_used, max_abs_weight,min_abs_weight,fweight,lweight))
 
-                        self.f.attr('edge', 
-                                    style = self.proj_lines[projName], 
-                                    arrowhead = self.proj_shapes[projName], 
-                                    arrowsize = '%s'%(min(1,lweight)), 
-                                    penwidth = '%s'%(lweight), 
-                                    color=self.pop_colors[self.proj_pre_pops[projName]],
-                                    fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
+            for projName in self.proj_tot_weight:
 
-                        if self.level>=4:
-                            label='<'
+                if self.proj_tot_weight[projName]!=0:
 
-                            if self.level>=5:
-                                if projName in self.proj_syn_objs:
-                                    syn = self.proj_syn_objs[projName]
-                                    label+='%s<br/> '%syn.id
+                    #weight_used = self.proj_weights[projName]
+                    weight_used = float(self.proj_tot_weight[projName])
+                    weight_used = self._scale_weight(weight_used, projName)
 
-                            if self.proj_tot_weight[projName]>0:
-                                avg_weight = float(float(self.proj_tot_weight[projName])/self.proj_conns[projName])
-                                label+='avg weight: %s<br/> '%self.format_float(avg_weight, approx=True)
+                    if abs(weight_used)>=self.min_weight_to_show:
 
-                            if self.nl_network:
-                                proj = self.nl_network.get_child(projName,'projections')
-                                if proj and proj.random_connectivity:
-                                    label += 'p: %s<br/> '%proj.random_connectivity.probability
+                        if max_abs_weight==min_abs_weight:
+                            fweight = 1
+                            lweight = 1
+                        elif self.proj_types[projName] == 'electricalProjection':
+                            # Dotted lines look bad when thick...
+                            fweight = 1
+                            lweight = 1
+                        else:
+                            fweight, lweight = self.get_weight_scaled(weight_used, max_abs_weight, min_abs_weight)
+                                                    
+                        if self.proj_types[projName] == 'electricalProjection':
+                            show = self.show_elect_conns
+                        elif self.proj_types[projName] == 'continuousProjection':
+                            show = self.show_cont_conns
+                        else:
+                            show = self.show_chem_conns
 
-                            if self.proj_conns[projName]>0:
-                                label += '%s conns<br/> '%self.proj_conns[projName]
+                        if self.level>=2 and show:
+                            print_v("EDGE: %s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, weight_used, max_abs_weight,min_abs_weight,fweight,lweight))
 
-                            if self.level>=5:
+                            self.f.attr('edge', 
+                                        style = self.proj_lines[projName], 
+                                        arrowhead = self.proj_shapes[projName], 
+                                        arrowsize = '%s'%(min(1,lweight)), 
+                                        penwidth = '%s'%(lweight), 
+                                        color=self.pop_colors[self.proj_pre_pops[projName]],
+                                        fontcolor = self.pop_colors[self.proj_pre_pops[projName]])
+
+                            if self.level>=4:
+                                label='<'
+
+                                if self.level>=5:
+                                    if projName in self.proj_syn_objs:
+                                        syn = self.proj_syn_objs[projName]
+                                        label+='%s<br/> '%syn.id
+
+                                if self.proj_tot_weight[projName]>0:
+                                    avg_weight = float(float(self.proj_tot_weight[projName])/self.proj_conns[projName])
+                                    label+='avg weight: %s<br/> '%self.format_float(avg_weight, approx=True)
+
+                                if self.nl_network:
+                                    proj = self.nl_network.get_child(projName,'projections')
+                                    if proj and proj.random_connectivity:
+                                        label += 'p: %s<br/> '%proj.random_connectivity.probability
 
                                 if self.proj_conns[projName]>0:
+                                    label += '%s conns<br/> '%self.proj_conns[projName]
 
-                                    pre_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_pre_pops[projName]]
-                                    post_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_post_pops[projName]]
+                                if self.level>=5:
 
-                                    label+=' %s/pre &#8594; %s/post<br/> '%(self.format_float(pre_avg,approx=True), self.format_float(post_avg,approx=True))
+                                    if self.proj_conns[projName]>0:
 
-                                    gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
+                                        pre_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_pre_pops[projName]]
+                                        post_avg = float(self.proj_conns[projName])/self.pop_sizes[self.proj_post_pops[projName]]
 
-                                    if gbase_nS:
-                                        label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), gbase, self.format_float(post_avg*avg_weight*gbase_nS))
+                                        label+=' %s/pre &#8594; %s/post<br/> '%(self.format_float(pre_avg,approx=True), self.format_float(post_avg,approx=True))
 
-                            if self.level>=6 and weight_used!=1.0:
-                                label+='scaled weight: %s<br/> '%(self.format_float(weight_used))
-                                label+='fract: %s<br/> '%(self.format_float(fweight))
-                                label+='line: %s<br/> '%(lweight)
+                                        gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
 
-                            if not label[-1]=='>':
-                                label += '>'
+                                        if gbase_nS:
+                                            label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), gbase, self.format_float(post_avg*avg_weight*gbase_nS))
 
-                            self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
-                        else:
-                            self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
+                                if self.level>=6:
+                                    label+='scaled weight: %s<br/> '%(self.format_float(weight_used))
+                                    label+='fract: %s<br/> '%(self.format_float(fweight))
+                                    label+='line: %s<br/> '%(lweight)
+
+                                if not label[-1]=='>':
+                                    label += '>'
+
+                                self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
+                            else:
+                                self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
 
         print_v("Generating graph for: %s"%self.network_id)
         self.print_settings()
-        
+
         self.f.view()
         
 
@@ -254,11 +381,23 @@ class GraphVizHandler(ConnectivityHandler):
                 c.attr(color='#444444', fontcolor = '#444444')
                 c.attr(label=properties['region'])
                 c.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
-                c.node(population_id, label=label)
+                
+                if self.is_cell_level():
+                    for i in range(size):
+                        cell_info = self.get_cell_identifier(population_id, i)
+                        c.node(cell_info, label=cell_info)
+                else:
+                    c.node(population_id, label=label)
     
         else:
             self.f.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
-            self.f.node(population_id, label=label)
+            
+            if self.is_cell_level():
+                for i in range(size):
+                    cell_info = self.get_cell_identifier(population_id, i)
+                    self.f.node(cell_info, label=cell_info)
+            else:
+                self.f.node(population_id, label=label)
         
 
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
@@ -312,22 +451,14 @@ class GraphVizHandler(ConnectivityHandler):
         self.proj_lines[projName] = line
         self.proj_conns[projName] = 0
         self.proj_tot_weight[projName] = 0
-
-
-    def handle_connection(self, projName, id, prePop, postPop, synapseType, \
-                                                    preCellId, \
-                                                    postCellId, \
-                                                    preSegId = 0, \
-                                                    preFract = 0.5, \
-                                                    postSegId = 0, \
-                                                    postFract = 0.5, \
-                                                    delay = 0, \
-                                                    weight = 1):
         
-        self.proj_conns[projName]+=1
-        self.proj_tot_weight[projName]+=weight
+        if self.is_cell_level():
+            pre_size = self.pop_sizes[prePop]
+            post_size = self.pop_sizes[postPop]
+            self.proj_individual_weights[projName] = np.zeros((pre_size, post_size))
+            self.proj_individual_conn_numbers[projName] = np.zeros((pre_size, post_size))
 
-  
+
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
         #weight = self.proj_tot_weight[projName]
@@ -337,7 +468,6 @@ class GraphVizHandler(ConnectivityHandler):
         pass
         #print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
     
-        
 
     def finalise_input_source(self, inputListId):
         

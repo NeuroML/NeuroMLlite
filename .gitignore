@@ -89,3 +89,4 @@ report*.txt
 /neuromllite/test/sonata/cell_post_Exc_100.xml
 /neuromllite/test/sonata/clean.sh
 /examples/SimExample6_PyNN_noinputs.json
+/exampleNetworks

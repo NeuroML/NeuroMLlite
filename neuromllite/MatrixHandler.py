@@ -17,9 +17,9 @@ class MatrixHandler(ConnectivityHandler):
         
     max_weight = -1e100
     min_weight = 1e100
+    colormaps_used = []
     
     weight_arrays = {}
-    proj_individual_weights = {}
     
     def __init__(self, 
                  level=10, 
@@ -32,48 +32,50 @@ class MatrixHandler(ConnectivityHandler):
     
     def print_settings(self):
         print_v('**************************************')
-        print_v('* Settings for MatrixHandler: ')
         print_v('*')
-        #print_v('*    engine:                  %s'%self.engine)
+        print_v('* Settings for MatrixHandler: ')
         print_v('*    level:                   %s'%self.level)
+        print_v('*    is_cell_level:           %s'%self.is_cell_level())
         print_v('*    CUTOFF_INH_SYN_MV:       %s'%self.CUTOFF_INH_SYN_MV)
         #print_v('*    include_inputs:          %s'%self.include_inputs)
         #print_v('*    scale_by_post_pop_size:  %s'%self.scale_by_post_pop_size)
         #print_v('*    scale_by_post_pop_cond:  %s'%self.scale_by_post_pop_cond)
         #print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
+        #print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
+        print_v('*')
+        print_v('* Used values: ')
+        #print_v('*    min_weight:              %s'%self.min_weight)
+        #print_v('*    max_weight:              %s'%self.max_weight)
+        print_v('*    colormaps_used:          %s'%self.colormaps_used)
+        print_v('*    zero_weight_color:       %s'%self.zero_weight_color)
         print_v('*')
         print_v('**************************************')
     
-    
-    def is_cell_level(self):
-        return self.level<=0
-
-        
+            
     def finalise_document(self):
         
         entries = []
         
         for pop in self.proj_pre_pops.values() + self.proj_post_pops.values():
-            print pop
             if self.is_cell_level():
                 for i in range(self.pop_sizes[pop]):
-                    pi = '%s_%i'%(pop,i)
+                    pi = self.get_cell_identifier(pop, i) # '%s_%i'%(pop,i)
                     if not pi in entries: entries.append(pi)
             else:
                 if not pop in entries:
                     entries.append(pop)
                 
         entries = sorted(entries)
-        print entries
         
-        title_per_cell = '%s (individual conn weights)'
-        title_per_cell_cond = '%s (indiv conns*syn cond)'
+        title_per_cell = '%s (weight per indiv conn)'
+        title_per_cell_cond = '%s (indiv conn weight*syn cond)'
         
-        title_single_conns = '%s (weight per conn)'
+        title_single_conns = '%s (avg weight per existant conn)'
         title_number_conns = '%s (number conns)'
-        title_total_conns = '%s (weight*number)'
-        title_total_conns_per_cell = '%s (weight*number*cond/postpopsize)'
+        title_total_conns = '%s (sum of weights of conns)'
+        title_total_conns_per_cell = '%s ((sum of weights)*cond/postpopsize)'
         
+        cbar_labels = {}
         for proj_type in self.proj_types.values():
             pclass = self._get_proj_class(proj_type)
             
@@ -81,6 +83,15 @@ class MatrixHandler(ConnectivityHandler):
             self.weight_arrays[title_number_conns%pclass] = np.zeros((len(entries),len(entries)))
             self.weight_arrays[title_total_conns%pclass] = np.zeros((len(entries),len(entries)))
             self.weight_arrays[title_total_conns_per_cell%pclass] = np.zeros((len(entries),len(entries)))
+
+            cbar_labels[title_per_cell%pclass] = 'weight'
+            cbar_labels[title_per_cell_cond%pclass] = 'conductance (nS)'
+            cbar_labels[title_number_conns%pclass] = 'number'
+            
+            cbar_labels[title_single_conns%pclass] = 'weight' # (red: exc; blue: inh)'
+            cbar_labels[title_total_conns%pclass] = 'total weight' # (red: exc; blue: inh)'
+            
+            cbar_labels[title_total_conns_per_cell%pclass] = 'conductance (nS)'
             
             if self.is_cell_level():
                 self.weight_arrays[title_per_cell%pclass] = np.zeros((len(entries),len(entries)))
@@ -106,14 +117,13 @@ class MatrixHandler(ConnectivityHandler):
                 
                 for pre_i in range(self.pop_sizes[pre_pop]):
                     for post_i in range(self.pop_sizes[post_pop]):
-                        pre_pop_i = entries.index( '%s_%i'%(pre_pop,pre_i))
-                        post_pop_i = entries.index( '%s_%i'%(post_pop,post_i))
+                        pre_pop_i =  entries.index( self.get_cell_identifier(pre_pop,  pre_i))
+                        post_pop_i = entries.index( self.get_cell_identifier(post_pop, post_i))
                         
                         self.weight_arrays[title_per_cell%pclass][pre_pop_i][post_pop_i] = self.proj_individual_weights[projName][pre_i][post_i]
                         if projName in self.proj_syn_objs:
                             self.weight_arrays[title_per_cell_cond%pclass][pre_pop_i][post_pop_i] = self.proj_individual_weights[projName][pre_i][post_i]*gbase_nS
 
-                        
             else:
                 pre_pop_i = entries.index(pre_pop)
                 post_pop_i = entries.index(post_pop)
@@ -148,24 +158,37 @@ class MatrixHandler(ConnectivityHandler):
                 plt.title(title)
                 fig.canvas.set_window_title(title)
 
-                abs_max_w = max(weight_array.max(), -1.0*(weight_array.min()))
+                max_abs_weight = max(weight_array.max(), -1.0*(weight_array.min()))
+                min_abs_weight = np.min(abs(weight_array[np.nonzero(weight_array)]))
                 
                 if weight_array.min()<0:
                     cm = matplotlib.cm.get_cmap('bwr')
-                else:
-                    cm = matplotlib.cm.get_cmap('binary')
-                    if 'number' in proj_type:
-                        cm = matplotlib.cm.get_cmap('jet')
-                        
+                    self.zero_weight_color = 'green'
 
-                print_v("Plotting weight matrix: %s with values from %s to %s"%(title, weight_array.min(), weight_array.max()))
+                else:
+                    #cm = matplotlib.cm.get_cmap('binary')
+                    
+                    #if 'indiv' in proj_type or 'number' in proj_type:
+                    cm = matplotlib.cm.get_cmap('rainbow')
+                    self.zero_weight_color = 'black'
+                        
+                #print dir(cm)
+                if not cm.name in self.colormaps_used:
+                    self.colormaps_used.append(str(cm.name))
+                    
+                print_v("  Plotting weight matrix [%s] (%s; 0=%s) with vals %s -> %s (max abs: %s, min nz abs: %s)"%(title, cm.name, self.zero_weight_color, weight_array.min(), weight_array.max(), max_abs_weight, min_abs_weight))
+                #print weight_array
 
                 im = plt.imshow(weight_array, cmap=cm, interpolation='nearest',norm=None)
 
                 if weight_array.min()<0:
-                    plt.clim(-1*abs_max_w,abs_max_w)
+                    plt.clim(-1*max_abs_weight,max_abs_weight)
+                elif min_abs_weight==max_abs_weight:
+                    plt.clim(max_abs_weight*0.000001,max_abs_weight)
                 else:
-                    plt.clim(0,abs_max_w)
+                    plt.clim(min_abs_weight*0.9999,max_abs_weight)
+                    
+                cm.set_under(self.zero_weight_color)
 
                 ax = plt.gca();
 
@@ -179,7 +202,6 @@ class MatrixHandler(ConnectivityHandler):
                 ax.set_yticks(np.arange(weight_array.shape[0]) + 0)
                 ax.set_yticks(np.arange(weight_array.shape[0]) + 0.5,minor=True)
 
-
                 ax.set_yticklabels(entries)
                 ax.set_xticklabels(entries)
                 ax.set_ylabel('presynaptic')
@@ -188,7 +210,6 @@ class MatrixHandler(ConnectivityHandler):
                 ax.set_xlabel('postsynaptic')
                 ax.tick_params(axis='x', labelsize=tick_size)
                 fig.autofmt_xdate()
-                
                 
                 for i in range(len(entries)):
                     alpha = 1
@@ -210,18 +231,14 @@ class MatrixHandler(ConnectivityHandler):
                         ax.add_line(line)
 
                 cbar = plt.colorbar(im)
+                if proj_type in cbar_labels:
+                    cbar.set_label(cbar_labels[proj_type])
                 
         print_v("Generating matrix for: %s"%self.network_id)
         self.print_settings()
         
         plt.show()
         
-
-    def handle_network(self, network_id, notes, temperature=None):
-            
-        print_v("Network: %s"%network_id)
-        self.network_id = network_id
-            
 
     def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}, notes=None):
         sizeInfo = " as yet unspecified size"
@@ -264,13 +281,12 @@ class MatrixHandler(ConnectivityHandler):
                 self.pop_types[population_id] = pop_type
         else:
             for i in range(size):
-                cell_pop = '%s_%i'%(population_id,i)
+                cell_pop = self.get_cell_identifier(population_id,i)
                 self.pop_colors[cell_pop] = color
                 if pop_type:
                     self.pop_types[cell_pop] = pop_type
         
         
-
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
             
         weight = 1.0
@@ -321,26 +337,11 @@ class MatrixHandler(ConnectivityHandler):
             pre_size = self.pop_sizes[prePop]
             post_size = self.pop_sizes[postPop]
             self.proj_individual_weights[projName] = np.zeros((pre_size, post_size))
+            self.proj_individual_conn_numbers[projName] = np.zeros((pre_size, post_size))
         
         print_v("New projection: %s, %s->%s, weights? %s, type: %s"%(projName, prePop, postPop, weight, proj_type))
 
 
-    def handle_connection(self, projName, id, prePop, postPop, synapseType, \
-                                                    preCellId, \
-                                                    postCellId, \
-                                                    preSegId = 0, \
-                                                    preFract = 0.5, \
-                                                    postSegId = 0, \
-                                                    postFract = 0.5, \
-                                                    delay = 0, \
-                                                    weight = 1.0):
-        #print_v(" - Connection for %s, cell %i -> %i, w: %s"%(projName, preCellId, postCellId, weight))
-        self.proj_conns[projName]+=1
-        self.proj_tot_weight[projName]+=weight
-        if self.is_cell_level():
-            self.proj_individual_weights[projName][preCellId][postCellId] = weight
-  
-  
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
    
         pass
@@ -351,7 +352,6 @@ class MatrixHandler(ConnectivityHandler):
     pops_ils = {}
     weights_ils = {}
     input_comp_obj_ils = {}
-    
     
 
     def finalise_input_source(self, inputListId):
