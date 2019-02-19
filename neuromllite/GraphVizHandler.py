@@ -77,6 +77,10 @@ class GraphVizHandler(ConnectivityHandler):
         print_v('*    show_elect_conns:        %s'%self.show_elect_conns)
         print_v('*    show_cont_conns:         %s'%self.show_cont_conns)
         print_v('*')
+        print_v('* Used values: ')
+        syns = sorted(self.syn_conds_used.keys())                             
+        print_v('*    syn_conds_used:          %s'%'\n*                             '.join(['%s:\t %s'%(k,self.syn_conds_used[k]) for k in syns]))
+        print_v('*')
         print_v('**************************************')
     
     
@@ -156,7 +160,7 @@ class GraphVizHandler(ConnectivityHandler):
                                 
                                 cond_scale = None
                                 if self.scale_by_post_pop_cond:
-                                    cond_scale = gbase_nS if gbase_nS else 1.0
+                                    cond_scale = gbase_nS if gbase_nS!=None else 1.0
                                     
                                 print_v(' - conn %s -> %s: %s (%s)'%(pre_pop_i, post_pop_i, w, weight_used))
 
@@ -211,7 +215,7 @@ class GraphVizHandler(ConnectivityHandler):
 
                         max_abs_weight[t] = max(max_abs_weight[t], abs(weight_used))
                         min_abs_weight[t] = min(min_abs_weight[t], abs(weight_used))
-                        print_v("EDGE: %s: weight %s (all so far: %s -> %s)"%(projName, weight_used, max_abs_weight[t],min_abs_weight[t]))
+                        print_v("EDGE: %s (%s): weight %s (all so far: %s -> %s)"%(projName, t, weight_used, max_abs_weight[t],min_abs_weight[t]))
 
                     else:
                         print_v("IGNORING EDGE: %s: weight %s, less than %s (all used so far: %s -> %s)"%(projName, weight_used, self.min_weight_to_show, max_abs_weight[t],min_abs_weight[t]))
@@ -247,7 +251,7 @@ class GraphVizHandler(ConnectivityHandler):
                             show = self.show_chem_conns
 
                         if self.level>=2 and show:
-                            print_v("EDGE: %s: weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, weight_used, max_abs_weight[proj_type],min_abs_weight[proj_type],fweight,lweight))
+                            print_v("EDGE: %s (%s): weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, proj_type, weight_used, max_abs_weight[proj_type],min_abs_weight[proj_type],fweight,lweight))
 
                             self.f.attr('edge', 
                                         style = self.proj_lines[projName], 
@@ -288,7 +292,7 @@ class GraphVizHandler(ConnectivityHandler):
 
                                         gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
 
-                                        if gbase_nS:
+                                        if gbase_nS!=None:
                                             label+='%s*%s*%s = %s nS<br/> '%(self.format_float(post_avg), self.format_float(avg_weight), gbase, self.format_float(post_avg*avg_weight*gbase_nS))
 
                                 if self.level>=6:
@@ -432,7 +436,8 @@ class GraphVizHandler(ConnectivityHandler):
             
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
-            if hasattr(synapse_obj,'erev') and convert_to_units(synapse_obj.erev,'mV')<self.CUTOFF_INH_SYN_MV:
+            erev = self.get_reversal_potential_mV(synapse_obj)
+            if erev!=None and erev < self.CUTOFF_INH_SYN_MV:
                 shape = self.INH_CONN_ARROW_SHAPE
                 
         if self.nl_network:

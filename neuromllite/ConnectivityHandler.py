@@ -34,6 +34,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
     proj_individual_scaled_weights = {}
     proj_individual_conn_numbers = {}
     
+    syn_conds_used = {}
     
     sizes_ils = {}
     pops_ils = {}
@@ -90,6 +91,18 @@ class ConnectivityHandler(DefaultNetworkHandler):
     
     def get_size_post_pop(self, projName):
         return self.pop_sizes[self.proj_post_pops[projName]]
+    
+    
+    def get_reversal_potential_mV(self, synapse_obj):
+        
+        if hasattr(synapse_obj,'erev'):
+            return convert_to_units(synapse_obj.erev,'mV')
+        
+        elif hasattr(synapse_obj,'e_rev'): # PyNN, no units, in mV
+            return float(synapse_obj.e_rev)
+        
+        else:
+            return None
         
         
     def _get_gbase_nS(self, projName, return_orig_string_also=False):
@@ -106,6 +119,11 @@ class ConnectivityHandler(DefaultNetworkHandler):
                 gbase = syn.conductance
                 gbase_nS = convert_to_units(gbase, 'nS')
                 
+            self.syn_conds_used[syn.id] = '%s nS (%s)'%(gbase_nS, gbase) 
+            
+        else:
+            self.syn_conds_used[projName] = 'Syn for %s not found...'%projName
+                
         if return_orig_string_also:
             return gbase_nS, gbase
         
@@ -118,7 +136,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
 
         if self.scale_by_post_pop_cond:
             gbase_nS = self._get_gbase_nS(projName)
-            if gbase_nS:
+            if gbase_nS!=None:
                 weight *= gbase_nS
         
         if not orig_weight==weight:
@@ -136,7 +154,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
 
         if self.scale_by_post_pop_cond:
             gbase_nS = self._get_gbase_nS(projName)
-            if gbase_nS:
+            if gbase_nS!=None:
                 weight *= gbase_nS
         
         if not orig_weight==weight:

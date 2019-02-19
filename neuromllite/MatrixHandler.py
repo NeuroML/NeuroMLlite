@@ -9,7 +9,6 @@ from neuromllite.ConnectivityHandler import ConnectivityHandler
 
 from neuromllite.utils import evaluate
             
-from pyneuroml.pynml import convert_to_units
 import numpy as np
 
 
@@ -45,8 +44,17 @@ class MatrixHandler(ConnectivityHandler):
         print_v('* Used values: ')
         print_v('*    colormaps_used:          %s'%self.colormaps_used)
         print_v('*    zero_weight_color:       %s'%self.zero_weight_color)
+        syns = sorted(self.syn_conds_used.keys())                             
+        print_v('*    syn_conds_used:          %s'%'\n*                             '.join(['%s:\t %s'%(k,self.syn_conds_used[k]) for k in syns]))
         print_v('*')
         print_v('**************************************')
+    
+    
+    def _get_conn_label(self, template, pclass):
+        p = pclass[0].upper()+pclass[1:]
+        p = p.replace('_',' ')
+        label = template%('%s conns'%p)
+        return label
     
             
     def finalise_document(self):
@@ -64,36 +72,44 @@ class MatrixHandler(ConnectivityHandler):
                 
         entries = sorted(entries)
         
-        matrix_per_cell = '%s (weight per indiv conn)'
-        matrix_per_cell_cond = '%s (indiv conn weight*syn cond)'
+        matrix_per_cell = '%s (total weight between cell pair)'
+        matrix_per_cell_cond = '%s (total conn weight*syn cond)'
+        matrix_per_cell_cond_signed = '%s (total signed conn weight*syn cond)'
         
         matrix_single_conns = '%s (avg weight per existant conn)'
-        matrix_number_conns = '%s (number conns)'
-        matrix_total_conns = '%s (sum of weights of conns)'
+        matrix_number_conns = '%s (number of conns)'
+        matrix_total_conns = '%s (sum of signed weights of conns)'
         matrix_total_conns_per_cell = '%s ((sum of weights)*cond/postpopsize)'
+        matrix_total_signed_conns_per_cell = '%s ((sum of signed weights)*cond/postpopsize)'
         
         cbar_labels = {}
         for proj_type in self.proj_types.values():
             pclass = self._get_proj_class(proj_type)
             
-            all_matrices = [matrix_single_conns, matrix_number_conns,matrix_total_conns, matrix_total_conns_per_cell]
+            all_matrices = [matrix_single_conns, 
+                            matrix_number_conns,
+                            matrix_total_conns, 
+                            matrix_total_conns_per_cell,
+                            matrix_total_signed_conns_per_cell]
             
             if self.is_cell_level():
-                all_matrices = [matrix_per_cell, matrix_per_cell_cond]
+                all_matrices = [matrix_per_cell, matrix_per_cell_cond, matrix_per_cell_cond_signed]
                 
             for m in all_matrices:
-                label = m%pclass
+                label = self._get_conn_label(m, pclass)
                 
                 self.weight_arrays_to_show[label] = np.zeros((len(entries),len(entries)))
                 
 
-            cbar_labels[matrix_per_cell%pclass] = 'weight'
-            cbar_labels[matrix_per_cell_cond%pclass] = 'conductance (nS)'
+            cbar_labels[self._get_conn_label(matrix_per_cell,pclass)] = 'weight'
+            cbar_labels[self._get_conn_label(matrix_per_cell_cond,pclass)] = 'conductance (nS)'
+            cbar_labels[self._get_conn_label(matrix_per_cell_cond_signed,pclass)] = 'conductance * sign (nS)'
             
-            cbar_labels[matrix_number_conns%pclass] = 'number'
-            cbar_labels[matrix_single_conns%pclass] = 'weight' # (red: exc; blue: inh)'
-            cbar_labels[matrix_total_conns%pclass] = 'total weight' # (red: exc; blue: inh)'
-            cbar_labels[matrix_total_conns_per_cell%pclass] = 'conductance (nS)'
+            cbar_labels[self._get_conn_label(matrix_number_conns,pclass)] = 'number'
+            cbar_labels[self._get_conn_label(matrix_single_conns,pclass)] = 'weight' # (red: exc; blue: inh)'
+            cbar_labels[self._get_conn_label(matrix_total_conns,pclass)] = 'total weight' # (red: exc; blue: inh)'
+            cbar_labels[self._get_conn_label(matrix_total_conns_per_cell,pclass)] = 'conductance (nS)'
+            cbar_labels[self._get_conn_label(matrix_total_signed_conns_per_cell,pclass)] = 'conductance * sign (nS)'
             
                 
         for projName in self.proj_weights:
@@ -118,28 +134,33 @@ class MatrixHandler(ConnectivityHandler):
                         pre_pop_i =  entries.index( self.get_cell_identifier(pre_pop,  pre_i))
                         post_pop_i = entries.index( self.get_cell_identifier(post_pop, post_i))
                         
-                        self.weight_arrays_to_show[matrix_per_cell%pclass][pre_pop_i][post_pop_i] += self.proj_individual_weights[projName][pre_i][post_i]
+                        self.weight_arrays_to_show[self._get_conn_label(matrix_per_cell,pclass)][pre_pop_i][post_pop_i] += self.proj_individual_weights[projName][pre_i][post_i]
                         if projName in self.proj_syn_objs:
-                            self.weight_arrays_to_show[matrix_per_cell_cond%pclass][pre_pop_i][post_pop_i] += self.proj_individual_scaled_weights[projName][pre_i][post_i]
+                            w_scaled = self.proj_individual_scaled_weights[projName][pre_i][post_i]
+                            self.weight_arrays_to_show[self._get_conn_label(matrix_per_cell_cond,pclass)][pre_pop_i][post_pop_i] += w_scaled
+                            self.weight_arrays_to_show[self._get_conn_label(matrix_per_cell_cond_signed,pclass)][pre_pop_i][post_pop_i] += w_scaled * sign
 
             else:
                 pre_pop_i = entries.index(pre_pop)
                 post_pop_i = entries.index(post_pop)
 
-                self.weight_arrays_to_show[matrix_total_conns%pclass][pre_pop_i][post_pop_i] += \
+                self.weight_arrays_to_show[self._get_conn_label(matrix_total_conns,pclass)][pre_pop_i][post_pop_i] += \
                      abs(self.proj_tot_weight[projName]) * sign
 
                 if abs(self.proj_tot_weight[projName])!=abs(self.proj_weights[projName]):
 
-                    self.weight_arrays_to_show[matrix_single_conns%pclass][pre_pop_i][post_pop_i] += \
+                    self.weight_arrays_to_show[self._get_conn_label(matrix_single_conns,pclass)][pre_pop_i][post_pop_i] += \
                          abs(self.proj_weights[projName]) * sign
 
-                    self.weight_arrays_to_show[matrix_number_conns%pclass][pre_pop_i][post_pop_i] += \
+                    self.weight_arrays_to_show[self._get_conn_label(matrix_number_conns,pclass)][pre_pop_i][post_pop_i] += \
                          abs(self.proj_conns[projName])
                          
-                    cond_scale = gbase_nS if gbase_nS else 1.0
-                    self.weight_arrays_to_show[matrix_total_conns_per_cell%pclass][pre_pop_i][post_pop_i] += \
-                         abs(self.proj_tot_weight[projName]) * cond_scale / num_post
+                    cond_scale = gbase_nS if gbase_nS!=None else 1.0
+                    tot_scaled = abs(self.proj_tot_weight[projName]) * cond_scale / num_post
+                    self.weight_arrays_to_show[self._get_conn_label(matrix_total_conns_per_cell,pclass)][pre_pop_i][post_pop_i] += \
+                         tot_scaled
+                    self.weight_arrays_to_show[self._get_conn_label(matrix_total_signed_conns_per_cell,pclass)][pre_pop_i][post_pop_i] += \
+                         sign * tot_scaled
                 
         
         import matplotlib.pyplot as plt
@@ -152,9 +173,10 @@ class MatrixHandler(ConnectivityHandler):
             if not (weight_array.max()==0 and weight_array.min()==0):
 
                 fig, ax = plt.subplots()
-                title = 'Connections: %s'%(proj_type)
+                title = '%s'%(proj_type)
+                title2 = '%s'%(proj_type)
                 plt.title(title)
-                fig.canvas.set_window_title(title)
+                fig.canvas.set_window_title(title2)
 
                 max_abs_weight = max(weight_array.max(), -1.0*(weight_array.min()))
                 min_abs_weight = np.min(abs(weight_array[np.nonzero(weight_array)]))
@@ -170,12 +192,10 @@ class MatrixHandler(ConnectivityHandler):
                     cm = matplotlib.cm.get_cmap('rainbow')
                     self.zero_weight_color = 'black'
                         
-                #print dir(cm)
                 if not cm.name in self.colormaps_used:
                     self.colormaps_used.append(str(cm.name))
                     
                 print_v("  Plotting weight matrix [%s] (%s; 0=%s) with vals %s -> %s (max abs: %s, min nz abs: %s)"%(title, cm.name, self.zero_weight_color, weight_array.min(), weight_array.max(), max_abs_weight, min_abs_weight))
-                #print weight_array
 
                 im = plt.imshow(weight_array, cmap=cm, interpolation='nearest',norm=None)
 
@@ -302,7 +322,8 @@ class MatrixHandler(ConnectivityHandler):
             
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
-            if hasattr(synapse_obj,'erev') and convert_to_units(synapse_obj.erev,'mV')<self.CUTOFF_INH_SYN_MV:
+            erev = self.get_reversal_potential_mV(synapse_obj)
+            if erev!=None and erev < self.CUTOFF_INH_SYN_MV:
                 proj_type = 'inhibitory'
                 
         if self.nl_network:

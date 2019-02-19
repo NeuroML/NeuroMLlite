@@ -92,7 +92,8 @@
                     "size": "int(20683*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "0.6 0 0"
+                        "color": "0.6 0 0", 
+                        "type": "E"
                     }, 
                     "random_layout": {
                         "region": "L23"
@@ -104,7 +105,8 @@
                     "size": "int(5834*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "1 0.4 0.4"
+                        "color": "1 0.4 0.4", 
+                        "type": "I"
                     }, 
                     "random_layout": {
                         "region": "L23"
@@ -116,7 +118,8 @@
                     "size": "int(21915*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "0 0.25 0.5"
+                        "color": "0 0.25 0.5", 
+                        "type": "E"
                     }, 
                     "random_layout": {
                         "region": "L4"
@@ -128,7 +131,8 @@
                     "size": "int(5479*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "0.8 0.7 1"
+                        "color": "0.8 0.7 1", 
+                        "type": "I"
                     }, 
                     "random_layout": {
                         "region": "L4"
@@ -140,7 +144,8 @@
                     "size": "int(4850*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "0 0.4 0"
+                        "color": "0 0.4 0", 
+                        "type": "E"
                     }, 
                     "random_layout": {
                         "region": "L5"
@@ -152,7 +157,8 @@
                     "size": "int(1065*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "0.8 1 0.8"
+                        "color": "0.8 1 0.8", 
+                        "type": "I"
                     }, 
                     "random_layout": {
                         "region": "L5"
@@ -164,7 +170,8 @@
                     "size": "int(14395*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "1 0.6 0.2"
+                        "color": "1 0.6 0.2", 
+                        "type": "E"
                     }, 
                     "random_layout": {
                         "region": "L6"
@@ -176,7 +183,8 @@
                     "size": "int(2948*N_scaling)", 
                     "component": "CorticalCell", 
                     "properties": {
-                        "color": "1 0.8 0.8"
+                        "color": "1 0.8 0.8", 
+                        "type": "I"
                     }, 
                     "random_layout": {
                         "region": "L6"

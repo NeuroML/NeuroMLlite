@@ -96,7 +96,7 @@ def generate(ref='Example6_PyNN', add_inputs=True):
             pop_id = '%s_%s'%(l,t)
             pops.append(pop_id)
             ref = 'l%s%s'%(l[1:],t.lower())
-            exec(ref + " = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color})")
+            exec(ref + " = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color, 'type':t})")
             exec("%s.random_layout = RandomLayout(region = r.id)"%ref)
             exec("net.populations.append(%s)"%ref)
 

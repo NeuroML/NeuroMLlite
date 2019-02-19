@@ -14,6 +14,7 @@
         <population id="L23_E" component="CorticalCell" size="103" type="populationList">
             <property tag="color" value="0.6 0 0"/>
             <property tag="region" value="L23"/>
+            <property tag="type" value="E"/>
             <instance id="0">
                 <location x="96.645353569213881" y="1376.29303967014107" z="0.749147005858719"/>
             </instance>
@@ -327,6 +328,7 @@
         <population id="L23_I" component="CorticalCell" size="29" type="populationList">
             <property tag="color" value="1 0.4 0.4"/>
             <property tag="region" value="L23"/>
+            <property tag="type" value="I"/>
             <instance id="0">
                 <location x="98.537259747087177" y="1248.189412189195991" z="59.990558054600918"/>
             </instance>
@@ -418,6 +420,7 @@
         <population id="L4_E" component="CorticalCell" size="109" type="populationList">
             <property tag="color" value="0 0.25 0.5"/>
             <property tag="region" value="L4"/>
+            <property tag="type" value="E"/>
             <instance id="0">
                 <location x="15.608403713277442" y="1168.304892951445481" z="19.429791428216781"/>
             </instance>
@@ -749,6 +752,7 @@
         <population id="L4_I" component="CorticalCell" size="27" type="populationList">
             <property tag="color" value="0.8 0.7 1"/>
             <property tag="region" value="L4"/>
+            <property tag="type" value="I"/>
             <instance id="0">
                 <location x="62.540074993402506" y="1124.17213668166869" z="72.03729810087701"/>
             </instance>
@@ -834,6 +838,7 @@
         <population id="L5_E" component="CorticalCell" size="24" type="populationList">
             <property tag="color" value="0 0.4 0"/>
             <property tag="region" value="L5"/>
+            <property tag="type" value="E"/>
             <instance id="0">
                 <location x="40.646947066606984" y="410.961346703932406" z="22.195362815709018"/>
             </instance>
@@ -910,6 +915,7 @@
         <population id="L5_I" component="CorticalCell" size="5" type="populationList">
             <property tag="color" value="0.8 1 0.8"/>
             <property tag="region" value="L5"/>
+            <property tag="type" value="I"/>
             <instance id="0">
                 <location x="40.326581630671008" y="558.829923732548195" z="82.199455734920761"/>
             </instance>
@@ -929,6 +935,7 @@
         <population id="L6_E" component="CorticalCell" size="71" type="populationList">
             <property tag="color" value="1 0.6 0.2"/>
             <property tag="region" value="L6"/>
+            <property tag="type" value="E"/>
             <instance id="0">
                 <location x="51.11902707741843" y="145.176586085999702" z="50.59586363513354"/>
             </instance>
@@ -1146,6 +1153,7 @@
         <population id="L6_I" component="CorticalCell" size="14" type="populationList">
             <property tag="color" value="1 0.8 0.8"/>
             <property tag="region" value="L6"/>
+            <property tag="type" value="I"/>
             <instance id="0">
                 <location x="58.978325910811961" y="174.47852186826438" z="30.121905349733147"/>
             </instance>
