@@ -90,3 +90,4 @@ report*.txt
 /neuromllite/test/sonata/clean.sh
 /examples/SimExample6_PyNN_noinputs.json
 /exampleNetworks
+/neuromllite/clean.sh

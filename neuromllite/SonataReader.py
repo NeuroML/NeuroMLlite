@@ -12,6 +12,17 @@ import pprint
 pp = pprint.PrettyPrinter(depth=6)
 
 DUMMY_CELL = 'dummy_cell'
+DEFAULT_NEST_SPIKE_SYN = 'DEFAULT_NEST_SPIKE_SYN'
+
+def _get_default_nest_syn(nml_doc):
+    
+    if nml_doc.get_by_id(DEFAULT_NEST_SPIKE_SYN):
+        return nml_doc.get_by_id(DEFAULT_NEST_SPIKE_SYN)
+    
+    from neuroml import AlphaCurrSynapse
+    nest_syn = AlphaCurrSynapse(id=DEFAULT_NEST_SPIKE_SYN, tau_syn="2")
+    nml_doc.alpha_curr_synapses.append(nest_syn)
+    return nest_syn
 
 def _parse_entry(w):
     """
@@ -662,13 +673,12 @@ class SonataReader(NetworkReader):
                              (info['dynamics_params']['type'] if 'dynamics_params' in info else
                              info['model_type'])
             
-            #print_v(" - Adding %s: %s"%(model_template, info))
+            print_v(" - Adding %s: %s"%(model_template, info))
             
             if info['model_type'] == 'point_process' and model_template == 'nest:iaf_psc_alpha':
                 
                 is_nest = True
                 from neuroml import IF_curr_alpha
-                
                 pynn0 = IF_curr_alpha(id=c, 
                                       cm=info['dynamics_params']['C_m']/1000.0, 
                                       i_offset="0", 
@@ -709,7 +719,7 @@ class SonataReader(NetworkReader):
                            leak_conductance="1.2 nS",
                            leak_reversal="0mV")
 
-                #print_v("   - Adding: %s"%IafRefCell0)
+                print_v("   - Adding: %s"%IafRefCell0)
                 nml_doc.iaf_ref_cells.append(IafRefCell0)
                 
         print_v("Adding NeuroML synapses to: %s"%nml_doc.id)
@@ -718,6 +728,8 @@ class SonataReader(NetworkReader):
         
         for s in self.syn_comp_info:
             dyn_params = self.syn_comp_info[s]['dynamics_params']
+            
+            print_v("     -  Syn: %s: %s"%(s, dyn_params))
             
             if 'level_of_detail' in dyn_params and dyn_params['level_of_detail'] == 'exp2syn':
                 from neuroml import ExpTwoSynapse
@@ -754,17 +766,19 @@ class SonataReader(NetworkReader):
                 
         print_v("Adding NeuroML inputs to: %s"%nml_doc.id)
                 
-        #pp.pprint(self.input_comp_info)
+        pp.pprint(self.input_comp_info)
         
         for input in self.input_comp_info:
             for input_type in self.input_comp_info[input]:
                 if input_type == 'spikes':
                     for comp_id in self.input_comp_info[input][input_type]:
                         info = self.input_comp_info[input][input_type][comp_id]
-                        #print_v("Adding input %s: %s"%(comp_id, info))
+                        print_v("Adding input %s: %s"%(comp_id, info))
+                        
+                        nest_syn = _get_default_nest_syn(nml_doc)
                         from neuroml import TimedSynapticInput, Spike
 
-                        tsi = TimedSynapticInput(id=comp_id, synapse="instanteneousExc", spike_target="./instanteneousExc")
+                        tsi = TimedSynapticInput(id=comp_id, synapse=nest_syn.id, spike_target="./%s"%nest_syn.id)
                         nml_doc.timed_synaptic_inputs.append(tsi)
                         for ti in range(len(info['times'])):
                             tsi.spikes.append(Spike(id=ti, time='%sms'%info['times'][ti]))
@@ -855,8 +869,15 @@ def main():
     ## https://github.com/pgleeson/sonata/tree/intfire
     filename = '../../git/sonatapg/examples/%s/config.json'%id
     
-    id = 'pynn'
-    filename = '/home/padraig/PyNN_PG/test/system/tmp_serialization_test/circuit_config.json'
+    id = 'ten_cells_spikes2'
+    
+    id = 'ten_cells_spikes_nrn'
+    id = 'one_cell_iclamp_nest'
+    id = 'ten_cells_iclamp_nest'
+    id = 'ten_cells_spikes_nest'
+    filename = '/home/padraig/git/sonatapg/examples/sim_tests/intfire/%s/input/config.json'%id
+    id = '300_pointneurons'
+    filename = '/home/padraig/git/sonatapg/examples/%s/config.json'%id
     
     nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
     '''
