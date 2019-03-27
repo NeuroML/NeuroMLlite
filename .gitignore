@@ -93,3 +93,5 @@ report*.txt
 /neuromllite/clean.sh
 /neuromllite/*.net.nml
 /neuromllite/LEMS_Sim_*.xml
+/examples/test_files/test_inputs/*.spikes
+/examples/test_files/test_inputs/x86_64
