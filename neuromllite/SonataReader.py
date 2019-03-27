@@ -513,6 +513,14 @@ class SonataReader(NetworkReader):
                 sign = self.syn_comp_info[synapse]['dynamics_params']['sign'] if 'sign' in self.syn_comp_info[synapse]['dynamics_params'] else 1
                 weight = self.edges_info[conn][type]['syn_weight'] if 'syn_weight' in self.edges_info[conn][type] else 1.0
                 
+                syn_weight_edge_group_0 = self.conn_info[conn]['syn_weight_edge_group_0'][i] if 'syn_weight_edge_group_0' in self.conn_info[conn] else None
+                
+                # Assume this overrides value from csv file...
+                if syn_weight_edge_group_0:
+                    weight = syn_weight_edge_group_0
+                
+                #print_v('Adding syn %s (at %s), weight: %s, sign: %s, nsyns: %s'%(self.edges_info[conn][type]['dynamics_params'], dynamics_params_file, weight, sign, nsyns))
+                
                 weight_scale = 0.001
                 if 'level_of_detail' in self.syn_comp_info[synapse]['dynamics_params']:
                     weight_scale = 1
@@ -633,11 +641,11 @@ class SonataReader(NetworkReader):
             if d.name=='node_group_id':
                 for i in range(0, d.shape[0]):
                     if not d[i]==0:
-                        raise Exception("Error: only support node_group_id==0!")
+                        raise Exception("Error: currently only support node_group_id==0!")
             if d.name=='node_id':
                 for i in range(0, d.shape[0]):
                     if not d[i]==i:
-                        raise Exception("Error: only support dataset node_id when index is same as node_id (fails in %s)...!"%d)
+                        raise Exception("Error: currently only support dataset node_id when index is same as node_id (fails in %s)...!"%d)
             if d.name=='node_type_id':
                 for i in range(0, d.shape[0]):
                     self.cell_info[self.current_sonata_pop]['types'][i] = d[i]
@@ -653,6 +661,13 @@ class SonataReader(NetworkReader):
             self.conn_info[self.current_edge]['post_id'] = [i for i in d]
         elif d.name=='nsyns':
             self.conn_info[self.current_edge]['nsyns'] = [i for i in d]
+        elif d.name=='edge_group_id':
+            for i in range(0, d.shape[0]):
+                if not d[i]==0:
+                    raise Exception("Error: currently only support edge_group_id==0!")
+        elif d.name=='syn_weight':
+            # Has to be edge_group_id==0, as above check would fail...
+            self.conn_info[self.current_edge]['syn_weight_edge_group_0'] = [i for i in d]
         else:
             print_v("Unhandled dataset: %s"%d.name)
         
@@ -766,14 +781,14 @@ class SonataReader(NetworkReader):
                 
         print_v("Adding NeuroML inputs to: %s"%nml_doc.id)
                 
-        pp.pprint(self.input_comp_info)
+        #pp.pprint(self.input_comp_info)
         
         for input in self.input_comp_info:
             for input_type in self.input_comp_info[input]:
                 if input_type == 'spikes':
                     for comp_id in self.input_comp_info[input][input_type]:
                         info = self.input_comp_info[input][input_type][comp_id]
-                        print_v("Adding input %s: %s"%(comp_id, info))
+                        print_v("Adding input %s: %s"%(comp_id, info.keys()))
                         
                         nest_syn = _get_default_nest_syn(nml_doc)
                         from neuroml import TimedSynapticInput, Spike

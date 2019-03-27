@@ -91,3 +91,5 @@ report*.txt
 /examples/SimExample6_PyNN_noinputs.json
 /exampleNetworks
 /neuromllite/clean.sh
+/neuromllite/*.net.nml
+/neuromllite/LEMS_Sim_*.xml
