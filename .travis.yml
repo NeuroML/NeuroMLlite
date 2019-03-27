@@ -25,7 +25,8 @@ language: python
 
 python: 
   - "2.7"
-  - "3.4"
+  #- "3.4" # issue on Travis with pytables...
+  - "3.5"
 
 virtualenv:
 system_site_packages: true
