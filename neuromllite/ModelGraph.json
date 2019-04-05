@@ -1,0 +1,77 @@
+{
+    "rl_ddm_model": {
+        "nodes": [
+            {
+                "input_node": {
+                    "parameters": {
+                        "input": 0.0
+                    }
+                }
+            }, 
+            {
+                "decision_node": {
+                    "functions": [
+                        {
+                            "ddm_analytical": {
+                                "function": "ddm_analytical"
+                            }
+                        }
+                    ]
+                }
+            }, 
+            {
+                "processing_node": {
+                    "parameters": {
+                        "slope": 31, 
+                        "logistic_gain": 3
+                    }, 
+                    "input_ports": [
+                        {
+                            "input_1": {
+                                "shape": "(1,)"
+                            }
+                        }, 
+                        {
+                            "logistic_gain": {
+                                "shape": "(1,)"
+                            }
+                        }
+                    ], 
+                    "functions": [
+                        {
+                            "logistic_1": {
+                                "function": "logistic", 
+                                "args": {
+                                    "variable1": "input_1", 
+                                    "gain": "logistic_gain"
+                                }
+                            }
+                        }, 
+                        {
+                            "linear_1": {
+                                "function": "linear", 
+                                "args": {
+                                    "slope": "slope"
+                                }
+                            }
+                        }
+                    ], 
+                    "output_ports": [
+                        {
+                            "output_1": {
+                                "value": "linear_1"
+                            }
+                        }
+                    ]
+                }
+            }
+        ], 
+        "edges": [
+            {
+                "inp": {
+                    "sender": "input_node"
+                }
+            }
+        ]
+    }
+}
