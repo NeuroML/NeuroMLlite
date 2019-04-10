@@ -97,3 +97,4 @@ report*.txt
 /examples/test_files/test_inputs/x86_64
 /examples/test_files/test_ex4_jnmlnrn.py
 /sonatafin
+/examples/tmp*.nml

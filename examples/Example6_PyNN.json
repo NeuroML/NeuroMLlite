@@ -1,6 +1,6 @@
 {
     "Example6_PyNN": {
-        "version": "NeuroMLlite v0.1.6", 
+        "version": "NeuroMLlite v0.1.7", 
         "parameters": {
             "N_scaling": 0.005, 
             "depth": 100, 

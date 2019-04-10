@@ -11,7 +11,7 @@ setup(
     packages = ['neuromllite','neuromllite.sweep'],
     url='https://github.com/NeuroML/NeuroMLlite',
     license='LICENSE.lesser',
-    description='A common JSON based format for compact network specification, closely tied to NeuroML',
+    description='A common JSON based format for compact network specification, closely tied to NeuroML v2',
     long_description=open('README.md').read(),
     install_requires=[],
     classifiers = [
@@ -20,6 +20,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.5',
         'Topic :: Scientific/Engineering']
 )

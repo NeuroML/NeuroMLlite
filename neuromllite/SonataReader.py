@@ -1,6 +1,7 @@
 
 import tables   # pytables for HDF5 support
 import os
+import sys
 import random
 
 from neuroml.hdf5.NetworkContainer import *
@@ -97,6 +98,7 @@ class SonataReader(NetworkReader):
         self.syn_comp_info = {}
         self.input_comp_info = {}
         self.nml_pop_vs_comps = {}
+        self.nml_pops_with_locations = []
         
         self.init_substitutes = {}
         self.substitutes = {}
@@ -323,7 +325,9 @@ class SonataReader(NetworkReader):
                 index = self.cell_info[sonata_pop]['pop_count'][pop]
                 self.cell_info[sonata_pop]['pop_map'][i] = (pop, index)
                 
-                if i in self.cell_info[sonata_pop]['0']['locations']:
+                if i in self.cell_info[sonata_pop]['0']['locations']: 
+                    if not pop in self.nml_pops_with_locations: 
+                        self.nml_pops_with_locations.append(pop)
                     pos = self.cell_info[sonata_pop]['0']['locations'][i]
                     #print('Adding pos %i: %s'%(i,pos))
                     self.handler.handle_location(index, 
@@ -850,8 +854,12 @@ class SonataReader(NetworkReader):
                     ids = node_set[nml_pop]
                     display = 'Voltages_%s'%nml_pop
                     file_name = '%s.v.dat'%nml_pop
+                    
                     for id in ids:
                         quantity = '%s/%i/%s/%s'%(nml_pop,id,comp,'v')
+                        if not nml_pop in self.nml_pops_with_locations:
+                            quantity = '%s[%i]/%s'%(nml_pop,id,'v')
+                            
                         if not display in gen_plots_for_quantities:
                             gen_plots_for_quantities[display] = []
                         gen_plots_for_quantities[display].append(quantity)
@@ -879,6 +887,8 @@ class SonataReader(NetworkReader):
                                        copy_neuroml = True,
                                        verbose=True)
                                        
+        return lems_file_name
+                                       
                                      
 def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
     """
@@ -903,43 +913,104 @@ def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
     print_v('Written to: %s'%nml_file_name)  
     
     if generate_lems:
-        sr.generate_lems_file(nml_file_name, nml_doc)
+        lems_file_name = sr.generate_lems_file(nml_file_name, nml_doc)
+        
+        return lems_file_name, nml_file_name, nml_doc
     
     return nml_doc
 
 
-def main():
-    id = '9_cells'
-    id = '300_cells'
-    #id = '5_cells_iclamp'
+def process_args():
+    """ 
+    Parse command-line arguments.
+    """
+    import argparse
+    parser = argparse.ArgumentParser(description="Read Sonata format configuration file and execute using jNeuroML export formats")
     
-    id = '300_intfire'
-    id = 'small_intfire'
-    id = 'small_iclamp'
-    ## https://github.com/pgleeson/sonata/tree/intfire
-    filename = '../../git/sonatapg/examples/%s/config.json'%id
-    
-    id = 'ten_cells_spikes2'
-    
-    id = 'ten_cells_spikes_nrn'
-    id = 'one_cell_iclamp_nest'
-    id = 'ten_cells_iclamp_nest'
-    id = 'ten_cells_spikes_nest'
-    filename = '/home/padraig/git/sonatapg/examples/sim_tests/intfire/%s/input/config.json'%id
-    id = '300_pointneurons'
-    filename = '/home/padraig/git/sonatapg/examples/%s/config.json'%id
-    
-    nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
-    '''
-    nml_file_name = '%s.net.nml'%id
-    nml_file_name += '.h5'
+    parser.add_argument('network_reference', 
+                        type=str, 
+                        metavar='<network reference>', 
+                        help='Reference/id for network (to be used for NeuroML files)')
+                        
+    parser.add_argument('sonata_config_file', 
+                        type=str, 
+                        metavar='<sonata config file>', 
+                        help='Sonata configuration file')
+                        
+                        
+    parser.add_argument('-jnml', 
+                        action='store_true',
+                        default=False,
+                        help='Execute the generated LEMS/NeuroML2 model with jNeuroML')
+                        
+    parser.add_argument('-neuron', 
+                        action='store_true',
+                        default=False,
+                        help='Execute the generated LEMS/NeuroML2 model with jNeuroML_NEURON')
+                        
+    return parser.parse_args()
 
-    from neuroml.writers import NeuroMLHdf5Writer
-    NeuroMLHdf5Writer.write(nml_doc,nml_file_name)
-    print('Written to: %s'%nml_file_name) '''
     
-if __name__ == '__main__':
+def run(args):
+    
+    print_v("Reading Sonata file: %s and generating network: %s"%(args.sonata_config_file,args.network_reference))
+    
+    lems_file_name, nml_file_name, nml_doc = get_neuroml_from_sonata(args.sonata_config_file, 
+                                      args.network_reference, 
+                                      generate_lems=True)
+                        
+    
+    print_v("Generated NeuroML 2 network: %s"%(nml_file_name))
+    print_v("Generated LEMS file to run network: %s"%(lems_file_name))
+                                      
+    if args.jnml:
+        
+        from pyneuroml import pynml
+        
+        pynml.run_lems_with_jneuroml(lems_file_name, 
+                                            nogui=True, 
+                                            verbose=True)
+        
+
+def main(args=None):
+    
+    if '-test' in sys.argv:
+        id = '9_cells'
+        id = '300_cells'
+        #id = '5_cells_iclamp'
+
+        id = '300_intfire'
+        id = 'small_intfire'
+        id = 'small_iclamp'
+        ## https://github.com/pgleeson/sonata/tree/intfire
+        filename = '../../git/sonatapg/examples/%s/config.json'%id
+
+        id = 'ten_cells_spikes2'
+
+        id = 'ten_cells_spikes_nrn'
+        id = 'one_cell_iclamp_nest'
+        id = 'ten_cells_iclamp_nest'
+        id = 'ten_cells_spikes_nest'
+        filename = '/home/padraig/git/sonatapg/examples/sim_tests/intfire/%s/input/config.json'%id
+        #id = '300_pointneurons'
+        #filename = '/home/padraig/git/sonatapg/examples/%s/config.json'%id
+
+        nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
+        '''
+        nml_file_name = '%s.net.nml'%id
+        nml_file_name += '.h5'
+
+        from neuroml.writers import NeuroMLHdf5Writer
+        NeuroMLHdf5Writer.write(nml_doc,nml_file_name)
+        print('Written to: %s'%nml_file_name) '''
+    else:
+
+        if args is None:
+            args = process_args()
+        run(args=args)
+        
+if __name__ == "__main__":
     main()
-
+    
  
     
