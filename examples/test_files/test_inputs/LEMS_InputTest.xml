@@ -19,7 +19,7 @@
    
     <Simulation id="Sim_Test" length="250.0ms" step="0.001ms" target="InputTest" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
         
-        <Display id="DispPop__internal" title="Membrane potentials of cells in internal" timeScale="1ms" xmin="-15.0" xmax="265.0" ymin="-90" ymax="50">
+        <Display id="DispPop__internal" title="Membrane potentials of cells in internal" timeScale="1ms" xmin="-15.0" xmax="265.0" ymin="-79" ymax="-71">
             <Line id="internal[0]: v" quantity="internal/0/cell0/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
             <Line id="internal[1]: v" quantity="internal/1/cell0/v" scale="1mV" color="#029a72" timeScale="1ms"/>
             <Line id="internal[2]: v" quantity="internal/2/cell0/v" scale="1mV" color="#d340bb" timeScale="1ms"/>

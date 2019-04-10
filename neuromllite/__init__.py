@@ -219,7 +219,8 @@ class Simulation(BaseWithId):
                                ('seed',('Seed for stochastic elements os the simulation (integer)',int)),
                                ('recordTraces',('Record traces?',dict)),
                                ('recordSpikes',('Record spikes?',dict)),
-                               ('recordRates',('Record rates?',dict))])
+                               ('recordRates',('Record rates?',dict)),
+                               ('recordVariables',('Record named variables?',dict))])
                         
         super(Simulation, self).__init__(**kwargs)
      

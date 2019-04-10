@@ -448,8 +448,12 @@ def generate_neuroml2_from_network(nl_model,
                 if i.neuroml2_input.lower() == 'pulsegenerator':
                     input = neuroml.PulseGenerator(id=i.id)
                     nml_doc.pulse_generators.append(input)
+                    
+                elif i.neuroml2_input.lower() == 'pulsegeneratordl':
+                    input = neuroml.PulseGeneratorDL(id=i.id)
+                    nml_doc.pulse_generator_dls.append(input)
 
-                if i.neuroml2_input.lower() == 'poissonfiringsynapse':
+                elif i.neuroml2_input.lower() == 'poissonfiringsynapse':
                     input = neuroml.PoissonFiringSynapse(id=i.id)
                     nml_doc.poisson_firing_synapses.append(input)
 
@@ -966,6 +970,16 @@ def generate_and_run(simulation,
                     quantity = '%s/%i/%s/r' % (p.id, i, p.component)
                     gen_plots_for_quantities['%s_%i_r' % (p.id, i)] = [quantity]
                     gen_saves_for_quantities['%s_%i.r.dat' % (p.id, i)] = [quantity]
+                
+            if simulation.recordVariables:
+                for var in simulation.recordVariables:
+                    to_rec = simulation.recordVariables[var]
+                    if ('all' in to_rec or p.id in to_rec):
+                        size = evaluate(p.size, network.parameters)
+                        for i in range(size):
+                            quantity = '%s/%i/%s/%s' % (p.id, i, p.component,var)
+                            gen_plots_for_quantities['%s_%i_%s' % (p.id, i, var)] = [quantity]
+                            gen_saves_for_quantities['%s_%i.%s.dat' % (p.id, i, var)] = [quantity]
                 
         
         generate_lems_file_for_neuroml(simulation.id, 

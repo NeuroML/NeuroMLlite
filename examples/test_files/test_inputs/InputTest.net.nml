@@ -6,25 +6,23 @@
     
     <notes>Test file...</notes>
     
-    <iafRefCell id="dummy_cell" leakReversal="0mV" thresh="1mV" reset="0mV" C=".2 nF" leakConductance="1.2 nS" refract="3ms"/>
-    
-    <timedSynapticInput id="ext_0" synapse="DEFAULT" spikeTarget="./DEFAULT">
+    <timedSynapticInput id="ext_0" synapse="DefaultSynapse" spikeTarget="./DefaultSynapse">
         <spike id="0" time="70ms"/>
         <spike id="1" time="73ms"/>
         <spike id="2" time="165ms"/>
         <spike id="3" time="200ms"/>
     </timedSynapticInput>
-    <timedSynapticInput id="ext_1" synapse="DEFAULT" spikeTarget="./DEFAULT">
+    <timedSynapticInput id="ext_1" synapse="DefaultSynapse" spikeTarget="./DefaultSynapse">
         <spike id="0" time="170ms"/>
         <spike id="1" time="173ms"/>
         <spike id="2" time="185ms"/>
         <spike id="3" time="200ms"/>
     </timedSynapticInput>
     
-    <IF_curr_alpha id="cell0" cm="0.239" i_offset="0." tau_syn_E="1." tau_syn_I="1." v_init="-70." tau_m="44.899999999999999" tau_refrac="3." v_reset="-55." v_rest="-78." v_thresh="-43."/>
+    <IF_curr_alpha id="cell0" cm="0.239" i_offset="0." tau_syn_E="1." tau_syn_I="1." v_init="-76." tau_m="44.899999999999999" tau_refrac="3." v_reset="-55." v_rest="-78." v_thresh="-43."/>
     
     <alphaCurrSynapse id="ExcToExc" tau_syn="2."/>
-    <alphaCurrSynapse id="DEFAULT" tau_syn="2."/>
+    <alphaCurrSynapse id="DefaultSynapse" tau_syn="2."/>
     
     <network id="InputTest">
         
@@ -46,11 +44,14 @@
         </population>
 
 
-        <inputList id="il_0" population="internal" component="ext_0">
+        <inputList id="il0" population="internal" component="ext_0">
             <inputW id="0" target="../internal/0/cell0" destination="synapses" weight="0.05"/>
+            <inputW id="1" target="../internal/2/cell0" destination="synapses" weight="0.1"/>
+            <inputW id="2" target="../internal/3/cell0" destination="synapses" weight="0.15"/>
         </inputList>
-        <inputList id="il_1" population="internal" component="ext_1">
+        <inputList id="il1" population="internal" component="ext_1">
             <inputW id="0" target="../internal/1/cell0" destination="synapses" weight="0.05"/>
+            <inputW id="1" target="../internal/3/cell0" destination="synapses" weight="0.005"/>
         </inputList>
         
     </network>

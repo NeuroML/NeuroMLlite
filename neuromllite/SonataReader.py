@@ -96,6 +96,7 @@ class SonataReader(NetworkReader):
         self.pop_comp_info = {}
         self.syn_comp_info = {}
         self.input_comp_info = {}
+        self.nml_pop_vs_comps = {}
         
         self.init_substitutes = {}
         self.substitutes = {}
@@ -262,6 +263,8 @@ class SonataReader(NetworkReader):
                     self.pop_comp_info[pop_comp] = {}
                     self.pop_comp_info[pop_comp]['model_type'] = pop_comp
                     
+                self.nml_pop_vs_comps[nml_pop_id] = pop_comp
+                    
                 properties = {}
 
                 properties['type_id']=type
@@ -376,15 +379,23 @@ class SonataReader(NetworkReader):
             for node_set in self.simulation_config['node_sets']:
                 self.node_set_mappings[node_set] = {}
                 node_set_props = self.simulation_config['node_sets'][node_set]
-                print_v('Checking which cells in pops match node_set: %s = %s'%(node_set,node_set_props))
+                #print_v('===========Checking which cells in pops match node_set: %s = %s'%(node_set,node_set_props))
                 
                 for sonata_pop in self.cell_info:
                     for sindex in self.cell_info[sonata_pop]['pop_map']:
+                        #print('Does %s %s match %s?'%(sonata_pop, sindex, node_set_props))
+                        
                         type = self.cell_info[sonata_pop]['types'][sindex]
                         type_info = self.node_types[sonata_pop][type]
                         nml_pop = self.cell_info[sonata_pop]['pop_map'][sindex][0]
                         nml_index = self.cell_info[sonata_pop]['pop_map'][sindex][1]
                         
+                        if 'population' in node_set_props and node_set_props['population'] == sonata_pop:
+                            if 'node_id' in node_set_props and sindex in node_set_props['node_id']:
+                                if not nml_pop in self.node_set_mappings[node_set]:
+                                    self.node_set_mappings[node_set][nml_pop] = []
+                                self.node_set_mappings[node_set][nml_pop].append(nml_index)
+                                
                         matches = _matches_node_set_props(type_info, node_set_props)
                         #print_v('Node %i in %s (NML: %s[%i]) has type %s (%s); matches: %s'%(sindex, sonata_pop, nml_pop, nml_index, type, type_info, matches))
                         if matches:
@@ -393,6 +404,7 @@ class SonataReader(NetworkReader):
                             self.node_set_mappings[node_set][nml_pop].append(nml_index)
             
             pp.pprint(self.node_set_mappings)
+            
     
         ########################################################################
         #  Extract info from inputs in simulation_config
@@ -813,7 +825,11 @@ class SonataReader(NetworkReader):
         """
         
         #pp.pprint(self.simulation_config)
+        #pp.pprint(self.pop_comp_info)
+        #pp.pprint(self.node_set_mappings)
         
+        if 'output' in self.simulation_config:
+            gen_spike_saves_for_all_somas = True
         
         target = nml_doc.networks[0].id
         sim_id = 'Sim_%s'%target
@@ -822,6 +838,27 @@ class SonataReader(NetworkReader):
         dt = self.simulation_config['run']['dt']
         lems_file_name = 'LEMS_%s.xml'%sim_id
         target_dir = "./"
+        gen_saves_for_quantities = {}
+        gen_plots_for_quantities = {}
+        
+        if 'reports' in self.simulation_config:
+            if 'membrane_potential' in self.simulation_config['reports']:
+                mp = self.simulation_config['reports']['membrane_potential']
+                node_set = self.node_set_mappings[mp['cells']]
+                for nml_pop in node_set:
+                    comp = self.nml_pop_vs_comps[nml_pop]
+                    ids = node_set[nml_pop]
+                    display = 'Voltages_%s'%nml_pop
+                    file_name = '%s.v.dat'%nml_pop
+                    for id in ids:
+                        quantity = '%s/%i/%s/%s'%(nml_pop,id,comp,'v')
+                        if not display in gen_plots_for_quantities:
+                            gen_plots_for_quantities[display] = []
+                        gen_plots_for_quantities[display].append(quantity)
+                        if not file_name in gen_saves_for_quantities:
+                            gen_saves_for_quantities[file_name] = []
+                        gen_saves_for_quantities[file_name].append(quantity)
+                
 
         generate_lems_file_for_neuroml(sim_id, 
                                        nml_file_name, 
@@ -831,15 +868,13 @@ class SonataReader(NetworkReader):
                                        lems_file_name,
                                        target_dir,
                                        include_extra_files = self.nml_includes,
-                                       gen_plots_for_all_v = True,
+                                       gen_plots_for_all_v = False,
                                        plot_all_segments = False,
-                                       gen_plots_for_quantities = {},   #  Dict with displays vs lists of quantity paths
-                                       gen_plots_for_only_populations = [],   #  List of populations, all pops if = []
-                                       gen_saves_for_all_v = True,
+                                       gen_plots_for_quantities = gen_plots_for_quantities,   #  Dict with displays vs lists of quantity paths
+                                       gen_saves_for_all_v = False,
                                        save_all_segments = False,
-                                       gen_saves_for_only_populations = [],  #  List of populations, all pops if = []
-                                       gen_saves_for_quantities = {},   #  Dict with file names vs lists of quantity paths
-                                       gen_spike_saves_for_all_somas = True,
+                                       gen_saves_for_quantities = gen_saves_for_quantities,  #  List of populations, all pops if = []
+                                       gen_spike_saves_for_all_somas = gen_spike_saves_for_all_somas,
                                        report_file_name = 'report.txt',
                                        copy_neuroml = True,
                                        verbose=True)
