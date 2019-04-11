@@ -248,6 +248,7 @@ class SonataReader(NetworkReader):
                 size = self.cell_info[sonata_pop]['type_count'][type]
                 
                 if model_type=='point_process' and model_template=='nrn:IntFire1':
+                    raise Exception('Point process model not currently supported: %s\nTry expressing the I&F cell in NEST format with nest:iaf_psc_alpha'%model_template)
                     pop_comp = 'cell_%s'%nml_pop_id #model_template.replace(':','_')
                     self.pop_comp_info[pop_comp] = {}
                     self.pop_comp_info[pop_comp]['model_type'] = model_type
@@ -993,115 +994,117 @@ def run(args):
     
     print_v("Generated NeuroML 2 network: %s"%(nml_file_name))
     print_v("Generated LEMS file to run network: %s"%(lems_file_name))
-            
-    traces = None
-    events = None
     
-    if args.jnml:
-        
-        from pyneuroml import pynml
-        
-        traces, events = pynml.run_lems_with_jneuroml(lems_file_name, 
-                                            nogui=True, 
-                                            verbose=True,
-                                            load_saved_data=True,
-                                            reload_events=True)
-    if args.neuron:
-        
-        from pyneuroml import pynml
-        
-        traces, events = pynml.run_lems_with_jneuroml_neuron(lems_file_name, 
-                                            nogui=True, 
-                                            verbose=True,
-                                            load_saved_data=True,
-                                            reload_events=True)
-                                            
-    if traces:
-        trace_file = sr.simulation_config['output']["output_dir"] + '/membrane_potential.h5'
-        print_v('Resaving data to %s'%trace_file)
-        import tables   # pytables for HDF5 support
-        h5file=tables.open_file(trace_file,mode='w')
-        report_grp = h5file.create_group("/", 'report')
-        
-        node_info = {}
+    if args.jnml or args.neuron:
 
-        t = traces['t']
-        time_start = t[0]*1000.
-        time_stop = t[-1]*1000.
-        time_dt = (t[1]-t[0])*1000.
-        time = [time_start, time_stop, time_dt]
-        
-        nml_q_vs_node_id = {}
-        
-        for nml_q in traces.keys():
-            
-            if nml_q!='t':
+        traces = None
+        events = None
+
+        if args.jnml:
+
+            from pyneuroml import pynml
+
+            traces, events = pynml.run_lems_with_jneuroml(lems_file_name, 
+                                                nogui=True, 
+                                                verbose=True,
+                                                load_saved_data=True,
+                                                reload_events=True)
+        if args.neuron:
+
+            from pyneuroml import pynml
+
+            traces, events = pynml.run_lems_with_jneuroml_neuron(lems_file_name, 
+                                                nogui=True, 
+                                                verbose=True,
+                                                load_saved_data=True,
+                                                reload_events=True)
+
+        if traces:
+            trace_file = sr.simulation_config['output']["output_dir"] + '/membrane_potential.h5'
+            print_v('Resaving data to %s'%trace_file)
+            import tables   # pytables for HDF5 support
+            h5file=tables.open_file(trace_file,mode='w')
+            report_grp = h5file.create_group("/", 'report')
+
+            node_info = {}
+
+            t = traces['t']
+            time_start = t[0]*1000.
+            time_stop = t[-1]*1000.
+            time_dt = (t[1]-t[0])*1000.
+            time = [time_start, time_stop, time_dt]
+
+            nml_q_vs_node_id = {}
+
+            for nml_q in traces.keys():
+
+                if nml_q!='t':
+                    nml_pop, nml_index = _get_nml_pop_id(nml_q)
+                    (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
+                    nml_q_vs_node_id[nml_q] = sonata_node_id
+
+            ordered = sorted(nml_q_vs_node_id, key=nml_q_vs_node_id.get)
+
+            for nml_q in ordered:
+
+                if nml_q!='t':
+                    v = traces[nml_q]
+                    nml_pop, nml_index = _get_nml_pop_id(nml_q)
+                    (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
+
+                    if not sonata_node in node_info:
+                        node_info[sonata_node] = {}
+                        node_info[sonata_node]['data'] = []
+                        node_info[sonata_node]['gids'] = []
+
+                    node_info[sonata_node]['data'].append([vv*1000. for vv in v])
+                    node_info[sonata_node]['gids'].append(sonata_node_id)
+
+            for sonata_node in node_info:
+
+                node_grp = h5file.create_group(report_grp, sonata_node)
+                mapping_grp = h5file.create_group(node_grp, 'mapping')
+
+                #node_grp = h5file.root
+                #mapping_grp = h5file.create_group(report_grp, 'mapping')
+                gids = node_info[sonata_node]['gids']
+                h5file.create_array(mapping_grp, 'gids', gids)
+                h5file.create_array(mapping_grp, 'node_ids', gids)
+                h5file.create_array(mapping_grp, 'index_pointer', [i for i in range(len(gids)+1)])
+                h5file.create_array(mapping_grp, 'element_ids', [0 for g in gids])
+                h5file.create_array(mapping_grp, 'element_pos', [0.5 for g in gids])
+                h5file.create_array(mapping_grp, 'time', time)
+
+                d = h5file.create_array(node_grp, 'data', np.array(node_info[sonata_node]['data']).T)
+                d.attrs.units = 'mV'
+                d.attrs.variable_name = 'V_m'
+
+            h5file.close()
+
+        if events:
+            event_file = sr.simulation_config['output']["output_dir"] + '/' + sr.simulation_config['output']["spikes_file"]
+            print_v('Resaving data to %s'%event_file)
+            import tables   # pytables for HDF5 support
+            h5file=tables.open_file(event_file,mode='w')
+            spike_grp = h5file.create_group("/", 'spikes')
+            gids = []
+            spiketimes = []
+            for nml_q in events:
                 nml_pop, nml_index = _get_nml_pop_id(nml_q)
                 (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
-                nml_q_vs_node_id[nml_q] = sonata_node_id
-        
-        ordered = sorted(nml_q_vs_node_id, key=nml_q_vs_node_id.get)
-                
-        for nml_q in ordered:
-            
-            if nml_q!='t':
-                v = traces[nml_q]
-                nml_pop, nml_index = _get_nml_pop_id(nml_q)
-                (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
-                
-                if not sonata_node in node_info:
-                    node_info[sonata_node] = {}
-                    node_info[sonata_node]['data'] = []
-                    node_info[sonata_node]['gids'] = []
-                
-                node_info[sonata_node]['data'].append([vv*1000. for vv in v])
-                node_info[sonata_node]['gids'].append(sonata_node_id)
-        
-        for sonata_node in node_info:
-            
-            node_grp = h5file.create_group(report_grp, sonata_node)
-            mapping_grp = h5file.create_group(node_grp, 'mapping')
-            
-            #node_grp = h5file.root
-            #mapping_grp = h5file.create_group(report_grp, 'mapping')
-            gids = node_info[sonata_node]['gids']
-            h5file.create_array(mapping_grp, 'gids', gids)
-            h5file.create_array(mapping_grp, 'node_ids', gids)
-            h5file.create_array(mapping_grp, 'index_pointer', [i for i in range(len(gids)+1)])
-            h5file.create_array(mapping_grp, 'element_ids', [0 for g in gids])
-            h5file.create_array(mapping_grp, 'element_pos', [0.5 for g in gids])
-            h5file.create_array(mapping_grp, 'time', time)
-            
-            d = h5file.create_array(node_grp, 'data', np.array(node_info[sonata_node]['data']).T)
-            d.attrs.units = 'mV'
-            d.attrs.variable_name = 'V_m'
-        
-        h5file.close()
-        
-    if events:
-        event_file = sr.simulation_config['output']["output_dir"] + '/' + sr.simulation_config['output']["spikes_file"]
-        print_v('Resaving data to %s'%event_file)
-        import tables   # pytables for HDF5 support
-        h5file=tables.open_file(event_file,mode='w')
-        spike_grp = h5file.create_group("/", 'spikes')
-        gids = []
-        spiketimes = []
-        for nml_q in events:
-            nml_pop, nml_index = _get_nml_pop_id(nml_q)
-            (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
-            for t in events[nml_q]:
-                gids.append(sonata_node_id)
-                spiketimes.append(t*1000.0)
-        
-        h5file.create_array(spike_grp, 'gids', gids)
-        h5file.create_array(spike_grp, 'timestamps', spiketimes)
-            
-        h5file.close()
-        
-    if sr.simulation_config['output']["log_file"]:
-        log_file = sr.simulation_config['output']["output_dir"] + '/' + sr.simulation_config['output']["log_file"]
-        from shutil import copyfile 
-        copyfile(REPORT_FILE, log_file)
+                for t in events[nml_q]:
+                    gids.append(sonata_node_id)
+                    spiketimes.append(t*1000.0)
+
+            h5file.create_array(spike_grp, 'gids', gids)
+            h5file.create_array(spike_grp, 'timestamps', spiketimes)
+
+            h5file.close()
+
+        if sr.simulation_config['output']["log_file"]:
+            log_file = sr.simulation_config['output']["output_dir"] + '/' + sr.simulation_config['output']["log_file"]
+            from shutil import copyfile 
+            copyfile(REPORT_FILE, log_file)
 
 
 def main(args=None):
