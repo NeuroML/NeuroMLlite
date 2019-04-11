@@ -15,6 +15,8 @@ pp = pprint.PrettyPrinter(depth=6)
 DUMMY_CELL = 'dummy_cell'
 DEFAULT_NEST_SPIKE_SYN = 'DEFAULT_NEST_SPIKE_SYN'
 
+REPORT_FILE = 'report.txt'
+
 def _get_default_nest_syn(nml_doc):
     
     if nml_doc.get_by_id(DEFAULT_NEST_SPIKE_SYN):
@@ -98,7 +100,8 @@ class SonataReader(NetworkReader):
         self.syn_comp_info = {}
         self.input_comp_info = {}
         self.nml_pop_vs_comps = {}
-        self.nml_pops_with_locations = []
+        self.nml_pops_having_locations = []
+        self.nml_ids_vs_gids = {}
         
         self.init_substitutes = {}
         self.substitutes = {}
@@ -325,9 +328,13 @@ class SonataReader(NetworkReader):
                 index = self.cell_info[sonata_pop]['pop_count'][pop]
                 self.cell_info[sonata_pop]['pop_map'][i] = (pop, index)
                 
+                if not pop in self.nml_ids_vs_gids:
+                    self.nml_ids_vs_gids[pop] = {}
+                self.nml_ids_vs_gids[pop][index] = (sonata_pop, i)
+                
                 if i in self.cell_info[sonata_pop]['0']['locations']: 
-                    if not pop in self.nml_pops_with_locations: 
-                        self.nml_pops_with_locations.append(pop)
+                    if not pop in self.nml_pops_having_locations: 
+                        self.nml_pops_having_locations.append(pop)
                     pos = self.cell_info[sonata_pop]['0']['locations'][i]
                     #print('Adding pos %i: %s'%(i,pos))
                     self.handler.handle_location(index, 
@@ -407,7 +414,7 @@ class SonataReader(NetworkReader):
                                 self.node_set_mappings[node_set][nml_pop] = []
                             self.node_set_mappings[node_set][nml_pop].append(nml_index)
             
-            pp.pprint(self.node_set_mappings)
+            ##pp.pprint(self.node_set_mappings)
             
     
         ########################################################################
@@ -755,7 +762,7 @@ class SonataReader(NetworkReader):
                 
         print_v("Adding NeuroML synapses to: %s"%nml_doc.id)
         
-        pp.pprint(self.syn_comp_info)
+        #pp.pprint(self.syn_comp_info)
         
         for s in self.syn_comp_info:
             dyn_params = self.syn_comp_info[s]['dynamics_params']
@@ -857,7 +864,7 @@ class SonataReader(NetworkReader):
                     
                     for id in ids:
                         quantity = '%s/%i/%s/%s'%(nml_pop,id,comp,'v')
-                        if not nml_pop in self.nml_pops_with_locations:
+                        if not nml_pop in self.nml_pops_having_locations:
                             quantity = '%s[%i]/%s'%(nml_pop,id,'v')
                             
                         if not display in gen_plots_for_quantities:
@@ -883,14 +890,14 @@ class SonataReader(NetworkReader):
                                        save_all_segments = False,
                                        gen_saves_for_quantities = gen_saves_for_quantities,  #  List of populations, all pops if = []
                                        gen_spike_saves_for_all_somas = gen_spike_saves_for_all_somas,
-                                       report_file_name = 'report.txt',
+                                       report_file_name = REPORT_FILE,
                                        copy_neuroml = True,
                                        verbose=True)
                                        
         return lems_file_name
                                        
                                      
-def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
+def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True, format='xml'):
     """
     Return a NeuroMLDocument with (most of) the contents of the Sonata model 
     """
@@ -906,16 +913,22 @@ def get_neuroml_from_sonata(sonata_filename, id, generate_lems = True):
     
     sr.add_neuroml_components(nml_doc)
     
-    nml_file_name = '%s.net.nml'%id
+    if format == 'xml':
+        nml_file_name = '%s.net.nml'%id
+        from neuroml.writers import NeuroMLWriter
+        NeuroMLWriter.write(nml_doc, nml_file_name)
+        
+    elif format == 'hdf5':
+        nml_file_name = '%s.net.nml.h5'%id
+        from neuroml.writers import NeuroMLHdf5Writer
+        NeuroMLHdf5Writer.write(nml_doc, nml_file_name)
     
-    from neuroml.writers import NeuroMLWriter
-    NeuroMLWriter.write(nml_doc,nml_file_name)
     print_v('Written to: %s'%nml_file_name)  
     
     if generate_lems:
         lems_file_name = sr.generate_lems_file(nml_file_name, nml_doc)
         
-        return lems_file_name, nml_file_name, nml_doc
+        return sr, lems_file_name, nml_file_name, nml_doc
     
     return nml_doc
 
@@ -937,6 +950,10 @@ def process_args():
                         metavar='<sonata config file>', 
                         help='Sonata configuration file')
                         
+    parser.add_argument('-h5', 
+                        action='store_true',
+                        default=False,
+                        help='Save NeuroML as HDF5, as opposed to XML')
                         
     parser.add_argument('-jnml', 
                         action='store_true',
@@ -955,22 +972,68 @@ def run(args):
     
     print_v("Reading Sonata file: %s and generating network: %s"%(args.sonata_config_file,args.network_reference))
     
-    lems_file_name, nml_file_name, nml_doc = get_neuroml_from_sonata(args.sonata_config_file, 
+    sr, lems_file_name, nml_file_name, nml_doc = get_neuroml_from_sonata(args.sonata_config_file, 
                                       args.network_reference, 
-                                      generate_lems=True)
+                                      generate_lems=True,
+                                      format = ('hdf5' if args.h5 else 'xml'))
                         
+    #pp.pprint(sr.cell_info)
+    #pp.pprint(sr.nml_ids_vs_gids)
     
     print_v("Generated NeuroML 2 network: %s"%(nml_file_name))
     print_v("Generated LEMS file to run network: %s"%(lems_file_name))
-                                      
+            
+    traces = None
+    events = None
+    
     if args.jnml:
         
         from pyneuroml import pynml
         
-        pynml.run_lems_with_jneuroml(lems_file_name, 
+        traces, events = pynml.run_lems_with_jneuroml(lems_file_name, 
                                             nogui=True, 
-                                            verbose=True)
+                                            verbose=True,
+                                            load_saved_data=True,
+                                            reload_events=True)
+    if args.neuron:
         
+        from pyneuroml import pynml
+        
+        traces, events = pynml.run_lems_with_jneuroml_neuron(lems_file_name, 
+                                            nogui=True, 
+                                            verbose=True,
+                                            load_saved_data=True,
+                                            reload_events=True)
+                                            
+    if traces:
+        print_v('Resaving data to %s')
+        
+    if events:
+        event_file = sr.simulation_config['output']["output_dir"] + '/' + sr.simulation_config['output']["spikes_file"]
+        print_v('Resaving data to %s'%event_file)
+        import tables   # pytables for HDF5 support
+        h5file=tables.open_file(event_file,mode='w')
+        spike_grp = h5file.create_group("/", 'spikes')
+        gids = []
+        spiketimes = []
+        for nml_q in events:
+            nml_pop = nml_q.split('/')[0]
+            nml_index = int(nml_q.split('/')[1])
+            (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
+            for t in events[nml_q]:
+                gids.append(sonata_node_id)
+                spiketimes.append(t*1000.0)
+        
+        h5file.create_array(spike_grp, 'gids', gids)
+        h5file.create_array(spike_grp, 'timestamps', spiketimes)
+            
+        h5file.close()
+        
+    if sr.simulation_config['output']["log_file"]:
+        log_file = sr.simulation_config['output']["output_dir"] + '/' + sr.simulation_config['output']["log_file"]
+        from shutil import copyfile 
+        copyfile(REPORT_FILE, log_file)
+
 
 def main(args=None):
     
