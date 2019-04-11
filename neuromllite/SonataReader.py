@@ -702,7 +702,7 @@ class SonataReader(NetworkReader):
         
         is_nest = False
         print_v("Adding NeuroML cells to: %s"%nml_doc.id)
-        pp.pprint(self.pop_comp_info)
+        #pp.pprint(self.pop_comp_info)
         
         for c in self.pop_comp_info:
             info = self.pop_comp_info[c]
@@ -967,6 +967,17 @@ def process_args():
                         
     return parser.parse_args()
 
+def _get_nml_pop_id(quantity):
+    
+    if '[' in quantity:
+        nml_pop = quantity.split('[')[0]
+        nml_index = int(quantity.split('[')[1].split(']')[0])
+        return nml_pop, nml_index
+    
+    else:
+        nml_pop = quantity.split('/')[0]
+        nml_index = int(quantity.split('/')[1])
+        return nml_pop, nml_index
     
 def run(args):
     
@@ -1006,7 +1017,66 @@ def run(args):
                                             reload_events=True)
                                             
     if traces:
-        print_v('Resaving data to %s')
+        trace_file = sr.simulation_config['output']["output_dir"] + '/membrane_potential.h5'
+        print_v('Resaving data to %s'%trace_file)
+        import tables   # pytables for HDF5 support
+        h5file=tables.open_file(trace_file,mode='w')
+        report_grp = h5file.create_group("/", 'report')
+        
+        node_info = {}
+
+        t = traces['t']
+        time_start = t[0]*1000.
+        time_stop = t[-1]*1000.
+        time_dt = (t[1]-t[0])*1000.
+        time = [time_start, time_stop, time_dt]
+        
+        nml_q_vs_node_id = {}
+        
+        for nml_q in traces.keys():
+            
+            if nml_q!='t':
+                nml_pop, nml_index = _get_nml_pop_id(nml_q)
+                (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
+                nml_q_vs_node_id[nml_q] = sonata_node_id
+        
+        ordered = sorted(nml_q_vs_node_id, key=nml_q_vs_node_id.get)
+                
+        for nml_q in ordered:
+            
+            if nml_q!='t':
+                v = traces[nml_q]
+                nml_pop, nml_index = _get_nml_pop_id(nml_q)
+                (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
+                
+                if not sonata_node in node_info:
+                    node_info[sonata_node] = {}
+                    node_info[sonata_node]['data'] = []
+                    node_info[sonata_node]['gids'] = []
+                
+                node_info[sonata_node]['data'].append([vv*1000. for vv in v])
+                node_info[sonata_node]['gids'].append(sonata_node_id)
+        
+        for sonata_node in node_info:
+            
+            node_grp = h5file.create_group(report_grp, sonata_node)
+            mapping_grp = h5file.create_group(node_grp, 'mapping')
+            
+            #node_grp = h5file.root
+            #mapping_grp = h5file.create_group(report_grp, 'mapping')
+            gids = node_info[sonata_node]['gids']
+            h5file.create_array(mapping_grp, 'gids', gids)
+            h5file.create_array(mapping_grp, 'node_ids', gids)
+            h5file.create_array(mapping_grp, 'index_pointer', [i for i in range(len(gids)+1)])
+            h5file.create_array(mapping_grp, 'element_ids', [0 for g in gids])
+            h5file.create_array(mapping_grp, 'element_pos', [0.5 for g in gids])
+            h5file.create_array(mapping_grp, 'time', time)
+            
+            d = h5file.create_array(node_grp, 'data', np.array(node_info[sonata_node]['data']).T)
+            d.attrs.units = 'mV'
+            d.attrs.variable_name = 'V_m'
+        
+        h5file.close()
         
     if events:
         event_file = sr.simulation_config['output']["output_dir"] + '/' + sr.simulation_config['output']["spikes_file"]
@@ -1017,8 +1087,7 @@ def run(args):
         gids = []
         spiketimes = []
         for nml_q in events:
-            nml_pop = nml_q.split('/')[0]
-            nml_index = int(nml_q.split('/')[1])
+            nml_pop, nml_index = _get_nml_pop_id(nml_q)
             (sonata_node, sonata_node_id)  = sr.nml_ids_vs_gids[nml_pop][nml_index]
             for t in events[nml_q]:
                 gids.append(sonata_node_id)
