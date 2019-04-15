@@ -356,6 +356,7 @@ class MatrixHandler(ConnectivityHandler):
             self.proj_individual_weights[projName] = np.zeros((pre_size, post_size))
             self.proj_individual_conn_numbers[projName] = np.zeros((pre_size, post_size))
             self.proj_individual_scaled_weights[projName] = np.zeros((pre_size, post_size))
+            self.proj_delays[projName] = np.zeros((pre_size, post_size))
         
         print_v("New projection: %s, %s->%s, weights? %s, type: %s"%(projName, prePop, postPop, weight, proj_type))
 

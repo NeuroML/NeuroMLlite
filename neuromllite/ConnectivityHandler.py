@@ -33,6 +33,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
     proj_individual_weights = {}
     proj_individual_scaled_weights = {}
     proj_individual_conn_numbers = {}
+    proj_delays = {}
     
     syn_conds_used = {}
     
@@ -191,6 +192,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
                        (self.proj_individual_weights[projName][preCellId][postCellId],
                        self.proj_individual_scaled_weights[projName][preCellId][postCellId],
                        self.proj_individual_conn_numbers[projName][preCellId][postCellId]))'''
+            self.proj_delays[projName][preCellId][postCellId] = delay
 
   
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
