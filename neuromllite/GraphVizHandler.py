@@ -194,6 +194,10 @@ class GraphVizHandler(ConnectivityHandler):
                                 label += 'f: %s <br/> '%fweight
                                 label += 'l: %s <br/> '%lweight
 
+                                delay = self.proj_delays[projName][pre_i][post_i]
+                                if delay!=0:
+                                    label += 'd: %sms <br/> '%self.format_float(delay)
+                                    
                                 if not label[-1]=='>':
                                     label += '>'
                                 if self.level<=-2:
@@ -468,6 +472,7 @@ class GraphVizHandler(ConnectivityHandler):
             self.proj_individual_weights[projName] = np.zeros((pre_size, post_size))
             self.proj_individual_conn_numbers[projName] = np.zeros((pre_size, post_size))
             self.proj_individual_scaled_weights[projName] = np.zeros((pre_size, post_size))
+            self.proj_delays[projName] = np.zeros((pre_size, post_size))
 
 
     def finalise_projection(self, projName, prePop, postPop, synapse=None, type="projection"):
