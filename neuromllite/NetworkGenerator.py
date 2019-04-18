@@ -278,7 +278,7 @@ def check_to_generate_or_run(argv, sim):
     
     if len(argv)==1:
         print_v("No arguments found. Currently supported export formats:")
-        print_v("   -nml | -jnml | -jnmlnrn | -jnmlnetpyne | -netpyne | -pynnnrn "+\
+        print_v("   -nml |  -nmlh5 | -jnml | -jnmlnrn | -jnmlnetpyne | -netpyne | -pynnnrn "+\
                 "| -pynnnest | -pynnbrian | -pynnneuroml | -sonata | -matrix[1-2] | -graph[1-6 n/d/f/c]")
         
     if '-pynnnest' in argv:
@@ -309,6 +309,11 @@ def check_to_generate_or_run(argv, sim):
         
         network = load_network_json(sim.network)
         generate_neuroml2_from_network(network, validate=True)
+        
+    elif '-nmlh5' in argv or '-neuromlh5' in argv:
+        
+        network = load_network_json(sim.network)
+        generate_neuroml2_from_network(network, validate=True, format='hdf5')
         
     else:
         for a in argv:

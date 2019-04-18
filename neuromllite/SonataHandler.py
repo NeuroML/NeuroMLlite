@@ -10,12 +10,16 @@ from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 import h5py
 import numpy as np
 
-
-
 class SonataHandler(DefaultNetworkHandler):
         
     positions = {}
     pop_indices = {}
+    
+    DEFAULT_NODE_GROUP_ID = 0
+    
+    pop_type_ids = {}
+    
+    node_type_csv_info = {}
     
     def __init__(self):
         print_v("Initiating Sonata handler")
@@ -40,10 +44,26 @@ class SonataHandler(DefaultNetworkHandler):
         print_v("Writing file...: %s"%id)
         self.sonata_nodes.close()
         
+        node_type_file = open("%s_node_types.csv"%self.network_id, "w")
+        header = ''
+        for var in self.node_type_csv_info[self.node_type_csv_info.keys()[0]]:
+            header+='%s '%var
+        node_type_file.write(header+'\n') 
+        
+        for pop_id in self.node_type_csv_info:
+            line = ''
+            for var in self.node_type_csv_info[pop_id]:
+                line+='%s '%self.node_type_csv_info[pop_id][var]
+            node_type_file.write(line+'\n') 
+                
+        node_type_file.close()
+        
 
     def handle_network(self, network_id, notes, temperature=None):
             
         print_v("Network: %s"%network_id)
+        self.network_id = network_id
+        
         if temperature:
             print_v("  Temperature: "+temperature)
         if notes:
@@ -71,6 +91,17 @@ class SonataHandler(DefaultNetworkHandler):
         self.sonata_nodes.create_group("nodes/%s"%population_id)
         self.sonata_nodes.create_group("nodes/%s/0"%population_id)
         
+        node_type_id = 100+len(self.pop_type_ids)
+        self.pop_type_ids[population_id] = node_type_id
+        
+        self.node_type_csv_info[population_id] = {}
+        self.node_type_csv_info[population_id]['node_type_id'] = node_type_id
+        self.node_type_csv_info[population_id]['model_name'] = component
+        self.node_type_csv_info[population_id]['location'] = '???'
+        self.node_type_csv_info[population_id]['model_template'] = component
+        self.node_type_csv_info[population_id]['model_type'] = component
+        self.node_type_csv_info[population_id]['dynamics_params'] = 'None'
+        
  
     def handle_location(self, id, population_id, component, x, y, z):
         
@@ -86,7 +117,13 @@ class SonataHandler(DefaultNetworkHandler):
         
         self.sonata_nodes.create_dataset("nodes/%s/0/positions"%population_id, data=self.positions[population_id])
         self.sonata_nodes.create_dataset("nodes/%s/node_group_index"%population_id, data=self.pop_indices[population_id])
+        self.sonata_nodes.create_dataset("nodes/%s/node_group_id"%population_id, data=[self.DEFAULT_NODE_GROUP_ID for i in self.pop_indices[population_id]])
         self.sonata_nodes.create_dataset("nodes/%s/node_id"%population_id, data=self.pop_indices[population_id])
+        
+        self.sonata_nodes.create_dataset("nodes/%s/node_type_id"%population_id, data=[self.pop_type_ids[population_id] for i in self.pop_indices[population_id]])
+
+        
+            
 
 '''
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
