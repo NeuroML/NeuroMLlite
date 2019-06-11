@@ -682,9 +682,9 @@ def generate_and_run(simulation,
 
         try:
             if simulator[-1].isalpha():
-                print simulator
-                print simulator[5:]
-                print simulator[5:-1]
+                #print simulator
+                #print simulator[5:]
+                #print simulator[5:-1]
                 engine = engines[simulator[-1]]
                 level = int(simulator[5:-1])
             else:
@@ -692,7 +692,7 @@ def generate_and_run(simulation,
                 level = int(simulator[5:])
         
         except Exception as e:
-            print e
+            #print e
             print_v("Error parsing: %s"%simulator)
             print_v("Graphs of the network structure can be generated at many levels of detail (1-6, required) and laid out using GraphViz engines (d - dot (default); c - circo; n - neato; f - fdp), so use: -graph3c, -graph2, -graph4f etc.")
             return
