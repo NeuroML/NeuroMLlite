@@ -50,15 +50,28 @@ script:
     # Only run OMV tests on Python 2 (for now)
     - if [ ${TRAVIS_PYTHON_VERSION:O:1} == "3" ]; then travis_terminate 0 ; fi
     
+    # Install latest jnml...
+    - export jnml_branches="development"
+    - if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental ; fi
+    - echo $jnml_branches
+    
+    - git clone https://github.com/NeuroML/jNeuroML.git
+    - cd jNeuroML
+    - git checkout $jnml_branches
+    
+    - python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
+    - ls -alt
+    
+    - export PATH=$PATH:$TRAVIS_BUILD_DIR/jNeuroML
+    - export JNML_HOME=$TRAVIS_BUILD_DIR/jNeuroML
+    - cd
+    - jnml -v
+    
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
     
     # Standard PyNN install...
     - omv install PyNN
-    - git clone https://github.com/pgleeson/PyNN.git
-    - cd PyNN
-    - python setup.py install  # Install from pgleeson, with some recent changes
-    - cd ..
     
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     
-    - omv list-engines
+    - omv list -V 

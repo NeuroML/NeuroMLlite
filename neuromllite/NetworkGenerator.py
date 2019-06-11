@@ -867,7 +867,8 @@ def generate_and_run(simulation,
         
 
         for pop in netpyne_handler.popParams.values():
-            if 'all' in simulation.recordTraces or pop.id in simulation.recordTraces:
+            if simulation.recordTraces is not None and \
+              ('all' in simulation.recordTraces or pop.id in simulation.recordTraces):
                 for i in pop['cellsList']:
                     id = pop['pop']
                     index = i['cellLabel']
