@@ -98,3 +98,5 @@ report*.txt
 /examples/test_files/test_ex4_jnmlnrn.py
 /sonatafin
 /examples/tmp*.nml
+/examples/Example3_Network_node_types.csv
+/examples/Example7_Brunel2000_nodes.sonata.h5

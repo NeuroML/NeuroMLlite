@@ -147,19 +147,19 @@ if __name__ == "__main__":
         fixed = {'dt':0.001, 'order':1}
  
         #
-        vary = {'eta':[0.5,1,1.5,2]}
+        vary = {'eta':[0.5,1,1.5,2,5,8,10]}
         #vary = {'eta':[1,2]}
         #vary = {'eta':[1]}
         #vary = {'eta':[i/1000. for i in xrange(0,200,20)]}
         #vary = {'stim_amp':['1.5pA']}
         
-        vary['seed'] = [1,2,3,4,5]
+        vary['seed'] = [i for i in range(10)]
 
         simulator = 'jNeuroML'
-        simulator = 'jNeuroML_NEURON'
-        simulator = 'jNeuroML_NetPyNE'
         simulator = 'PyNN_NEST'
         simulator = 'jNeuroML'
+        simulator = 'jNeuroML_NetPyNE'
+        simulator = 'jNeuroML_NEURON'
 
         nmllr = NeuroMLliteRunner('SimExample7.json',
                                   simulator=simulator)
@@ -168,7 +168,7 @@ if __name__ == "__main__":
                             vary, 
                             fixed,
                             num_parallel_runs=16,
-                            plot_all=True, 
+                            plot_all=False, 
                             heatmap_all=False,
                             show_plot_already=False,
                             peak_threshold=0)
@@ -179,7 +179,9 @@ if __name__ == "__main__":
         #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
         #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
         #ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
-        ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency.png')
+        ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_ein.png')
+        ps.plotLines('eta','Epop[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_e.png')
+        ps.plotLines('eta','Ipop[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_i.png')
 
         import matplotlib.pyplot as plt
 

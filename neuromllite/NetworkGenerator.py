@@ -484,11 +484,11 @@ def generate_neuroml2_from_network(nl_model,
             if not incl in nml_doc.includes:
                 nml_doc.includes.append(incl) 
                 
-        '''  Needed???
+        '''  Needed??? '''
         if c.lems_source_file:      
             incl = neuroml.IncludeType(_locate_file(c.lems_source_file, base_dir))
             if not incl in nml_doc.includes:
-                nml_doc.includes.append(incl)'''
+                nml_doc.includes.append(incl)
                 
         if c.neuroml2_cell: 
             
@@ -940,11 +940,11 @@ def generate_and_run(simulation,
 
         nml_file_name, nml_doc = generate_neuroml2_from_network(network, base_dir=base_dir, target_dir=target_dir)
         included_files = ['PyNN.xml']
-
+        ''' Needed?
         for c in network.cells:        
             if c.lems_source_file:
                 included_files.append(c.lems_source_file)
-        '''
+        
         if network.cells:
             for c in network.cells:
                 included_files.append(c.neuroml2_source_file)
