@@ -61,13 +61,15 @@ script:
     
     - python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
     - ls -alt
+    - pwd
     
     - export PATH=$PATH:$TRAVIS_BUILD_DIR/jNeuroML
     - export JNML_HOME=$TRAVIS_BUILD_DIR/jNeuroML
-    - cd
+    - cd $TRAVIS_BUILD_DIR/examples
     - jnml -v
     
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
+    - pip install pyelectro
     
     # Standard PyNN install...
     - omv install PyNN
