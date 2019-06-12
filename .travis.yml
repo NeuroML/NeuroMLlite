@@ -13,6 +13,7 @@ addons:
     - python-sympy
     - python-tables 
     - python-tornado
+    - python-tk
     - libreadline6-dev 
     - libncurses5-dev 
     - libgsl0-dev
