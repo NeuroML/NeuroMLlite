@@ -81,8 +81,8 @@ script:
     - pip install pyelectro
     
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
-    
-    - cd..
+    - ls -alt
+    - cd ..
     - ./regenerateAndTest.sh
     
     - omv list -V 

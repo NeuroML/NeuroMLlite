@@ -8,22 +8,22 @@ experiments:
     observables:
       spike times:
         file: 
-          path: ../SimExample4.pop1.v.dat
+          path: ../SimExample4.pop1.0.v_cell_2.dat
           columns: [0,1]
           scaling: [1000, 1000]
         spike detection: 
           method: threshold
           threshold: -64
-        tolerance: 0.00025021894157388664
+        tolerance: 0.000
 
   v1:
     observables:
       spike times:
         file: 
-          path: ../SimExample4.pop2.v.dat
+          path: ../SimExample4.pop2.0.v_cell_4.dat
           columns: [0,1]
           scaling: [1000, 1000]
         spike detection: 
           method: threshold
           threshold: -69
-        tolerance: 0.0002719276859891263
+        tolerance: 0.00
