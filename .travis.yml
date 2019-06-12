@@ -82,6 +82,7 @@ script:
     
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     
+    - cd..
     - ./regenerateAndTest.sh
     
     - omv list -V 
