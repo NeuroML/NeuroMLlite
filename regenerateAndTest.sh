@@ -24,6 +24,7 @@ python Example3.py -sonata
 echo
 echo "**** Running Example 4 ****"
 python Example4.py
+python Example4.py -netpyne
 python Example4.py -pynnnest
 python Example4.py -pynnnrn
 python Example4.py -pynnbrian

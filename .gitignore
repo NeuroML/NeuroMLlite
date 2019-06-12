@@ -100,3 +100,4 @@ report*.txt
 /examples/tmp*.nml
 /examples/Example3_Network_node_types.csv
 /examples/Example7_Brunel2000_nodes.sonata.h5
+/examples/BBP_5percent_nodes.sonata.h5
