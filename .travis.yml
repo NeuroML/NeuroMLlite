@@ -3,7 +3,6 @@
 dist: trusty
 sudo: false  
 
-
 addons:
   apt:
     packages:
@@ -30,7 +29,7 @@ python:
   - "3.6"
 
 virtualenv:
-system_site_packages: true
+    system_site_packages: true
 
 
 install:
@@ -79,6 +78,11 @@ script:
     
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
     - pip install pyelectro
+    
+    - omv install NEURON
+    - export NEURON_HOME=/home/travis/neuron/nrn/x86_64
+    
+    - omv list -V 
     
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     - ls -alt
