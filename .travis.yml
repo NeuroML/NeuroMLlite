@@ -18,6 +18,8 @@ addons:
     - libncurses5-dev 
     - libgsl0-dev
     - cython
+    - python-lxml
+    - libhdf5-7
     
     
 language: python

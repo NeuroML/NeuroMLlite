@@ -799,7 +799,6 @@ def generate_and_run(simulation,
         events = {}
         
         if not 'NeuroML' in simulator:
-            from neo.io import PyNNTextIO
 
             for pid in pynn_handler.populations:
                 pop = pynn_handler.populations[pid]
