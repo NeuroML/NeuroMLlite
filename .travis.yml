@@ -27,6 +27,7 @@ python:
   - "2.7"
   #- "3.4" # issue on Travis with pytables...
   - "3.5"
+  - "3.6"
 
 virtualenv:
 system_site_packages: true
@@ -78,7 +79,7 @@ script:
     
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
     - pip install pyelectro
-        
+    
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     
     - omv list -V 

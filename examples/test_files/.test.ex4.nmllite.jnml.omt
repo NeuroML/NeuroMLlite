@@ -1,7 +1,7 @@
 # Script for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
 
 target: test_ex4_jnml.py 
-engine: NetPyNE 
+engine: PyNN_NEURON 
 mep: .test.ex4.mep
 experiments:
   v0:
