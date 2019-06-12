@@ -870,9 +870,9 @@ def generate_and_run(simulation,
             if simulation.recordTraces is not None and \
               ('all' in simulation.recordTraces or pop.id in simulation.recordTraces):
                 for i in pop['cellsList']:
-                    id = pop['pop']
+                    pop_id = pop['pop']
                     index = i['cellLabel']
-                    simConfig.recordTraces['v_%s_%s' % (id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':id, 'cellLabel':index}}
+                    simConfig.recordTraces['%s.%s.%s.v' % (simulation.id, pop_id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':pop_id, 'cellLabel':index}}
 
         simConfig.saveDat = True
         
