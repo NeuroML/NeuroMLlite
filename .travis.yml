@@ -33,10 +33,23 @@ system_site_packages: true
 
 
 install:
-    - pip install pyneuroml
     - pip install tables
     - pip install scipy==1.1.0
     - pip install . 
+    
+    # Check to see if on development/experimental branches
+    - export jnml_branches="development"
+    - export pynml_branch="master"
+    - if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
+    - echo "Will use jNeuroML from branches $jnml_branches" 
+    - echo "Will use pyNeuroML from branch $pynml_branch" 
+    
+    # Install pyNeuroML
+    - git clone https://github.com/NeuroML/pyNeuroML.git
+    - cd pyNeuroML
+    - git checkout $pynml_branch
+    - python setup.py install
+    - cd -
     
     
 script:
@@ -45,25 +58,11 @@ script:
     - cd examples
     - python Example2.py # test one example...
     - cd ..
-    
-    
+        
     # Only run OMV tests on Python 2 (for now)
     - if [ ${TRAVIS_PYTHON_VERSION:O:1} == "3" ]; then travis_terminate 0 ; fi
     
-    # Check to see if on development/experimental branches
-    - export jnml_branches="development"
-    - export pynml_branch="master"
-    - if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
-    - echo "Installing jNeuroML from branches $jnml_branches" 
-    - echo "Installing pyNeuroML from branch $pynml_branch" 
-    
-
-    - git clone https://github.com/NeuroML/pyNeuroML.git
-    - cd pyNeuroML
-    - git checkout $pynml_branch
-    - python setup.py install
-    - cd -
-    
+   
     # Install latest jnml...
     - git clone https://github.com/NeuroML/jNeuroML.git
     - cd jNeuroML
@@ -79,10 +78,7 @@ script:
     
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
     - pip install pyelectro
-    
-    # Standard PyNN install...
-    - omv install PyNN
-    
+        
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     
     - omv list -V 
