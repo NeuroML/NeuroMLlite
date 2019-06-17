@@ -27,3 +27,13 @@ experiments:
           method: threshold
           threshold: -69
         tolerance: 0.006342149138579221
+
+  spikes0:
+    observables:
+      spike times:
+        spiketimes file: 
+          path: ../SimExample4.pop0.spikes
+          format: ID_TIME
+          id: 0
+        tolerance: 0.008943493382718323
+

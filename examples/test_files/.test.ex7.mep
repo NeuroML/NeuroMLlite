@@ -2,10 +2,13 @@ system: Test Ex7
 
 experiments:
 
-    spike_rate_0:
+    spike_rate_in_0:
         expected:
             spike rate: 10000
-    spike_rate_1:
+    spike_rate_in_1:
         expected:
             spike rate: 10000
+    spike_rate_e_0:
+        expected:
+            spike rate: 410
         

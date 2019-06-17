@@ -5,7 +5,7 @@ engine: PyNN_NEURON
 mep: .test.ex7.mep
 experiments:
         
-  spike_rate_0:
+  spike_rate_in_0:
     observables:
       spike rate:
         spiketimes file: 
@@ -14,7 +14,7 @@ experiments:
           id: 0
         tolerance: 0.0020752594084240627
         
-  spike_rate_1:
+  spike_rate_in_1:
     observables:
       spike rate:
         spiketimes file: 
@@ -22,3 +22,12 @@ experiments:
           format: ID_TIME
           id: 1
         tolerance: 0.007526317106486022
+        
+  spike_rate_e_0:
+    observables:
+      spike rate:
+        spiketimes file: 
+          path: ../SimExample7.Epop.spikes
+          format: ID_TIME
+          id: 0
+        tolerance: 0.002221304674588687
