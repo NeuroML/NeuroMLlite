@@ -1,5 +1,5 @@
-from neuromllite import Network, Cell, InputSource, Population, Synapse
-from neuromllite import Projection, RandomConnectivity, OneToOneConnector, Input, Simulation
+from neuromllite import Network, Cell, Population, Synapse, RectangularRegion, RandomLayout 
+from neuromllite import Projection, RandomConnectivity, OneToOneConnector, Simulation
 
 from neuromllite.NetworkGenerator import check_to_generate_or_run
 from neuromllite.sweep.ParameterSweep import *
@@ -8,11 +8,16 @@ import sys
 
 
 def generate():
+    
+    dt = 0.025
+    simtime = 1000
+    
     ################################################################################
     ###   Build new network
 
     net = Network(id='Example7_Brunel2000')
     net.notes = 'Example 7: based on network of Brunel 2000'
+    
 
     net.parameters = { 'g':       4, 
                        'eta':     1, 
@@ -21,7 +26,6 @@ def generate():
                        'J':       0.1,
                        'delay':   1.5,
                        'tauMem':  20.0,
-                       'tauSyn':  0.1,
                        'tauRef':  2.0,
                        'U0':      0.0,
                        'theta':   20.0}
@@ -40,81 +44,102 @@ def generate():
     #cell = Cell(id='hhcell', neuroml2_source_file='test_files/hhcell.cell.nml')
     net.cells.append(cell)
 
-    expoisson = Cell(id='expoisson', pynn_cell='SpikeSourcePoisson')
-    expoisson.parameters = { 'rate':       '1000 * (eta*theta/(J*4*order*epsilon*tauMem)) * (4*order*epsilon)',
+    poisson_input = Cell(id='poisson_input', pynn_cell='SpikeSourcePoisson')
+    poisson_input.parameters = { 'rate':       '1000 * (eta*theta/(J*4*order*epsilon*tauMem)) * (4*order*epsilon)',
                              'start':      0,
                              'duration':   1e9}
-    net.cells.append(expoisson)
+    net.cells.append(poisson_input)
 
+    r1 = RectangularRegion(id='region1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
+    net.regions.append(r1)
 
-    '''
-    input_source = InputSource(id='iclamp0', 
-                               pynn_input='DCSource', 
-                               parameters={'amplitude':0.002, 'start':100., 'stop':900.})
-
-    input_source = InputSource(id='poissonFiringSyn', 
-                               neuroml2_input='poissonFiringSynapse',
-                               parameters={'average_rate':"eta", 'synapse':"ampa", 'spike_target':"./ampa"})
-
-
-
-    net.input_sources.append(input_source)'''
-
-    pE = Population(id='Epop', size='4*order', component=cell.id, properties={'color':'1 0 0'})
-    pEpoisson = Population(id='Einput', size='4*order', component=expoisson.id, properties={'color':'.5 0 0'})
-    pI = Population(id='Ipop', size='1*order', component=cell.id, properties={'color':'0 0 1'})
+    pE = Population(id='Epop', 
+                    size='4*order', 
+                    component=cell.id, 
+                    properties={'color':'.9 0 0', 'radius':5},
+                    random_layout = RandomLayout(region=r1.id))
+    pEpoisson = Population(id='expoisson', 
+                           size='4*order', 
+                           component=poisson_input.id, 
+                           properties={'color':'0.9 0.7 0.7', 'radius':3},
+                           random_layout = RandomLayout(region=r1.id))
+    pI = Population(id='Ipop', 
+                    size='1*order', 
+                    component=cell.id, 
+                    properties={'color':'0 0 .9', 'radius':5},
+                    random_layout = RandomLayout(region=r1.id))
+    pIpoisson = Population(id='inpoisson', 
+                           size='1*order', 
+                           component=poisson_input.id, 
+                           properties={'color':'0.7 0.7 0.9', 'radius':3},
+                           random_layout = RandomLayout(region=r1.id))
 
     net.populations.append(pE)
     net.populations.append(pEpoisson)
     net.populations.append(pI)
+    net.populations.append(pIpoisson)
 
 
     net.synapses.append(Synapse(id='ampa', 
                                 pynn_receptor_type='excitatory', 
                                 pynn_synapse_type='curr_alpha', 
                                 parameters={'tau_syn':0.1}))
+                                
     net.synapses.append(Synapse(id='gaba', 
                                 pynn_receptor_type='inhibitory', 
                                 pynn_synapse_type='curr_alpha', 
                                 parameters={'tau_syn':0.1}))
 
-
+    delay_ext = dt
+    
     net.projections.append(Projection(id='projEinput',
                                       presynaptic=pEpoisson.id, 
                                       postsynaptic=pE.id,
                                       synapse='ampa',
-                                      delay=2,
-                                      weight=0.02,
+                                      delay=delay_ext,
+                                      weight=0.000413635066326,
                                       one_to_one_connector=OneToOneConnector()))
-    '''           
+    
+    net.projections.append(Projection(id='projIinput',
+                                      presynaptic=pIpoisson.id, 
+                                      postsynaptic=pI.id,
+                                      synapse='ampa',
+                                      delay=delay_ext,
+                                      weight=0.000413635066326,
+                                      one_to_one_connector=OneToOneConnector()))
+                                      
+           
     net.projections.append(Projection(id='projEE',
                                       presynaptic=pE.id, 
                                       postsynaptic=pE.id,
                                       synapse='ampa',
-                                      delay=2,
-                                      weight=0.002,
-                                      random_connectivity=RandomConnectivity(probability=.5)))'''
+                                      delay='delay',
+                                      weight=0.000413635066326,
+                                      random_connectivity=RandomConnectivity(probability='epsilon')))
 
     net.projections.append(Projection(id='projEI',
                                       presynaptic=pE.id, 
                                       postsynaptic=pI.id,
                                       synapse='ampa',
-                                      delay=2,
-                                      weight=0.02,
-                                      random_connectivity=RandomConnectivity(probability=.5)))
-    '''
+                                      delay='delay',
+                                      weight=0.000413635066326,
+                                      random_connectivity=RandomConnectivity(probability='epsilon')))
+    
     net.projections.append(Projection(id='projIE',
                                       presynaptic=pI.id, 
                                       postsynaptic=pE.id,
                                       synapse='gaba',
-                                      delay=2,
-                                      weight=0.02,
-                                      random_connectivity=RandomConnectivity(probability=.5)))
-
-    net.inputs.append(Input(id='stim',
-                            input_source=input_source.id,
-                            population=pE.id,
-                            percentage=50))'''
+                                      delay='delay',
+                                      weight=-0.001654540265306,
+                                      random_connectivity=RandomConnectivity(probability='epsilon')))
+                                      
+    net.projections.append(Projection(id='projII',
+                                      presynaptic=pI.id, 
+                                      postsynaptic=pI.id,
+                                      synapse='gaba',
+                                      delay='delay',
+                                      weight=-0.001654540265306,
+                                      random_connectivity=RandomConnectivity(probability='epsilon')))
 
     #print(net)
     #print(net.to_json())
@@ -126,8 +151,8 @@ def generate():
 
     sim = Simulation(id='SimExample7',
                      network=new_file,
-                     duration='1000',
-                     dt='0.025',
+                     duration=simtime,
+                     dt=dt,
                      seed= 123,
                      recordTraces={pE.id:'*',pI.id:'*'},
                      recordSpikes={'all':'*'})

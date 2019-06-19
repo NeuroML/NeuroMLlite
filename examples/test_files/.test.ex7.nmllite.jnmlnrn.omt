@@ -4,30 +4,39 @@ target: test_ex7_jnmlnrn.py
 engine: PyNN_NEURON 
 mep: .test.ex7.mep
 experiments:
-        
-  spike_rate_in_0:
+
+  spike_rate_exc_in:
     observables:
       spike rate:
         spiketimes file: 
-          path: ../SimExample7.Einput.spikes
+          path: ../SimExample7.expoisson.spikes
           format: ID_TIME
-          id: 0
-        tolerance: 0.0020752594084240627
+          ids: '*'
+        tolerance: 0.006634321942443797
         
-  spike_rate_in_1:
+  spike_rate_inh_in:
     observables:
       spike rate:
         spiketimes file: 
-          path: ../SimExample7.Einput.spikes
+          path: ../SimExample7.inpoisson.spikes
           format: ID_TIME
-          id: 1
-        tolerance: 0.007526317106486022
+          ids: '*'
+        tolerance: 0.001275282183332274
         
-  spike_rate_e_0:
+  spike_rate_e:
     observables:
       spike rate:
         spiketimes file: 
           path: ../SimExample7.Epop.spikes
           format: ID_TIME
-          id: 0
-        tolerance: 0.002221304674588687
+          ids: '*'
+        tolerance: 0.022138249269156533
+
+  spike_rate_i:
+    observables:
+      spike rate:
+        spiketimes file: 
+          path: ../SimExample7.Ipop.spikes
+          format: ID_TIME
+          ids: '*'
+        tolerance: 0.0015265156151519478

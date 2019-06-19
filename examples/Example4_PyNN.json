@@ -115,7 +115,7 @@
                     "delay": 2, 
                     "weight": 0.02, 
                     "random_connectivity": {
-                        "probability": 1.0
+                        "probability": 1
                     }
                 }
             }, 
@@ -127,7 +127,7 @@
                     "delay": 2, 
                     "weight": 0.01, 
                     "random_connectivity": {
-                        "probability": 1.0
+                        "probability": 1
                     }
                 }
             }

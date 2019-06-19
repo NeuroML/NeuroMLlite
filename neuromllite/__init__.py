@@ -176,7 +176,7 @@ class RandomConnectivity(Base):
 
     def __init__(self, **kwargs):
         
-        self.allowed_fields = collections.OrderedDict([('probability',('Random probability of connection',float))])
+        self.allowed_fields = collections.OrderedDict([('probability',('Random probability of connection',EvaluableExpression))])
                                
         super(RandomConnectivity, self).__init__(**kwargs)
 

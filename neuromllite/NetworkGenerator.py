@@ -163,7 +163,7 @@ def generate_network(nl_model,
                     for post_i in range(len(pop_locations[p.postsynaptic])):
                         flip = rng.random()
                         #print("Is cell %i conn to %i, prob %s - %s"%(pre_i, post_i, flip, p.random_connectivity.probability))
-                        if flip < p.random_connectivity.probability:
+                        if flip < evaluate(p.random_connectivity.probability, nl_model.parameters):
                             weight = evaluate(weight, nl_model.parameters)
                             delay = evaluate(delay, nl_model.parameters)
                             #print_v("Adding connection %i with weight: %s, delay: %s"%(conn_count, weight, delay))
