@@ -26,6 +26,7 @@ def generate():
                        'J':       0.1,
                        'delay':   1.5,
                        'tauMem':  20.0,
+                       'tauSyn':  0.1,
                        'tauRef':  2.0,
                        'U0':      0.0,
                        'theta':   20.0}
@@ -92,12 +93,20 @@ def generate():
 
     delay_ext = dt
     
+    downscale   = 1
+    J_eff     = 'J*%s'%(downscale)
+    # synaptic weights, scaled for alpha functions, such that
+    # for constant membrane potential, charge J would be deposited
+    fudge = 0.00041363506632638  # ensures dV = J at V=0
+    JE = '((%s)/tauSyn)*%s'%(J_eff,fudge)
+    JI = '-1*g*%s'%(JE)
+    
     net.projections.append(Projection(id='projEinput',
                                       presynaptic=pEpoisson.id, 
                                       postsynaptic=pE.id,
                                       synapse='ampa',
                                       delay=delay_ext,
-                                      weight=0.000413635066326,
+                                      weight=JE,
                                       one_to_one_connector=OneToOneConnector()))
     
     net.projections.append(Projection(id='projIinput',
@@ -105,7 +114,7 @@ def generate():
                                       postsynaptic=pI.id,
                                       synapse='ampa',
                                       delay=delay_ext,
-                                      weight=0.000413635066326,
+                                      weight=JE,
                                       one_to_one_connector=OneToOneConnector()))
                                       
            
@@ -114,7 +123,7 @@ def generate():
                                       postsynaptic=pE.id,
                                       synapse='ampa',
                                       delay='delay',
-                                      weight=0.000413635066326,
+                                      weight=JE,
                                       random_connectivity=RandomConnectivity(probability='epsilon')))
 
     net.projections.append(Projection(id='projEI',
@@ -122,7 +131,7 @@ def generate():
                                       postsynaptic=pI.id,
                                       synapse='ampa',
                                       delay='delay',
-                                      weight=0.000413635066326,
+                                      weight=JE,
                                       random_connectivity=RandomConnectivity(probability='epsilon')))
     
     net.projections.append(Projection(id='projIE',
@@ -130,7 +139,7 @@ def generate():
                                       postsynaptic=pE.id,
                                       synapse='gaba',
                                       delay='delay',
-                                      weight=-0.001654540265306,
+                                      weight=JI,
                                       random_connectivity=RandomConnectivity(probability='epsilon')))
                                       
     net.projections.append(Projection(id='projII',
@@ -138,7 +147,7 @@ def generate():
                                       postsynaptic=pI.id,
                                       synapse='gaba',
                                       delay='delay',
-                                      weight=-0.001654540265306,
+                                      weight=JI,
                                       random_connectivity=RandomConnectivity(probability='epsilon')))
 
     #print(net)
@@ -168,22 +177,70 @@ if __name__ == "__main__":
     if '-sweep' in sys.argv:
         
         sim, net = generate()
+        sim.recordTraces={}
         
-        fixed = {'dt':0.001, 'order':1}
+        fixed = {'dt':0.025, 'order':5}
  
-        #
-        vary = {'eta':[0.5,1,1.5,2,5,8,10]}
-        #vary = {'eta':[1,2]}
-        #vary = {'eta':[1]}
-        #vary = {'eta':[i/1000. for i in xrange(0,200,20)]}
-        #vary = {'stim_amp':['1.5pA']}
-        
+        vary = {'eta':[0.5,1,1.5,2,3,4,5,6,7,8,9,10]}
+        #vary = {'eta':[1,2,5]}
         vary['seed'] = [i for i in range(10)]
+        vary['seed'] = [i for i in range(5)]
 
         simulator = 'jNeuroML'
         simulator = 'PyNN_NEST'
-        simulator = 'jNeuroML'
         simulator = 'jNeuroML_NetPyNE'
+        simulator = 'jNeuroML_NEURON'
+        simulator = 'jNeuroML'
+
+        nmllr = NeuroMLliteRunner('SimExample7.json',
+                                  simulator=simulator)
+
+        ps = ParameterSweep(nmllr, 
+                            vary, 
+                            fixed,
+                            num_parallel_runs=16,
+                            plot_all=False, 
+                            heatmap_all=False,
+                            show_plot_already=False,
+                            peak_threshold=0)
+
+        report = ps.run()
+        ps.print_report()
+
+        #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
+        #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+        #ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+        ps.plotLines('eta','expoisson/0/poisson_input/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_ein.png')
+        ps.plotLines('eta','inpoisson/0/poisson_input/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_iin.png')
+        ps.plotLines('eta','Epop/0/ifcell/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_e.png')
+        ps.plotLines('eta','Ipop/0/ifcell/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_i.png')
+
+        import matplotlib.pyplot as plt
+
+        plt.show()
+        
+    if '-sweep2' in sys.argv:
+        
+        sim, net = generate()
+        sim.recordTraces={}
+        
+        fixed = {'dt':0.025, 'order':5}
+ 
+        vary = {'eta':[0.5,1,1.5,2,3]}
+        vary = {'epsilon':[0.01,0.1,0.2,0.5,0.9]}
+        vary = {'J':[0.01,0.1,0.2,0.5,0.9]}
+        #vary = {'g':[0.5,1,1.5,2,3,20]}
+        
+        first = vary.keys()[0]
+        
+        #vary = {'eta':[1,2,5]}
+        #vary['seed'] = [i for i in range(10)]
+        vary['seed'] = [i for i in range(3)]
+
+        simulator = 'jNeuroML'
+        simulator = 'PyNN_NEST'
+        simulator = 'jNeuroML_NetPyNE'
+        simulator = 'jNeuroML'
         simulator = 'jNeuroML_NEURON'
 
         nmllr = NeuroMLliteRunner('SimExample7.json',
@@ -204,9 +261,12 @@ if __name__ == "__main__":
         #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
         #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
         #ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
-        ps.plotLines('eta','Einput[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_ein.png')
-        ps.plotLines('eta','Epop[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_e.png')
-        ps.plotLines('eta','Ipop[0]/spike:mean_spike_frequency',second_param='seed',save_figure_to='mean_spike_frequency_i.png')
+        
+        second = 'seed'
+        ps.plotLines(first,'expoisson/0/poisson_input/spike:mean_spike_frequency',second_param=second,save_figure_to='mean_spike_frequency_ein.png')
+        ps.plotLines(first,'inpoisson/0/poisson_input/spike:mean_spike_frequency',second_param=second,save_figure_to='mean_spike_frequency_iin.png')
+        ps.plotLines(first,'Epop/0/ifcell/spike:mean_spike_frequency',second_param=second,save_figure_to='mean_spike_frequency_e.png')
+        ps.plotLines(first,'Ipop/0/ifcell/spike:mean_spike_frequency',second_param=second,save_figure_to='mean_spike_frequency_i.png')
 
         import matplotlib.pyplot as plt
 

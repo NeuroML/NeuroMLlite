@@ -2,16 +2,17 @@
     "Example7_Brunel2000": {
         "version": "NeuroMLlite v0.1.7", 
         "parameters": {
+            "epsilon": 0.1, 
+            "J": 0.1, 
+            "U0": 0.0, 
+            "g": 4, 
+            "tauMem": 20.0, 
+            "tauRef": 2.0, 
             "delay": 1.5, 
             "eta": 1, 
             "theta": 20.0, 
-            "g": 4, 
-            "tauMem": 20.0, 
-            "epsilon": 0.1, 
-            "tauRef": 2.0, 
-            "J": 0.1, 
-            "order": 5, 
-            "U0": 0.0
+            "tauSyn": 0.1, 
+            "order": 5
         }, 
         "notes": "Example 7: based on network of Brunel 2000", 
         "cells": [
@@ -133,7 +134,7 @@
                     "postsynaptic": "Epop", 
                     "synapse": "ampa", 
                     "delay": 0.025, 
-                    "weight": 0.000413635066326, 
+                    "weight": "((J*1)/tauSyn)*0.000413635066326", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -143,7 +144,7 @@
                     "postsynaptic": "Ipop", 
                     "synapse": "ampa", 
                     "delay": 0.025, 
-                    "weight": 0.000413635066326, 
+                    "weight": "((J*1)/tauSyn)*0.000413635066326", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -153,7 +154,7 @@
                     "postsynaptic": "Epop", 
                     "synapse": "ampa", 
                     "delay": "delay", 
-                    "weight": 0.000413635066326, 
+                    "weight": "((J*1)/tauSyn)*0.000413635066326", 
                     "random_connectivity": {
                         "probability": "epsilon"
                     }
@@ -165,7 +166,7 @@
                     "postsynaptic": "Ipop", 
                     "synapse": "ampa", 
                     "delay": "delay", 
-                    "weight": 0.000413635066326, 
+                    "weight": "((J*1)/tauSyn)*0.000413635066326", 
                     "random_connectivity": {
                         "probability": "epsilon"
                     }
@@ -177,7 +178,7 @@
                     "postsynaptic": "Epop", 
                     "synapse": "gaba", 
                     "delay": "delay", 
-                    "weight": -0.00165454026531, 
+                    "weight": "-1*g*((J*1)/tauSyn)*0.000413635066326", 
                     "random_connectivity": {
                         "probability": "epsilon"
                     }
@@ -189,7 +190,7 @@
                     "postsynaptic": "Ipop", 
                     "synapse": "gaba", 
                     "delay": "delay", 
-                    "weight": -0.00165454026531, 
+                    "weight": "-1*g*((J*1)/tauSyn)*0.000413635066326", 
                     "random_connectivity": {
                         "probability": "epsilon"
                     }

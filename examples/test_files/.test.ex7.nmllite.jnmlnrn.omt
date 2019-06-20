@@ -39,4 +39,4 @@ experiments:
           path: ../SimExample7.Ipop.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.0015265156151519478
+        tolerance: 0.006634321942443797

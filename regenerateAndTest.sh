@@ -47,7 +47,9 @@ echo
 echo "**** Running Example 7 ****"
 python Example7.py
 python Example7.py -jnmlnrn
-#python Example7.py -jnml
+python Example7.py -jnml
+python Example7.py -pynnnest
+python Example7.py -pynnnrn
 
 echo
 echo "**** Running Example 8 ****"
