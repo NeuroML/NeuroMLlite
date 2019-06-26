@@ -1,25 +1,18 @@
 {
-    "Example3_Network": {
+    "Example_Layout": {
         "version": "NeuroMLlite v0.1.8", 
-        "notes": "Example 3: simple network with 2 populations of NeuroML2 cells, a projection between them and spiking input.", 
+        "notes": "....", 
         "cells": [
             {
                 "hhcell": {
-                    "neuroml2_source_file": "test_files/hhcell.cell.nml"
+                    "neuroml2_source_file": "../../../examples/test_files/hhcell.cell.nml"
                 }
             }
         ], 
         "synapses": [
             {
                 "ampa": {
-                    "neuroml2_source_file": "test_files/ampa.synapse.nml"
-                }
-            }
-        ], 
-        "input_sources": [
-            {
-                "poissonFiringSyn": {
-                    "neuroml2_source_file": "test_files/inputs.nml"
+                    "neuroml2_source_file": "../../../examples/test_files/ampa.synapse.nml"
                 }
             }
         ], 
@@ -36,9 +29,9 @@
             }, 
             {
                 "region2": {
-                    "x": 0.0, 
-                    "y": 200.0, 
-                    "z": 0.0, 
+                    "x": 1000.0, 
+                    "y": 1000.0, 
+                    "z": 1000.0, 
                     "width": 1000.0, 
                     "height": 100.0, 
                     "depth": 1000.0
@@ -48,25 +41,31 @@
         "populations": [
             {
                 "pop0": {
-                    "size": 5, 
+                    "size": 1, 
                     "component": "hhcell", 
                     "properties": {
                         "color": "0 .8 0"
                     }, 
-                    "random_layout": {
-                        "region": "region1"
+                    "relative_layout": {
+                        "region": "region1", 
+                        "x": 0.0, 
+                        "y": 50.0, 
+                        "z": 0.0
                     }
                 }
             }, 
             {
                 "pop1": {
-                    "size": 10, 
+                    "size": 1, 
                     "component": "hhcell", 
                     "properties": {
                         "color": "0 0 .8"
                     }, 
-                    "random_layout": {
-                        "region": "region2"
+                    "relative_layout": {
+                        "region": "region2", 
+                        "x": 50.0, 
+                        "y": 0.0, 
+                        "z": 50.0
                     }
                 }
             }
@@ -80,15 +79,6 @@
                     "random_connectivity": {
                         "probability": 0.5
                     }
-                }
-            }
-        ], 
-        "inputs": [
-            {
-                "stim_pop0": {
-                    "input_source": "poissonFiringSyn", 
-                    "population": "pop0", 
-                    "percentage": 80.0
                 }
             }
         ]
