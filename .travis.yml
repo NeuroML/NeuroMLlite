@@ -58,6 +58,9 @@ script:
     - cd PyNN
     - python setup.py install  # Install from pgleeson, with some recent changes
     - cd ..
+    - pip install neo --upgrade # Ensure test with latest neo...
+    
+    - omv list -V  # list before testing...
     
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     
