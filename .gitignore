@@ -98,3 +98,4 @@ report*.txt
 /examples/test_files/test_ex4_jnmlnrn.py
 /sonatafin
 /examples/tmp*.nml
+/examples/Example3_Network_node_types.csv

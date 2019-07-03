@@ -61,4 +61,4 @@ script:
     
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     
-    - omv list-engines
+    - omv list -V
