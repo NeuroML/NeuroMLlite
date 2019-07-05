@@ -111,6 +111,9 @@ def evaluate(expr, parameters={}):
         try:
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
+            if int(v)==v:
+                print_('Returning int: %s'%int(v),verbose)
+                return int(v)
             return v
         except:
             print_('Returning without altering: %s'%expr,verbose)
