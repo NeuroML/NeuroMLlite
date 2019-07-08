@@ -59,7 +59,7 @@ class NMLliteUI(QWidget):
         
         self.param_entries = {}
 
-        for p in self.network.parameters:
+        for p in sorted(self.network.parameters.keys()):
             rows+=1
             param = self.network.parameters[p]
             label = QLabel("%s"%p)
