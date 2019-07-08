@@ -5,8 +5,12 @@ import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
+from PyQt5.QtSvg import QSvgWidget
+
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 from neuromllite.utils import load_simulation_json, load_network_json
+
 
 class NMLliteUI(QWidget):
     
@@ -26,22 +30,42 @@ class NMLliteUI(QWidget):
         self.nameLine.setText(nml_sim_file)
         self.nameLine.setReadOnly(True)
 
-        '''
-        addressLabel = QLabel("Address:")
-        self.addressText = QTextEdit()
-        self.addressText.setText(sim.to_json())
-        self.addressText.setReadOnly(True)'''
+        paramLayout = QGridLayout()
+        topLayout = QGridLayout()
+        midLayout = QGridLayout()
+        
+        self.tabs = QTabWidget()
+        self.simTab = QWidget()
+        self.graphTab= QWidget()
+        self.tabs.resize(300,200)
+        
+        # Add tabs
+        self.tabs.addTab(self.simTab, "Simulation")
+        self.simTabLayout = QGridLayout()
+        self.simTab.setLayout(self.simTabLayout)
+        
+        from matplotlib.figure import Figure
+        
+        self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.simTabLayout.addWidget(self.canvas)
 
+        
+        self.tabs.addTab(self.graphTab, "Graph")
+        self.graphTabLayout = QGridLayout()
+        self.graphTab.setLayout(self.graphTabLayout)
+        
+        
+        # Add tabs to widget
+        midLayout.addWidget(self.tabs, 0, 0)
         mainLayout = QGridLayout()
+
+        
+        topLayout.addWidget(nameLabel, 0, 0)
+        topLayout.addWidget(self.nameLine, 0, 1)
         rows = 0
-        mainLayout.addWidget(nameLabel, rows, 0)
-        mainLayout.addWidget(self.nameLine, rows, 1)
-        #mainLayout.addWidget(addressLabel, 1, 0, Qt.AlignTop)
-        ##mainLayout.addWidget(self.addressText, 1, 1)
         
-        
-        rows+=1
-        mainLayout.addWidget(QLabel("Simulation parameters"), rows, 0)
+        paramLayout.addWidget(QLabel("Simulation parameters"), rows, 0)
 
         self.sim_entries = {}
         svars = ['dt','duration','seed']
@@ -51,52 +75,74 @@ class NMLliteUI(QWidget):
             sval = self.simulation.__getattr__(s)
             if sval is not None:
                 label = QLabel("%s"%s)
-                mainLayout.addWidget(label, rows, 0)
+                paramLayout.addWidget(label, rows, 0)
                 
                 txt = QLineEdit()
                 self.sim_entries[s] = txt
                 txt.setText(str(sval))
-                mainLayout.addWidget(txt, rows, 1)
+                paramLayout.addWidget(txt, rows, 1)
 
         rows+=1
-        mainLayout.addWidget(QLabel("Network parameters"), rows, 0)
+        paramLayout.addWidget(QLabel("Network parameters"), rows, 0)
         
         self.param_entries = {}
 
-        for p in sorted(self.network.parameters.keys()):
-            rows+=1
-            param = self.network.parameters[p]
-            label = QLabel("%s"%p)
-            mainLayout.addWidget(label, rows, 0)
-            txt = QLineEdit()
-            self.param_entries[p] = txt
-            txt.setText(str(param))
-            mainLayout.addWidget(txt, rows, 1)
+        if self.network.parameters is not None and len(self.network.parameters)>0:
+            for p in sorted(self.network.parameters.keys()):
+                rows+=1
+                param = self.network.parameters[p]
+                label = QLabel("%s"%p)
+                paramLayout.addWidget(label, rows, 0)
+                txt = QLineEdit()
+                self.param_entries[p] = txt
+                txt.setText(str(param))
+                paramLayout.addWidget(txt, rows, 1)
 
         self.runButton = QPushButton("Run simulation")
         self.runButton.show()
-        
         self.runButton.clicked.connect(self.runSimulation)
         
+        rows+=1
+        paramLayout.addWidget(self.runButton, rows, 0)
+        
+        self.graphButton = QPushButton("Show graph")
+        self.graphButton.show()
+        self.graphButton.clicked.connect(self.showGraph)
         
         rows+=1
-        buttonLayout1 = QVBoxLayout()
-        buttonLayout1.addWidget(self.runButton, Qt.AlignTop)
-        buttonLayout1.addStretch()
-
-        mainLayout.addLayout(buttonLayout1, rows, 0)
-
+        paramLayout.addWidget(self.graphButton, rows, 0)
+        
+        
+        mainLayout.addLayout(topLayout, 0,1)
+        mainLayout.addLayout(paramLayout, 1,0)
+        mainLayout.addLayout(midLayout, 1,1)
+        
+        #self.setLayout(paramLayout)
         self.setLayout(mainLayout)
+        
         self.setWindowTitle("NeuroMLlite GUI")
  
-
-
-
         self.simulator='jNeuroML'
     
+    
+    
+    def showGraph(self):
+        print("Graph button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
+        
+        self.tabs.setCurrentWidget(self.graphTab)
+        svgWidget = QSvgWidget('/home/padraig/osbpaper/SuppFigureV.svg')
+        #svgWidget.setGeometry(300,300,300,300)
+        svgWidget.show()
+        self.graphTabLayout.addWidget(svgWidget,0,0)
+        
+        
+        
+    
     def runSimulation(self):
-        print("Button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
+        print("Run button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
 
+        self.tabs.setCurrentWidget(self.simTab)
+        
         for p in self.param_entries:
             v = float(self.param_entries[p].text())
             print('Setting param %s to %s'%(p,v))
@@ -121,7 +167,7 @@ class NMLliteUI(QWidget):
                                             % (self.simulation.id, ' (%s)' % self.simulator 
                                                           if self.simulator else '')
 
-        from pyneuroml.pynml import generate_plot
+        #from pyneuroml.pynml import generate_plot
 
         xs = []
         ys = []
@@ -134,8 +180,13 @@ class NMLliteUI(QWidget):
                 ys.append(traces[key])
                 labels.append(key)
 
-        generate_plot(xs,ys,'Results',labels=labels, xaxis="Time (s)",legend_position='right')
+        ax = self.figure.add_subplot(111)
+        
+        ax.clear()
+        for i in range(len(xs)):
+            ax.plot(xs[i],ys[i],label=labels[i])
 
+        self.canvas.draw()
 
 
         print('Done!')

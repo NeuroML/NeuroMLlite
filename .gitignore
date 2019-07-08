@@ -100,3 +100,6 @@ report*.txt
 /examples/tmp*.nml
 /examples/Example3_Network_node_types.csv
 /examples/tests.log
+/neuromllite/gui/*.net.nml
+/neuromllite/gui/LEMS*.xml
+/neuromllite/gui/*.spikes
