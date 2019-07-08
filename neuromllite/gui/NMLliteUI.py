@@ -4,6 +4,7 @@ import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
 
 from neuromllite.utils import load_simulation_json, load_network_json
 
@@ -11,6 +12,9 @@ class NMLliteUI(QWidget):
     
     def __init__(self, nml_sim_file, parent=None):
         super(NMLliteUI, self).__init__(parent)
+        
+        print('Styles availible: %s'%QStyleFactory.keys())
+        QApplication.setStyle(QStyleFactory.create('Fusion'))
         
         self.simulation = load_simulation_json(nml_sim_file)
         self.sim_base_dir = dirname(nml_sim_file)
