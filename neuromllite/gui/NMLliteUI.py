@@ -10,6 +10,7 @@ from PyQt5.QtSvg import QSvgWidget
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 
 from neuromllite.utils import load_simulation_json, load_network_json
+from pyneuroml.pynml import get_next_hex_color
 
 
 class NMLliteUI(QWidget):
@@ -22,6 +23,9 @@ class NMLliteUI(QWidget):
         
         self.simulation = load_simulation_json(nml_sim_file)
         self.sim_base_dir = dirname(nml_sim_file)
+        if len(self.sim_base_dir)==0:
+            self.sim_base_dir = '.' 
+        
         self.network = load_network_json('%s/%s'%(self.sim_base_dir,self.simulation.network))
 
         nameLabel = QLabel("NMLlite file:")
@@ -105,7 +109,7 @@ class NMLliteUI(QWidget):
         rows+=1
         paramLayout.addWidget(self.runButton, rows, 0)
         
-        self.graphButton = QPushButton("Show graph")
+        self.graphButton = QPushButton("Generate graph")
         self.graphButton.show()
         self.graphButton.clicked.connect(self.showGraph)
         
@@ -136,7 +140,7 @@ class NMLliteUI(QWidget):
         
         self.update_net_sim()
         
-        handler = GraphVizHandler(level, engine=engine, nl_network=self.network, output_format='svg')
+        handler = GraphVizHandler(level, engine=engine, nl_network=self.network, output_format='svg', view_on_render=False)
         
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
@@ -144,9 +148,22 @@ class NMLliteUI(QWidget):
         print("Done with GraphViz...")
         
         self.tabs.setCurrentWidget(self.graphTab)
-        svgWidget = QSvgWidget('%s.gv.svg'%self.network.id)
-        #svgWidget.setGeometry(300,300,300,300)
+        
+        genFile = '%s.gv.svg'%self.network.id
+        
+        svgWidget = QSvgWidget(genFile)
+        svgWidget.resize(svgWidget.sizeHint())
         svgWidget.show()
+        '''
+        from PyQt5.QtWebKitWidgets import *
+        self.webview = QGraphicsWebView()
+        #self.webview.resize(SVGwidth,SVGheight)
+        self.webview.load(QtCore.QUrl(genFile))
+        self.webview.setFlags(QtGui.QGraphicsItem.ItemClipsToShape)
+        self.webview.setCacheMode(QtGui.QGraphicsItem.NoCache)
+        self.webview.setZValue(0)'''
+        
+        
         self.graphTabLayout.addWidget(svgWidget,0,0)
         
         
@@ -189,10 +206,27 @@ class NMLliteUI(QWidget):
         xs = []
         ys = []
         labels = []
-
-        for key in traces:
+        colors = []
+        
+        pop_colors = {}
+        for pop in self.network.populations:
+            for prop in pop.properties:
+                if prop == 'color':
+                    rgb = pop.properties[prop].split()
+                    color = '#'
+                    for a in rgb:
+                        color = color+'%02x'%int(float(a)*255)
+                        pop_colors[pop.id] = color
+                        
+        for key in sorted(traces.keys()):
 
             if key != 't':
+                pop_id = key.split('/')[0]
+                if pop_id in pop_colors:
+                    colors.append(pop_colors[pop_id])
+                else:
+                    colors.append(get_next_hex_color)
+                    
                 xs.append(traces['t'])
                 ys.append(traces[key])
                 labels.append(key)
@@ -201,8 +235,9 @@ class NMLliteUI(QWidget):
         
         ax.clear()
         for i in range(len(xs)):
-            ax.plot(xs[i],ys[i],label=labels[i])
+            ax.plot(xs[i],ys[i],label=labels[i],linewidth=0.5,color=colors[i])
 
+        self.figure.legend()
         self.canvas.draw()
 
 
