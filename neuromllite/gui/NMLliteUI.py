@@ -129,20 +129,28 @@ class NMLliteUI(QWidget):
     def showGraph(self):
         print("Graph button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
         
+        from neuromllite.GraphVizHandler import GraphVizHandler, engines
+        
+        engine = 'dot'
+        level = 3
+        
+        self.update_net_sim()
+        
+        handler = GraphVizHandler(level, engine=engine, nl_network=self.network, output_format='svg')
+        
+        from neuromllite.NetworkGenerator import generate_network
+        generate_network(self.network, handler, always_include_props=True, base_dir='.')
+    
+        print("Done with GraphViz...")
+        
         self.tabs.setCurrentWidget(self.graphTab)
-        svgWidget = QSvgWidget('/home/padraig/osbpaper/SuppFigureV.svg')
+        svgWidget = QSvgWidget('%s.gv.svg'%self.network.id)
         #svgWidget.setGeometry(300,300,300,300)
         svgWidget.show()
         self.graphTabLayout.addWidget(svgWidget,0,0)
         
         
-        
-    
-    def runSimulation(self):
-        print("Run button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
-
-        self.tabs.setCurrentWidget(self.simTab)
-        
+    def update_net_sim(self):
         for p in self.param_entries:
             v = float(self.param_entries[p].text())
             print('Setting param %s to %s'%(p,v))
@@ -152,6 +160,15 @@ class NMLliteUI(QWidget):
             v = float(self.sim_entries[s].text())
             print('Setting simulation variable %s to %s'%(s,v))
             self.simulation.__setattr__(s,v)
+        
+        
+    
+    def runSimulation(self):
+        print("Run button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
+
+        self.tabs.setCurrentWidget(self.simTab)
+        
+        self.update_net_sim()
 
         from neuromllite.NetworkGenerator import generate_and_run
         #return

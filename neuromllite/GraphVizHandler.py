@@ -45,7 +45,8 @@ class GraphVizHandler(ConnectivityHandler):
                  show_chem_conns = True,
                  show_elect_conns = True,
                  show_cont_conns = True,
-                 min_weight_to_show=0):
+                 min_weight_to_show=0,
+                 output_format='png'):
                      
         self.nl_network = nl_network
         self.level = level
@@ -57,6 +58,8 @@ class GraphVizHandler(ConnectivityHandler):
         self.show_chem_conns = show_chem_conns
         self.show_elect_conns = show_elect_conns
         self.show_cont_conns = show_cont_conns
+        self.output_format = output_format
+        
         
         print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
         
@@ -76,6 +79,7 @@ class GraphVizHandler(ConnectivityHandler):
         print_v('*    show_chem_conns:         %s'%self.show_chem_conns)
         print_v('*    show_elect_conns:        %s'%self.show_elect_conns)
         print_v('*    show_cont_conns:         %s'%self.show_cont_conns)
+        print_v('*    output_format:           %s'%self.output_format)
         print_v('*')
         print_v('* Used values: ')
         syns = sorted(self.syn_conds_used.keys())                             
@@ -314,7 +318,6 @@ class GraphVizHandler(ConnectivityHandler):
         print_v("Generating graph for: %s"%self.network_id)
         self.print_settings()
 
-        self.f.view()
         
 
     def handle_network(self, network_id, notes, temperature=None):
@@ -322,7 +325,7 @@ class GraphVizHandler(ConnectivityHandler):
         print_v("Network: %s"%network_id)
         self.network_id = network_id
             
-        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=self.engine, format='png')
+        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=self.engine, format=self.output_format)
         
 
     def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}, notes=None):
