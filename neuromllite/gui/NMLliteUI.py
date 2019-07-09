@@ -21,6 +21,8 @@ class NMLliteUI(QWidget):
         print('Styles availible: %s'%QStyleFactory.keys())
         QApplication.setStyle(QStyleFactory.create('Fusion'))
         
+        self.backup_colors = {} # to ensure consistent random colors for traces... 
+        
         self.simulation = load_simulation_json(nml_sim_file)
         self.sim_base_dir = dirname(nml_sim_file)
         if len(self.sim_base_dir)==0:
@@ -67,9 +69,42 @@ class NMLliteUI(QWidget):
         
         topLayout.addWidget(nameLabel, 0, 0)
         topLayout.addWidget(self.nameLine, 0, 1)
+        
         rows = 0
         
-        paramLayout.addWidget(QLabel("Simulation parameters"), rows, 0)
+        header_font = QFont()
+        header_font.setPointSize(10)
+        header_font.setBold(True)
+        
+        l = QLabel("Network parameters")
+        l.setFont(header_font)
+        paramLayout.addWidget(l, rows, 0)
+        
+        self.param_entries = {}
+
+        if self.network.parameters is not None and len(self.network.parameters)>0:
+            for p in sorted(self.network.parameters.keys()):
+                rows+=1
+                param = self.network.parameters[p]
+                label = QLabel("%s"%p)
+                paramLayout.addWidget(label, rows, 0)
+                txt = QLineEdit()
+                self.param_entries[p] = txt
+                txt.setText(str(param))
+                paramLayout.addWidget(txt, rows, 1)
+                
+                
+        self.graphButton = QPushButton("Generate graph")
+        self.graphButton.show()
+        self.graphButton.clicked.connect(self.showGraph)
+        
+        rows+=1
+        paramLayout.addWidget(self.graphButton, rows, 0)
+                
+        rows+=1
+        l = QLabel("Simulation parameters")
+        l.setFont(header_font)
+        paramLayout.addWidget(l, rows, 0)
 
         self.sim_entries = {}
         svars = ['dt','duration','seed']
@@ -87,20 +122,17 @@ class NMLliteUI(QWidget):
                 paramLayout.addWidget(txt, rows, 1)
 
         rows+=1
-        paramLayout.addWidget(QLabel("Network parameters"), rows, 0)
         
-        self.param_entries = {}
-
-        if self.network.parameters is not None and len(self.network.parameters)>0:
-            for p in sorted(self.network.parameters.keys()):
-                rows+=1
-                param = self.network.parameters[p]
-                label = QLabel("%s"%p)
-                paramLayout.addWidget(label, rows, 0)
-                txt = QLineEdit()
-                self.param_entries[p] = txt
-                txt.setText(str(param))
-                paramLayout.addWidget(txt, rows, 1)
+        paramLayout.addWidget(QLabel("Simulator:"), rows, 0)
+        
+        self.simulatorComboBox = QComboBox(self)
+        self.simulatorComboBox.addItem("jNeuroML")
+        self.simulatorComboBox.addItem("jNeuroML_NEURON")
+        
+        paramLayout.addWidget(self.simulatorComboBox, rows, 1)
+        
+        
+        rows+=1
 
         self.runButton = QPushButton("Run simulation")
         self.runButton.show()
@@ -109,12 +141,6 @@ class NMLliteUI(QWidget):
         rows+=1
         paramLayout.addWidget(self.runButton, rows, 0)
         
-        self.graphButton = QPushButton("Generate graph")
-        self.graphButton.show()
-        self.graphButton.clicked.connect(self.showGraph)
-        
-        rows+=1
-        paramLayout.addWidget(self.graphButton, rows, 0)
         
         
         mainLayout.addLayout(topLayout, 0,1)
@@ -126,19 +152,18 @@ class NMLliteUI(QWidget):
         
         self.setWindowTitle("NeuroMLlite GUI")
  
-        self.simulator='jNeuroML'
     
     
     
     def showGraph(self):
         print("Graph button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
         
+        self.update_net_sim()
+        
         from neuromllite.GraphVizHandler import GraphVizHandler, engines
         
         engine = 'dot'
         level = 3
-        
-        self.update_net_sim()
         
         handler = GraphVizHandler(level, engine=engine, nl_network=self.network, output_format='svg', view_on_render=False)
         
@@ -168,20 +193,25 @@ class NMLliteUI(QWidget):
         
         
     def update_net_sim(self):
+        
         for p in self.param_entries:
-            v = float(self.param_entries[p].text())
+            v = self.param_entries[p].text()
             print('Setting param %s to %s'%(p,v))
             self.network.parameters[p] = v
+            
+        print('All params: %s'%self.network.parameters)
 
         for s in self.sim_entries:
             v = float(self.sim_entries[s].text())
             print('Setting simulation variable %s to %s'%(s,v))
             self.simulation.__setattr__(s,v)
         
-        
+         
     
     def runSimulation(self):
-        print("Run button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
+        
+        simulator = str(self.simulatorComboBox.currentText())
+        print("Run button was clicked. Running simulation %s in %s with %s"%(self.simulation.id, self.sim_base_dir, simulator))
 
         self.tabs.setCurrentWidget(self.simTab)
         
@@ -190,7 +220,7 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_and_run
         #return
         traces, events = generate_and_run(self.simulation,
-                         simulator=self.simulator,
+                         simulator=simulator,
                          network=self.network,
                          return_results=True,
                          base_dir=self.sim_base_dir)
@@ -198,8 +228,8 @@ class NMLliteUI(QWidget):
         import matplotlib.pyplot as plt
 
         info = "Data from sim of %s%s" \
-                                            % (self.simulation.id, ' (%s)' % self.simulator 
-                                                          if self.simulator else '')
+                                            % (self.simulation.id, ' (%s)' % simulator 
+                                                          if simulator else '')
 
         #from pyneuroml.pynml import generate_plot
 
@@ -209,6 +239,7 @@ class NMLliteUI(QWidget):
         colors = []
         
         pop_colors = {}
+        
         for pop in self.network.populations:
             for prop in pop.properties:
                 if prop == 'color':
@@ -218,14 +249,22 @@ class NMLliteUI(QWidget):
                         color = color+'%02x'%int(float(a)*255)
                         pop_colors[pop.id] = color
                         
+        colors_used = []
         for key in sorted(traces.keys()):
 
             if key != 't':
                 pop_id = key.split('/')[0]
-                if pop_id in pop_colors:
+                if pop_id in pop_colors and not pop_colors[pop_id] in colors_used:
                     colors.append(pop_colors[pop_id])
+                    colors_used.append(pop_colors[pop_id])
                 else:
-                    colors.append(get_next_hex_color)
+                    if key in self.backup_colors:
+                        colors.append(self.backup_colors[key])
+                    else:
+                        c = get_next_hex_color()
+                        colors.append(c)
+                        self.backup_colors[key] = c
+                        
                     
                 xs.append(traces['t'])
                 ys.append(traces[key])

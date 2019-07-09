@@ -324,6 +324,9 @@ class GraphVizHandler(ConnectivityHandler):
             self.graph.view()
         else:
             self.graph.render()
+            
+        if self.nl_network:
+            print_v("Finished generating graph with params: %s"%self.nl_network.parameters)
 
         
 
