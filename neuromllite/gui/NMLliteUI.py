@@ -47,14 +47,41 @@ class NMLliteUI(QWidget):
         
         # Add tabs
         self.tabs.addTab(self.simTab, "Simulation")
+        
+        
         self.simTabLayout = QGridLayout()
         self.simTab.setLayout(self.simTabLayout)
         
+        
+        self.plotTabs = QTabWidget()
+        
+        self.tracesTab = QWidget()
+        self.plotTabs.addTab(self.tracesTab, "Traces")
+        self.heatmapTab = QWidget()
+        self.plotTabs.addTab(self.heatmapTab, "Heatmap")
+        self.spikesTab = QWidget()
+        self.plotTabs.addTab(self.spikesTab, "Spikes")
+        
+        self.simTabLayout.addWidget(self.plotTabs)
+        
+        
+        self.tracesLayout = QGridLayout()
+        self.tracesTab.setLayout(self.tracesLayout)
+        
+        self.heatmapLayout = QGridLayout()
+        self.heatmapTab.setLayout(self.heatmapLayout)
+        self.heatmapColorbar=None
+        
+        
         from matplotlib.figure import Figure
         
-        self.figure = Figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.simTabLayout.addWidget(self.canvas)
+        self.tracesFigure = Figure()
+        self.tracesCanvas = FigureCanvas(self.tracesFigure)
+        self.tracesLayout.addWidget(self.tracesCanvas)
+        
+        self.heatmapFigure = Figure()
+        self.heatmapCanvas = FigureCanvas(self.heatmapFigure)
+        self.heatmapLayout.addWidget(self.heatmapCanvas)
 
         
         self.tabs.addTab(self.graphTab, "Graph")
@@ -250,9 +277,12 @@ class NMLliteUI(QWidget):
                         pop_colors[pop.id] = color
                         
         colors_used = []
+        heat_array = []
+        
         for key in sorted(traces.keys()):
 
             if key != 't':
+                heat_array.append(traces[key])
                 pop_id = key.split('/')[0]
                 if pop_id in pop_colors and not pop_colors[pop_id] in colors_used:
                     colors.append(pop_colors[pop_id])
@@ -270,14 +300,30 @@ class NMLliteUI(QWidget):
                 ys.append(traces[key])
                 labels.append(key)
 
-        ax = self.figure.add_subplot(111)
+        ax = self.tracesFigure.add_subplot(111)
         
         ax.clear()
         for i in range(len(xs)):
             ax.plot(xs[i],ys[i],label=labels[i],linewidth=0.5,color=colors[i])
 
-        self.figure.legend()
-        self.canvas.draw()
+        self.tracesFigure.legend()
+        self.tracesCanvas.draw()
+        
+        import matplotlib
+        cm = matplotlib.cm.get_cmap('jet')
+        
+        ax_heatmap = self.heatmapFigure.add_subplot(111)
+        ax_heatmap.clear()
+        hm = ax_heatmap.pcolormesh(heat_array,cmap=cm)
+        #cbar = ax_heatmap.colorbar(im)
+        
+        if self.heatmapColorbar==None:
+            self.heatmapColorbar = self.heatmapFigure.colorbar(hm)
+            self.heatmapColorbar.set_label('Firing rate')
+        
+        self.heatmapCanvas.draw()
+
+        
 
 
         print('Done!')
