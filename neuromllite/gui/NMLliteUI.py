@@ -18,8 +18,11 @@ class NMLliteUI(QWidget):
     def __init__(self, nml_sim_file, parent=None):
         super(NMLliteUI, self).__init__(parent)
         
-        print('Styles availible: %s'%QStyleFactory.keys())
+        print('Styles available: %s'%QStyleFactory.keys())
         QApplication.setStyle(QStyleFactory.create('Fusion'))
+        
+        header_font = QFont()
+        header_font.setBold(True)
         
         self.backup_colors = {} # to ensure consistent random colors for traces... 
         
@@ -30,12 +33,9 @@ class NMLliteUI(QWidget):
         
         self.network = load_network_json('%s/%s'%(self.sim_base_dir,self.simulation.network))
 
-        nameLabel = QLabel("NMLlite file:")
+        nameLabel = QLabel("NMLlite file: %s"%realpath(nml_sim_file))
+        nameLabel.setFont(header_font)
         
-        self.nameLine = QLineEdit()
-        self.nameLine.setText(nml_sim_file)
-        self.nameLine.setReadOnly(True)
-
         paramLayout = QGridLayout()
         topLayout = QGridLayout()
         midLayout = QGridLayout()
@@ -43,15 +43,14 @@ class NMLliteUI(QWidget):
         self.tabs = QTabWidget()
         self.simTab = QWidget()
         self.graphTab= QWidget()
+        self.matrixTab= QWidget()
         self.tabs.resize(300,200)
         
         # Add tabs
         self.tabs.addTab(self.simTab, "Simulation")
         
-        
         self.simTabLayout = QGridLayout()
         self.simTab.setLayout(self.simTabLayout)
-        
         
         self.plotTabs = QTabWidget()
         
@@ -85,8 +84,47 @@ class NMLliteUI(QWidget):
 
         
         self.tabs.addTab(self.graphTab, "Graph")
+        self.graphTabTopLayout = QGridLayout()
+        self.graphTab.setLayout(self.graphTabTopLayout)
+        
+        self.graphTabOptionsLayout = QGridLayout()
+        self.graphTabTopLayout.addLayout(self.graphTabOptionsLayout,0,0)
+        
+        
+        self.graphTabOptionsLayout.addWidget(QLabel("Graph level:"), 0, 0)
+        
+        self.graphLevelComboBox = QComboBox(self)
+        self.graphLevelComboBox.addItem('-3')
+        self.graphLevelComboBox.addItem('-2')
+        self.graphLevelComboBox.addItem('-1')
+        self.graphLevelComboBox.addItem('0')
+        self.graphLevelComboBox.addItem('1')
+        self.graphLevelComboBox.addItem('2')
+        self.graphLevelComboBox.addItem('3')
+        self.graphLevelComboBox.addItem('4')
+        self.graphLevelComboBox.addItem('5')
+        self.graphLevelComboBox.addItem('6')
+        self.graphLevelComboBox.setCurrentIndex(6)
+        self.graphTabOptionsLayout.addWidget(self.graphLevelComboBox, 0, 1)
+        self.graphLevelComboBox.currentIndexChanged.connect(self.showGraph)
+        
+        self.graphTypeComboBox = QComboBox(self)
+        self.graphTypeComboBox.addItem('d - dot')
+        self.graphTypeComboBox.addItem('c - circo')
+        self.graphTypeComboBox.addItem('n - neato')
+        self.graphTypeComboBox.addItem('f - fdp')
+        self.graphTypeComboBox.setCurrentIndex(0)
+        self.graphTabOptionsLayout.addWidget(QLabel("GraphViz engine:"), 0, 2)
+        self.graphTabOptionsLayout.addWidget(self.graphTypeComboBox, 0, 3)
+        self.graphTypeComboBox.currentIndexChanged.connect(self.showGraph)
+        
         self.graphTabLayout = QGridLayout()
-        self.graphTab.setLayout(self.graphTabLayout)
+        self.graphTabTopLayout.addLayout(self.graphTabLayout,1,0)
+        
+        
+        self.tabs.addTab(self.matrixTab, "Matrix")
+        self.matrixTabLayout = QGridLayout()
+        self.matrixTab.setLayout(self.matrixTabLayout)
         
         
         # Add tabs to widget
@@ -95,13 +133,10 @@ class NMLliteUI(QWidget):
 
         
         topLayout.addWidget(nameLabel, 0, 0)
-        topLayout.addWidget(self.nameLine, 0, 1)
+        #topLayout.addWidget(self.nameLine, 0, 1)
         
         rows = 0
         
-        header_font = QFont()
-        header_font.setPointSize(10)
-        header_font.setBold(True)
         
         l = QLabel("Network parameters")
         l.setFont(header_font)
@@ -127,6 +162,13 @@ class NMLliteUI(QWidget):
         
         rows+=1
         paramLayout.addWidget(self.graphButton, rows, 0)
+                
+        self.matrixButton = QPushButton("Generate matrix")
+        self.matrixButton.show()
+        self.matrixButton.clicked.connect(self.showMatrix)
+        
+        rows+=1
+        paramLayout.addWidget(self.matrixButton, rows, 0)
                 
         rows+=1
         l = QLabel("Simulation parameters")
@@ -182,47 +224,78 @@ class NMLliteUI(QWidget):
     
     
     
-    def showGraph(self):
-        print("Graph button was clicked. Running simulation %s in %s"%(self.simulation.id, self.sim_base_dir))
+    def showMatrix(self):
+        print("Matrix button was clicked.")
         
         self.update_net_sim()
+        self.tabs.setCurrentWidget(self.matrixTab)
         
-        from neuromllite.GraphVizHandler import GraphVizHandler, engines
+        from neuromllite.MatrixHandler import MatrixHandler
         
-        engine = 'dot'
-        level = 3
+        level = 2
         
-        handler = GraphVizHandler(level, engine=engine, nl_network=self.network, output_format='svg', view_on_render=False)
+        handler = MatrixHandler(level, nl_network=self.network)
+        
+        from neuromllite.NetworkGenerator import generate_network
+        generate_network(self.network, handler, always_include_props=True, base_dir='.')
+    
+        print("Done with MatrixHandler...")
+    
+    
+    def showGraph(self):
+        print("Graph button was clicked.")
+        
+        self.update_net_sim()
+        self.tabs.setCurrentWidget(self.graphTab)
+        
+        from neuromllite.GraphVizHandler import GraphVizHandler
+        
+        engine = str(self.graphTypeComboBox.currentText()).split(' - ')[1]
+        level = int(self.graphLevelComboBox.currentText())
+        
+        format = 'svg'
+        format = 'png'
+        
+        handler = GraphVizHandler(level, engine=engine, nl_network=self.network, output_format=format, view_on_render=False)
         
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
     
         print("Done with GraphViz...")
         
-        self.tabs.setCurrentWidget(self.graphTab)
-        
-        genFile = '%s.gv.svg'%self.network.id
-        
-        svgWidget = QSvgWidget(genFile)
-        svgWidget.resize(svgWidget.sizeHint())
-        svgWidget.show()
-        '''
-        from PyQt5.QtWebKitWidgets import *
-        self.webview = QGraphicsWebView()
-        #self.webview.resize(SVGwidth,SVGheight)
-        self.webview.load(QtCore.QUrl(genFile))
-        self.webview.setFlags(QtGui.QGraphicsItem.ItemClipsToShape)
-        self.webview.setCacheMode(QtGui.QGraphicsItem.NoCache)
-        self.webview.setZValue(0)'''
-        
-        
-        self.graphTabLayout.addWidget(svgWidget,0,0)
+        if format=='svg':
+            genFile = '%s.gv.svg'%self.network.id
+
+            svgWidget = QSvgWidget(genFile)
+            svgWidget.resize(svgWidget.sizeHint())
+            svgWidget.show()
+            self.graphTabLayout.addWidget(svgWidget,0,0)
+            
+        elif format=='png':
+            genFile = '%s.gv.png'%self.network.id
+
+            label = QLabel()
+            pixmap = QPixmap(genFile)
+            pixmap = pixmap.scaledToWidth(min(pixmap.width(),800), Qt.SmoothTransformation)
+            label.setPixmap(pixmap)
+            #self.resize(pixmap.width(),pixmap.height())
+            if self.graphTabLayout.count()>0:
+                self.graphTabLayout.itemAt(0).widget().setParent(None)
+            self.graphTabLayout.addWidget(label,0,0)
         
         
     def update_net_sim(self):
         
         for p in self.param_entries:
             v = self.param_entries[p].text()
+            try:
+                v = int(v) 
+            except:       
+                try:
+                    v = float(v) 
+                except:
+                    pass # leave as string...
+                
             print('Setting param %s to %s'%(p,v))
             self.network.parameters[p] = v
             
@@ -305,6 +378,8 @@ class NMLliteUI(QWidget):
         ax.clear()
         for i in range(len(xs)):
             ax.plot(xs[i],ys[i],label=labels[i],linewidth=0.5,color=colors[i])
+            
+        ax.set_xlabel('Time (s)')
 
         self.tracesFigure.legend()
         self.tracesCanvas.draw()

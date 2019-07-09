@@ -104,3 +104,4 @@ report*.txt
 /neuromllite/gui/LEMS*.xml
 /neuromllite/gui/*.spikes
 /neuromllite/gui/*.gv*
+/neuromllite/gui/x86_64
