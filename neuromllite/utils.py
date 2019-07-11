@@ -109,14 +109,15 @@ def evaluate(expr, parameters={}):
             return float(expr)
     except:
         try:
+            print_('Trying eval with Python...')
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
             if int(v)==v:
                 print_('Returning int: %s'%int(v),verbose)
                 return int(v)
             return v
-        except:
-            print_('Returning without altering: %s'%expr,verbose)
+        except Exception as e:
+            print_('Returning without altering: %s (error: %s)'%(expr,e),verbose)
             return expr
         
         

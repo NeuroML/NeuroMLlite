@@ -57,7 +57,8 @@ def generate_network(nl_model,
         if nl_model.parameters:
             notes += "\n    NeuroMLlite parameters: " 
             for p in sorted(nl_model.parameters.keys()):
-                notes += "\n        %s = %s" % (p, nl_model.parameters[p])
+                if not p=='__builtins__':
+                    notes += "\n        %s = %s" % (p, nl_model.parameters[p])
         handler.handle_document_start(nl_model.id, notes)
         temperature = '%sdegC' % nl_model.temperature if nl_model.temperature else None 
         handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
