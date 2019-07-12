@@ -7,6 +7,8 @@
     <expTwoSynapse id="ampa" gbase="2nS" erev="0mV" tauDecay="2ms" tauRise="1ms"/>
     <network id="Example3_Network">
         <notes>Example 3: simple network with 2 populations of NeuroML2 cells, a projection between them and spiking input.</notes>
+        <property tag="recommended_dt_ms" value="0.025"/>
+        <property tag="recommended_duration_ms" value="1000.0"/>
         <population id="pop0" component="hhcell" size="5" type="populationList">
             <property tag="color" value="0 .8 0"/>
             <property tag="region" value="region1"/>

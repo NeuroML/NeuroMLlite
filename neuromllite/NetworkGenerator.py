@@ -319,12 +319,12 @@ def check_to_generate_or_run(argv, sim):
     elif '-nml' in argv or '-neuroml' in argv:
         
         network = load_network_json(sim.network)
-        generate_neuroml2_from_network(network, validate=True)
+        generate_neuroml2_from_network(network, simulation=sim, validate=True)
         
     elif '-nmlh5' in argv or '-neuromlh5' in argv:
         
         network = load_network_json(sim.network)
-        generate_neuroml2_from_network(network, validate=True, format='hdf5')
+        generate_neuroml2_from_network(network, simulation=sim, validate=True, format='hdf5')
         
     else:
         for a in argv:
@@ -429,7 +429,8 @@ def generate_neuroml2_from_network(nl_model,
                                    base_dir=None,
                                    copy_included_elements=False,
                                    target_dir=None,
-                                   validate=False):
+                                   validate=False,
+                                   simulation=None):
     """
     Generate and save NeuroML2 file (in either XML or HDF5 format) from the 
     NeuroMLlite description
@@ -446,6 +447,12 @@ def generate_neuroml2_from_network(nl_model,
     generate_network(nl_model, neuroml_handler, seed=seed, base_dir=base_dir)
 
     nml_doc = neuroml_handler.get_nml_doc()
+    
+    if simulation is not None:
+        if simulation.dt is not None:
+            print nml_doc.networks[0].properties.append(neuroml.Property('recommended_dt_ms',simulation.dt))
+        if simulation.duration is not None:
+            print nml_doc.networks[0].properties.append(neuroml.Property('recommended_duration_ms',simulation.duration))
     
     for i in nl_model.input_sources:
         
@@ -945,7 +952,7 @@ def generate_and_run(simulation,
 
         lems_file_name = 'LEMS_%s.xml' % simulation.id
 
-        nml_file_name, nml_doc = generate_neuroml2_from_network(network, base_dir=base_dir, target_dir=target_dir)
+        nml_file_name, nml_doc = generate_neuroml2_from_network(network, simulation=simulation, base_dir=base_dir, target_dir=target_dir)
         included_files = ['PyNN.xml']
 
         for c in network.cells:        

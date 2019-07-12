@@ -9,6 +9,8 @@
     <alphaCondSynapse id="gabaSyn" tau_syn="10." e_rev="-80."/>
     <network id="Example4_PyNN">
         <notes>Example 4: a network with PyNN cells &amp; inputs</notes>
+        <property tag="recommended_dt_ms" value="0.01"/>
+        <property tag="recommended_duration_ms" value="1000.0"/>
         <population id="pop0" component="testcell" size="2" type="populationList">
             <property tag="color" value="1 0 0"/>
             <property tag="region" value="region1"/>

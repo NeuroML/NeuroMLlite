@@ -26,6 +26,17 @@ class NMLliteUI(QWidget):
         entry_map[name] = entry
         entry.setText(str(value))
         
+        '''
+        try:
+
+            entry = QDoubleSpinBox()
+            entry_map[name] = entry
+            entry.setValue(float(value))
+        except:
+            entry = QLineEdit()
+            entry_map[name] = entry
+            entry.setValue(str(value))'''
+        
         return entry
     
     

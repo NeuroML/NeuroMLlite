@@ -20,6 +20,8 @@
     <SpikeSourcePoisson id="expoisson" start="0.0ms" duration="1000000000.0ms" rate="10000.0Hz"/>
     <network id="Example7_Brunel2000">
         <notes>Example 7: based on network of Brunel 2000</notes>
+        <property tag="recommended_dt_ms" value="0.025"/>
+        <property tag="recommended_duration_ms" value="1000.0"/>
         <population id="Epop" component="ifcell" size="20"/>
         <population id="Einput" component="expoisson" size="20"/>
         <population id="Ipop" component="ifcell" size="5"/>

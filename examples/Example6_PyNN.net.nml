@@ -13,6 +13,8 @@
     <SpikeSourcePoisson id="InputCell" start="0.0ms" duration="10000000000.0ms" rate="150.0Hz"/>
     <network id="Example6_PyNN">
         <notes>Another network for PyNN - work in progress...</notes>
+        <property tag="recommended_dt_ms" value="0.025"/>
+        <property tag="recommended_duration_ms" value="100.0"/>
         <population id="L23_E" component="CorticalCell" size="103" type="populationList">
             <property tag="color" value="0.6 0 0"/>
             <property tag="region" value="L23"/>
