@@ -13,8 +13,23 @@ from neuromllite.utils import load_simulation_json, load_network_json
 from pyneuroml.pynml import get_next_hex_color
 
 
+    
+    
+
 class NMLliteUI(QWidget):
     
+    default_vals = {}
+    
+    def get_value_entry(self, name, value, entry_map):
+        
+        entry = QLineEdit()
+        entry_map[name] = entry
+        entry.setText(str(value))
+        
+        return entry
+    
+    
+        
     def __init__(self, nml_sim_file, parent=None):
         super(NMLliteUI, self).__init__(parent)
         
@@ -147,13 +162,11 @@ class NMLliteUI(QWidget):
         if self.network.parameters is not None and len(self.network.parameters)>0:
             for p in sorted(self.network.parameters.keys()):
                 rows+=1
-                param = self.network.parameters[p]
+                pval = self.network.parameters[p]
                 label = QLabel("%s"%p)
                 paramLayout.addWidget(label, rows, 0)
-                txt = QLineEdit()
-                self.param_entries[p] = txt
-                txt.setText(str(param))
-                paramLayout.addWidget(txt, rows, 1)
+                entry = self.get_value_entry(p, pval, self.param_entries)
+                paramLayout.addWidget(entry, rows, 1)
                 
                 
         self.graphButton = QPushButton("Generate graph")
@@ -185,10 +198,9 @@ class NMLliteUI(QWidget):
                 label = QLabel("%s"%s)
                 paramLayout.addWidget(label, rows, 0)
                 
-                txt = QLineEdit()
-                self.sim_entries[s] = txt
-                txt.setText(str(sval))
-                paramLayout.addWidget(txt, rows, 1)
+                
+                entry = self.get_value_entry(s, sval, self.sim_entries)
+                paramLayout.addWidget(entry, rows, 1)
 
         rows+=1
         
@@ -413,7 +425,7 @@ btn.grid(column=0, row=rows)
 window.mainloop()
 '''
 
-if __name__ == '__main__':
+def main():
     import sys
 
     from PyQt5.QtWidgets import QApplication
@@ -427,3 +439,8 @@ if __name__ == '__main__':
     nmlui.show()
 
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
+    
