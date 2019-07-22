@@ -1,14 +1,14 @@
-
-from os.path import dirname, realpath
+from os.path import dirname
+from os.path import realpath
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtSvg import QSvgWidget
+from PyQt5.QtWidgets import *
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-
-from neuromllite.utils import load_simulation_json, load_network_json
+from neuromllite.utils import load_network_json
+from neuromllite.utils import load_simulation_json
 from pyneuroml.pynml import get_next_hex_color
 
     
@@ -17,19 +17,28 @@ class NMLliteUI(QWidget):
     
     default_vals = {}
     
-    simulators = ['jNeuroML','jNeuroML_NEURON','PyNN_NEURON','PyNN_NEST']
+    simulators = ['jNeuroML',
+        'jNeuroML_NEURON',
+        'jNeuroML_NetPyNE',
+        'PyNN_NEURON',
+        'PyNN_NEST']
     
-    
+    '''
+    A parameter has been updated
+    '''
     def updated_param(self, p):
         
-        print('=====   Param %s changed'%p)
+        print('=====   Param %s changed' % p)
         
         if self.autoRunCheckBox.isChecked():
             self.runSimulation()
         else:
             print('Nothing changing...')
         
-    
+        
+    '''
+    Create a graphical element for displaying/setting values
+    '''
     def get_value_entry(self, name, value, entry_map):
         
         simple = False
@@ -47,7 +56,7 @@ class NMLliteUI(QWidget):
                 entry_map[name] = entry
                 entry.setMaximum(1e6)
                 entry.setMinimum(-1e6)
-                entry.setSingleStep(value/20.0)
+                entry.setSingleStep(value / 20.0)
                 entry.setValue(float(value))
                 '''
                 print 555
@@ -67,14 +76,18 @@ class NMLliteUI(QWidget):
                 entry.setText(str(value))
                 entry.textChanged.connect(self.updated_param)
         
-        print('Created value entry widget for %s (= %s): %s (%s)'%(name, value, entry, entry.text()))
+        print('Created value entry widget for %s (= %s): %s (%s)' % \
+              (name, value, entry, entry.text()))
         return entry
     
-        
+    '''
+    Constructor for the GUI
+    '''
     def __init__(self, nml_sim_file, parent=None):
+        
         super(NMLliteUI, self).__init__(parent)
         
-        print('Styles available: %s'%QStyleFactory.keys())
+        #print('Styles available: %s'%QStyleFactory.keys())
         QApplication.setStyle(QStyleFactory.create('Fusion'))
         
         header_font = QFont()
@@ -84,12 +97,12 @@ class NMLliteUI(QWidget):
         
         self.simulation = load_simulation_json(nml_sim_file)
         self.sim_base_dir = dirname(nml_sim_file)
-        if len(self.sim_base_dir)==0:
+        if len(self.sim_base_dir) == 0:
             self.sim_base_dir = '.' 
         
-        self.network = load_network_json('%s/%s'%(self.sim_base_dir,self.simulation.network))
+        self.network = load_network_json('%s/%s' % (self.sim_base_dir, self.simulation.network))
 
-        nameLabel = QLabel("NMLlite file: %s"%realpath(nml_sim_file))
+        nameLabel = QLabel("NMLlite file: %s" % realpath(nml_sim_file))
         nameLabel.setFont(header_font)
         
         paramLayout = QGridLayout()
@@ -98,9 +111,9 @@ class NMLliteUI(QWidget):
         
         self.tabs = QTabWidget()
         self.simTab = QWidget()
-        self.graphTab= QWidget()
-        self.matrixTab= QWidget()
-        self.tabs.resize(300,200)
+        self.graphTab = QWidget()
+        self.matrixTab = QWidget()
+        self.tabs.resize(300, 200)
         
         # Add tabs
         self.tabs.addTab(self.simTab, "Simulation")
@@ -125,7 +138,7 @@ class NMLliteUI(QWidget):
         
         self.heatmapLayout = QGridLayout()
         self.heatmapTab.setLayout(self.heatmapLayout)
-        self.heatmapColorbar=None
+        self.heatmapColorbar = None
         
         
         from matplotlib.figure import Figure
@@ -144,7 +157,7 @@ class NMLliteUI(QWidget):
         self.graphTab.setLayout(self.graphTabTopLayout)
         
         self.graphTabOptionsLayout = QGridLayout()
-        self.graphTabTopLayout.addLayout(self.graphTabOptionsLayout,0,0)
+        self.graphTabTopLayout.addLayout(self.graphTabOptionsLayout, 0, 0)
         
         
         self.graphTabOptionsLayout.addWidget(QLabel("Graph level:"), 0, 0)
@@ -175,19 +188,17 @@ class NMLliteUI(QWidget):
         self.graphTypeComboBox.currentIndexChanged.connect(self.showGraph)
         
         self.graphTabLayout = QGridLayout()
-        self.graphTabTopLayout.addLayout(self.graphTabLayout,1,0)
+        self.graphTabTopLayout.addLayout(self.graphTabLayout, 1, 0)
         
         
         self.tabs.addTab(self.matrixTab, "Matrix")
         self.matrixTabLayout = QGridLayout()
         self.matrixTab.setLayout(self.matrixTabLayout)
         
-        
         # Add tabs to widget
         midLayout.addWidget(self.tabs, 0, 0)
         mainLayout = QGridLayout()
 
-        
         topLayout.addWidget(nameLabel, 0, 0)
         #topLayout.addWidget(self.nameLine, 0, 1)
         
@@ -200,11 +211,11 @@ class NMLliteUI(QWidget):
         
         self.param_entries = {}
 
-        if self.network.parameters is not None and len(self.network.parameters)>0:
+        if self.network.parameters is not None and len(self.network.parameters) > 0:
             for p in sorted(self.network.parameters.keys()):
-                rows+=1
+                rows += 1
                 pval = self.network.parameters[p]
-                label = QLabel("%s"%p)
+                label = QLabel("%s" % p)
                 paramLayout.addWidget(label, rows, 0)
                 entry = self.get_value_entry(p, pval, self.param_entries)
                 paramLayout.addWidget(entry, rows, 1)
@@ -214,36 +225,36 @@ class NMLliteUI(QWidget):
         self.graphButton.show()
         self.graphButton.clicked.connect(self.showGraph)
         
-        rows+=1
+        rows += 1
         paramLayout.addWidget(self.graphButton, rows, 0)
                 
         self.matrixButton = QPushButton("Generate matrix")
         self.matrixButton.show()
         self.matrixButton.clicked.connect(self.showMatrix)
         
-        rows+=1
+        rows += 1
         paramLayout.addWidget(self.matrixButton, rows, 0)
                 
-        rows+=1
+        rows += 1
         l = QLabel("Simulation parameters")
         l.setFont(header_font)
         paramLayout.addWidget(l, rows, 0)
 
         self.sim_entries = {}
-        svars = ['dt','duration','seed']
+        svars = ['dt', 'duration', 'seed']
 
         for s in svars:
-            rows+=1
+            rows += 1
             sval = self.simulation.__getattr__(s)
             if sval is not None:
-                label = QLabel("%s"%s)
+                label = QLabel("%s" % s)
                 paramLayout.addWidget(label, rows, 0)
                 
                 
                 entry = self.get_value_entry(s, sval, self.sim_entries)
                 paramLayout.addWidget(entry, rows, 1)
 
-        rows+=1
+        rows += 1
         
         paramLayout.addWidget(QLabel("Simulator:"), rows, 0)
         
@@ -252,22 +263,21 @@ class NMLliteUI(QWidget):
             self.simulatorComboBox.addItem(sim)
         
         paramLayout.addWidget(self.simulatorComboBox, rows, 1)
-        rows+=1
+        rows += 1
 
         self.runButton = QPushButton("Run simulation")
         self.runButton.show()
         self.runButton.clicked.connect(self.runSimulation)
         
         self.autoRunCheckBox = QCheckBox("Auto run")
-        rows+=1
+        rows += 1
         paramLayout.addWidget(self.runButton, rows, 0)
         paramLayout.addWidget(self.autoRunCheckBox, rows, 1)
         
         
-        
-        mainLayout.addLayout(topLayout, 0,1)
-        mainLayout.addLayout(paramLayout, 1,0)
-        mainLayout.addLayout(midLayout, 1,1)
+        mainLayout.addLayout(topLayout, 0, 1)
+        mainLayout.addLayout(paramLayout, 1, 0)
+        mainLayout.addLayout(midLayout, 1, 1)
         
         #self.setLayout(paramLayout)
         self.setLayout(mainLayout)
@@ -276,7 +286,9 @@ class NMLliteUI(QWidget):
  
     
     
-    
+    '''
+    Generate matrix buttom has been pressed 
+    '''
     def showMatrix(self):
         print("Matrix button was clicked.")
         
@@ -295,6 +307,9 @@ class NMLliteUI(QWidget):
         print("Done with MatrixHandler...")
     
     
+    '''
+    Generate graph buttom has been pressed 
+    '''
     def showGraph(self):
         print("Graph button was clicked.")
         
@@ -316,27 +331,29 @@ class NMLliteUI(QWidget):
     
         print("Done with GraphViz...")
         
-        if format=='svg':
-            genFile = '%s.gv.svg'%self.network.id
+        if format == 'svg':
+            genFile = '%s.gv.svg' % self.network.id
 
             svgWidget = QSvgWidget(genFile)
             svgWidget.resize(svgWidget.sizeHint())
             svgWidget.show()
-            self.graphTabLayout.addWidget(svgWidget,0,0)
+            self.graphTabLayout.addWidget(svgWidget, 0, 0)
             
-        elif format=='png':
-            genFile = '%s.gv.png'%self.network.id
+        elif format == 'png':
+            genFile = '%s.gv.png' % self.network.id
 
             label = QLabel()
             pixmap = QPixmap(genFile)
-            pixmap = pixmap.scaledToWidth(min(pixmap.width(),800), Qt.SmoothTransformation)
+            pixmap = pixmap.scaledToWidth(min(pixmap.width(), 800), Qt.SmoothTransformation)
             label.setPixmap(pixmap)
             #self.resize(pixmap.width(),pixmap.height())
-            if self.graphTabLayout.count()>0:
+            if self.graphTabLayout.count() > 0:
                 self.graphTabLayout.itemAt(0).widget().setParent(None)
-            self.graphTabLayout.addWidget(label,0,0)
+            self.graphTabLayout.addWidget(label, 0, 0)
         
-        
+    '''
+    Set the parameters in the network/simulation from the GUI values
+    '''
     def update_net_sim(self):
         
         for p in self.param_entries:
@@ -349,22 +366,24 @@ class NMLliteUI(QWidget):
                 except:
                     pass # leave as string...
                 
-            print('Setting param %s to %s'%(p,v))
+            print('Setting param %s to %s' % (p, v))
             self.network.parameters[p] = v
             
-        print('All params: %s'%self.network.parameters)
+        print('All params: %s' % self.network.parameters)
 
         for s in self.sim_entries:
             v = float(self.sim_entries[s].text())
-            print('Setting simulation variable %s to %s'%(s,v))
-            self.simulation.__setattr__(s,v)
+            print('Setting simulation variable %s to %s' % (s, v))
+            self.simulation.__setattr__(s, v)
         
          
-    
+    '''
+    Run a simulation in the chosen simulator
+    '''
     def runSimulation(self):
         
         simulator = str(self.simulatorComboBox.currentText())
-        print("Run button was clicked. Running simulation %s in %s with %s"%(self.simulation.id, self.sim_base_dir, simulator))
+        print("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
 
         self.tabs.setCurrentWidget(self.simTab)
         
@@ -374,16 +393,16 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_and_run
         #return
         traces, events = generate_and_run(self.simulation,
-                         simulator=simulator,
-                         network=self.network,
-                         return_results=True,
-                         base_dir=self.sim_base_dir)
+                                          simulator=simulator,
+                                          network=self.network,
+                                          return_results=True,
+                                          base_dir=self.sim_base_dir)
 
         import matplotlib.pyplot as plt
 
         info = "Data from sim of %s%s" \
-                                            % (self.simulation.id, ' (%s)' % simulator 
-                                                          if simulator else '')
+            % (self.simulation.id, ' (%s)' % simulator 
+               if simulator else '')
 
         xs = []
         ys = []
@@ -398,7 +417,7 @@ class NMLliteUI(QWidget):
                     rgb = pop.properties[prop].split()
                     color = '#'
                     for a in rgb:
-                        color = color+'%02x'%int(float(a)*255)
+                        color = color + '%02x' % int(float(a) * 255)
                         pop_colors[pop.id] = color
                         
         colors_used = []
@@ -429,7 +448,7 @@ class NMLliteUI(QWidget):
         
         ax.clear()
         for i in range(len(xs)):
-            ax.plot(xs[i],ys[i],label=labels[i],linewidth=0.5,color=colors[i])
+            ax.plot(xs[i], ys[i], label=labels[i], linewidth=0.5, color=colors[i])
             
         ax.set_xlabel('Time (s)')
 
@@ -441,10 +460,10 @@ class NMLliteUI(QWidget):
         
         ax_heatmap = self.heatmapFigure.add_subplot(111)
         ax_heatmap.clear()
-        hm = ax_heatmap.pcolormesh(heat_array,cmap=cm)
+        hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
         #cbar = ax_heatmap.colorbar(im)
         
-        if self.heatmapColorbar==None:
+        if self.heatmapColorbar == None:
             self.heatmapColorbar = self.heatmapFigure.colorbar(hm)
             self.heatmapColorbar.set_label('Firing rate')
         
@@ -453,14 +472,15 @@ class NMLliteUI(QWidget):
         print('Done!')
     
 
-
+'''
+Main run method
+'''
 def main():
     import sys
 
     from PyQt5.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
-    
     
     nml_sim_file = sys.argv[1]
 

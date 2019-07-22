@@ -105,3 +105,9 @@ report*.txt
 /neuromllite/gui/*.spikes
 /neuromllite/gui/*.gv*
 /neuromllite/gui/x86_64
+/neuromllite/gui/NMLliteUI_tk.py
+/examples/LEMS_SimExample8.xml
+/examples/gaba.synapse.nml
+/examples/hhcell.cell.nml
+/examples/inputs.nml
+/examples/Example8_Extension.net.nml

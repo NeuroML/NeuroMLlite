@@ -450,9 +450,9 @@ def generate_neuroml2_from_network(nl_model,
     
     if simulation is not None:
         if simulation.dt is not None:
-            print nml_doc.networks[0].properties.append(neuroml.Property('recommended_dt_ms',simulation.dt))
+            nml_doc.networks[0].properties.append(neuroml.Property('recommended_dt_ms',simulation.dt))
         if simulation.duration is not None:
-            print nml_doc.networks[0].properties.append(neuroml.Property('recommended_duration_ms',simulation.duration))
+            nml_doc.networks[0].properties.append(neuroml.Property('recommended_duration_ms',simulation.duration))
     
     for i in nl_model.input_sources:
         
