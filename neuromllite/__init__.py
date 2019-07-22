@@ -1,6 +1,6 @@
 import collections
 
-__version__ = '0.1.7'
+__version__ = '0.1.8'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
@@ -105,6 +105,7 @@ class Population(BaseWithId):
                                ('component',('Type of cell to use in population',str)),
                                ('properties',('Dict of properties (metadata) for the population',dict)),
                                ('random_layout',('Layout in random region',RandomLayout)),
+                               ('relative_layout',('Position relative to region',RelativeLayout)),
                                ('single_location',('Explicit location',SingleLocation))])
                                
                       
@@ -118,6 +119,18 @@ class RandomLayout(Base):
         self.allowed_fields = collections.OrderedDict([('region',('Region in which to place population',str))])
                                
         super(RandomLayout, self).__init__(**kwargs)
+        
+        
+class RelativeLayout(Base):
+
+    def __init__(self, **kwargs):
+        
+        self.allowed_fields = collections.OrderedDict([('region',('Region, relative to which, population should be positioned',str)),
+                               ('x',('x position relative to x coordinate of region',float)),
+                               ('y',('y position relative to y coordinate of region',float)),
+                               ('z',('z position relative to z coordinate of region',float))])
+                               
+        super(RelativeLayout, self).__init__(**kwargs)
  
  
 class SingleLocation(Base):

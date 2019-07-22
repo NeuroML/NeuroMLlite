@@ -45,7 +45,9 @@ class GraphVizHandler(ConnectivityHandler):
                  show_chem_conns = True,
                  show_elect_conns = True,
                  show_cont_conns = True,
-                 min_weight_to_show=0):
+                 min_weight_to_show=0,
+                 output_format='png',
+                 view_on_render=True):
                      
         self.nl_network = nl_network
         self.level = level
@@ -57,6 +59,9 @@ class GraphVizHandler(ConnectivityHandler):
         self.show_chem_conns = show_chem_conns
         self.show_elect_conns = show_elect_conns
         self.show_cont_conns = show_cont_conns
+        self.output_format = output_format
+        self.view_on_render = view_on_render
+        
         
         print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
         
@@ -76,6 +81,7 @@ class GraphVizHandler(ConnectivityHandler):
         print_v('*    show_chem_conns:         %s'%self.show_chem_conns)
         print_v('*    show_elect_conns:        %s'%self.show_elect_conns)
         print_v('*    show_cont_conns:         %s'%self.show_cont_conns)
+        print_v('*    output_format:           %s'%self.output_format)
         print_v('*')
         print_v('* Used values: ')
         syns = sorted(self.syn_conds_used.keys())                             
@@ -168,7 +174,7 @@ class GraphVizHandler(ConnectivityHandler):
                                                                                      max_abs_weight[proj_type], 
                                                                                      min_abs_weight[proj_type])
 
-                                self.f.attr('edge', 
+                                self.graph.attr('edge', 
                                             style = self.proj_lines[projName], 
                                             arrowhead = self.proj_shapes[projName], 
                                             arrowsize = '%s'%(min(1,lweight)), 
@@ -201,9 +207,9 @@ class GraphVizHandler(ConnectivityHandler):
                                 if not label[-1]=='>':
                                     label += '>'
                                 if self.level<=-2:
-                                    self.f.edge(pre_pop_i, post_pop_i, label=label)
+                                    self.graph.edge(pre_pop_i, post_pop_i, label=label)
                                 else:
-                                    self.f.edge(pre_pop_i, post_pop_i)
+                                    self.graph.edge(pre_pop_i, post_pop_i)
                                 
         else:
 
@@ -257,7 +263,7 @@ class GraphVizHandler(ConnectivityHandler):
                         if self.level>=2 and show:
                             print_v("EDGE: %s (%s): weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, proj_type, weight_used, max_abs_weight[proj_type],min_abs_weight[proj_type],fweight,lweight))
 
-                            self.f.attr('edge', 
+                            self.graph.attr('edge', 
                                         style = self.proj_lines[projName], 
                                         arrowhead = self.proj_shapes[projName], 
                                         arrowsize = '%s'%(min(1,lweight)), 
@@ -307,14 +313,21 @@ class GraphVizHandler(ConnectivityHandler):
                                 if not label[-1]=='>':
                                     label += '>'
 
-                                self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
+                                self.graph.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName], label=label)
                             else:
-                                self.f.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
+                                self.graph.edge(self.proj_pre_pops[projName], self.proj_post_pops[projName])
 
         print_v("Generating graph for: %s"%self.network_id)
         self.print_settings()
+        
+        if self.view_on_render:
+            self.graph.view()
+        else:
+            self.graph.render()
+            
+        if self.nl_network:
+            print_v("Finished generating graph with params: %s"%self.nl_network.parameters)
 
-        self.f.view()
         
 
     def handle_network(self, network_id, notes, temperature=None):
@@ -322,7 +335,7 @@ class GraphVizHandler(ConnectivityHandler):
         print_v("Network: %s"%network_id)
         self.network_id = network_id
             
-        self.f = Digraph(network_id, filename='%s.gv'%network_id, engine=self.engine, format='png')
+        self.graph = Digraph(network_id, filename='%s.gv'%network_id, engine=self.engine, format=self.output_format)
         
 
     def handle_population(self, population_id, component, size=-1, component_obj=None, properties={}, notes=None):
@@ -390,7 +403,7 @@ class GraphVizHandler(ConnectivityHandler):
             
         if properties and 'region' in properties:
             
-            with self.f.subgraph(name='cluster_%s'%properties['region']) as c:
+            with self.graph.subgraph(name='cluster_%s'%properties['region']) as c:
                 c.attr(color='#444444', fontcolor = '#444444')
                 c.attr(label=properties['region'])
                 c.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
@@ -403,14 +416,14 @@ class GraphVizHandler(ConnectivityHandler):
                     c.node(population_id, label=label)
     
         else:
-            self.f.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
+            self.graph.attr('node', color=color, style='filled', fontcolor = fcolor, shape=shape)
             
             if self.is_cell_level():
                 for i in range(size):
                     cell_info = self.get_cell_identifier(population_id, i)
-                    self.f.node(cell_info, label=cell_info)
+                    self.graph.node(cell_info, label=cell_info)
             else:
-                self.f.node(population_id, label=label)
+                self.graph.node(population_id, label=label)
         
 
     def handle_projection(self, projName, prePop, postPop, synapse, hasWeights=False, hasDelays=False, type="projection", synapse_obj=None, pre_synapse_obj=None):
@@ -536,8 +549,8 @@ class GraphVizHandler(ConnectivityHandler):
 
                 label += '>'
 
-                self.f.attr('node', color='#444444', style='', fontcolor = '#444444')
-                self.f.node(inputListId, label=label)
+                self.graph.attr('node', color='#444444', style='', fontcolor = '#444444')
+                self.graph.node(inputListId, label=label)
 
                 label = None
                 if self.level>=5:
@@ -556,4 +569,4 @@ class GraphVizHandler(ConnectivityHandler):
                     if not label[-1]=='>':
                         label += '>'
 
-                self.f.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE, label=label)
+                self.graph.edge(inputListId, self.pops_ils[inputListId], arrowhead=self.INPUT_ARROW_SHAPE, label=label)

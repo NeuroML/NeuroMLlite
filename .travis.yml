@@ -86,7 +86,15 @@ script:
     - omv install NEURON
     - export NEURON_HOME=/home/travis/neuron/nrn/x86_64
     
-    - omv list -V 
+    # Standard PyNN install...
+    - omv install PyNN
+    - git clone https://github.com/pgleeson/PyNN.git
+    - cd PyNN
+    - python setup.py install  # Install from pgleeson, with some recent changes
+    - cd ..
+    - pip install neo --upgrade # Ensure test with latest neo...
+    
+    - omv list -V  # list before testing...
     
     - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
     - ls -alt
