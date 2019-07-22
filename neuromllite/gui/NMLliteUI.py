@@ -1,5 +1,6 @@
 from os.path import dirname
 from os.path import realpath
+import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
@@ -11,7 +12,6 @@ from neuromllite.utils import load_network_json
 from neuromllite.utils import load_simulation_json
 from pyneuroml.pynml import get_next_hex_color
 
-    
 
 class NMLliteUI(QWidget):
     
@@ -23,10 +23,9 @@ class NMLliteUI(QWidget):
         'PyNN_NEURON',
         'PyNN_NEST']
     
-    '''
-    A parameter has been updated
-    '''
+    
     def updated_param(self, p):
+        """A parameter has been updated"""
         
         print('=====   Param %s changed' % p)
         
@@ -36,11 +35,8 @@ class NMLliteUI(QWidget):
             print('Nothing changing...')
         
         
-    '''
-    Create a graphical element for displaying/setting values
-    '''
     def get_value_entry(self, name, value, entry_map):
-        
+        """Create a graphical element for displaying/setting values"""
         simple = False
         simple = True
         
@@ -80,10 +76,9 @@ class NMLliteUI(QWidget):
               (name, value, entry, entry.text()))
         return entry
     
-    '''
-    Constructor for the GUI
-    '''
+    
     def __init__(self, nml_sim_file, parent=None):
+        """Constructor for the GUI"""
         
         super(NMLliteUI, self).__init__(parent)
         
@@ -285,11 +280,9 @@ class NMLliteUI(QWidget):
         self.setWindowTitle("NeuroMLlite GUI")
  
     
-    
-    '''
-    Generate matrix buttom has been pressed 
-    '''
     def showMatrix(self):
+        """Generate matrix buttom has been pressed"""
+        
         print("Matrix button was clicked.")
         
         self.update_net_sim()
@@ -307,10 +300,9 @@ class NMLliteUI(QWidget):
         print("Done with MatrixHandler...")
     
     
-    '''
-    Generate graph buttom has been pressed 
-    '''
     def showGraph(self):
+        """Generate graph buttom has been pressed"""
+        
         print("Graph button was clicked.")
         
         self.update_net_sim()
@@ -351,10 +343,9 @@ class NMLliteUI(QWidget):
                 self.graphTabLayout.itemAt(0).widget().setParent(None)
             self.graphTabLayout.addWidget(label, 0, 0)
         
-    '''
-    Set the parameters in the network/simulation from the GUI values
-    '''
+        
     def update_net_sim(self):
+        """Set the parameters in the network/simulation from the GUI values"""
         
         for p in self.param_entries:
             v = self.param_entries[p].text()
@@ -377,10 +368,8 @@ class NMLliteUI(QWidget):
             self.simulation.__setattr__(s, v)
         
          
-    '''
-    Run a simulation in the chosen simulator
-    '''
     def runSimulation(self):
+        """Run a simulation in the chosen simulator"""
         
         simulator = str(self.simulatorComboBox.currentText())
         print("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
@@ -472,11 +461,8 @@ class NMLliteUI(QWidget):
         print('Done!')
     
 
-'''
-Main run method
-'''
 def main():
-    import sys
+    """Main run method"""
 
     from PyQt5.QtWidgets import QApplication
 
