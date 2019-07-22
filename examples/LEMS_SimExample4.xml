@@ -47,6 +47,11 @@
             <OutputColumn id="v_pop2_0_testcell2_v" quantity="pop2/0/testcell2/v"/> 
         </OutputFile>
         
+        <EventOutputFile id="Spikes_file__pop0" fileName="SimExample4.pop0.spikes" format="ID_TIME">
+            <EventSelection id="0" select="pop0/0/testcell" eventPort="spike"/> 
+            <EventSelection id="1" select="pop0/1/testcell" eventPort="spike"/> 
+        </EventOutputFile>
+        
     </Simulation>
 
 </Lems>

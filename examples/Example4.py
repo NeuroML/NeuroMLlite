@@ -74,7 +74,8 @@ sim = Simulation(id='SimExample4',
                  network=new_file,
                  duration='1000',
                  dt='0.01',
-                 recordTraces={'all':'*'})
+                 recordTraces={'all':'*'},
+                 recordSpikes={'pop0':'*'})
                  
 sim.to_json_file()
 

@@ -2,6 +2,7 @@ import copy
 from neuromllite.utils import evaluate
 from neuromllite.utils import load_network_json
 from neuromllite.utils import print_v
+from neuromllite.utils import get_pops_vs_cell_indices
 import numpy as np
 import os
 import random
@@ -226,7 +227,7 @@ def generate_network(nl_model,
 
                 elif p.one_to_one_connector:
                     for i in range(min(len(pop_locations[p.presynaptic]), len(pop_locations[p.postsynaptic]))):
-
+           
                         #print_v("Adding connection %i with weight: %s, delay: %s"%(conn_count, weight, delay))
                         handler.handle_connection(p.id, 
                                                   conn_count, 
@@ -502,11 +503,11 @@ def generate_neuroml2_from_network(nl_model,
             if not incl in nml_doc.includes:
                 nml_doc.includes.append(incl) 
                 
-        '''  Needed???
+        '''  Needed??? '''
         if c.lems_source_file:      
             incl = neuroml.IncludeType(_locate_file(c.lems_source_file, base_dir))
             if not incl in nml_doc.includes:
-                nml_doc.includes.append(incl)'''
+                nml_doc.includes.append(incl)
                 
         if c.neuroml2_cell: 
             
@@ -700,6 +701,7 @@ def generate_and_run(simulation,
 
         try:
             if simulator[-1].isalpha():
+                
                 engine = engines[simulator[-1]]
                 level = int(simulator[5:-1])
             else:
@@ -799,12 +801,17 @@ def generate_and_run(simulation,
         
         generate_network(network, pynn_handler, always_include_props=True, base_dir=base_dir)
         
-        for pid in pynn_handler.populations:
-            pop = pynn_handler.populations[pid]
-            if simulation.recordTraces is not None and \
-               ('all' in simulation.recordTraces or pop.label in simulation.recordTraces):
-                if pop.can_record('v'):
-                    pop.record('v')
+        trace_pop_indices = get_pops_vs_cell_indices(simulation.recordTraces, network)
+        spike_pop_indices = get_pops_vs_cell_indices(simulation.recordSpikes, network)
+        
+        for pop_id in pynn_handler.populations:
+            pynn_pop = pynn_handler.populations[pop_id]
+            if pynn_pop.label in trace_pop_indices:
+                if pynn_pop.can_record('v'):
+                    pynn_pop.record('v')
+            if pynn_pop.label in spike_pop_indices:
+                if pynn_pop.can_record('spikes'):
+                    pynn_pop.record('spikes')
         
         
         pynn_handler.sim.run(simulation.duration)
@@ -814,36 +821,66 @@ def generate_and_run(simulation,
         events = {}
         
         if not 'NeuroML' in simulator:
-            #from neo.io import PyNNTextIO
 
-            for pid in pynn_handler.populations:
-                pop = pynn_handler.populations[pid]
+            for pop_id in trace_pop_indices:
+                pynn_pop = pynn_handler.populations[pop_id]
+                indices = trace_pop_indices[pop_id]
+                
+                filename = "%s.%s.v.dat" % (simulation.id, pop_id)
+                all_columns = []
+                
+                print_v("Writing data for %s %s to %s" % (pop_id, indices, filename))
+                
+                data = pynn_pop.get_data('v', gather=False)
+                analogsignal = data.segments[0].analogsignals[0]
 
-                if simulation.recordTraces is not None and \
-                   ('all' in simulation.recordTraces or pop.label in simulation.recordTraces):
+                source_ids = analogsignal.annotations['source_ids']
+                analogsignal_index = {}
+                for sii, glob_id in enumerate(source_ids):
+                    index_in_pop = pynn_pop.id_to_index(glob_id)
+                    #print('Index %i in analogsignal is pynn global id %i, pop index %i'%(sii,glob_id,index_in_pop))
+                    analogsignal_index[index_in_pop] = sii
                     
-                    filename = "%s.%s.v.dat" % (simulation.id, pop.label)
-                    all_columns = []
-                    print_v("Writing data for %s to %s" % (pop.label, filename))
-                    for i in range(len(pop)):
-                        if pop.can_record('v'):
-                            ref = '%s[%i]'%(pop.label,i)
-                            traces[ref] = []
-                            data = pop.get_data('v', gather=False)
-                            for segment in data.segments:
-                                vm = segment.analogsignals[0].transpose()[i]
-                                
-                                if len(all_columns) == 0:
-                                    tt = np.array([t * simulation.dt / 1000. for t in range(len(vm))])
-                                    all_columns.append(tt)
-                                vm_si = [float(v / 1000.) for v in vm]
-                                traces[ref] = vm_si
-                                all_columns.append(vm_si)
-                                
-                            times_vm = np.array(all_columns).transpose()
-                                
-                    np.savetxt(filename, times_vm, delimiter='\t', fmt='%s')
+                
+                for index in indices:
+                    ref = '%s[%i]'%(pop_id,index)
+                    traces[ref] = []
+                    vm = analogsignal.transpose()[analogsignal_index[index]]
+
+                    if len(all_columns) == 0:
+                        tt = np.array([t * simulation.dt / 1000. for t in range(len(vm))])
+                        all_columns.append(tt)
+                    vm_si = vm/1000.
+                    traces[ref] = vm_si
+                    all_columns.append(vm_si)
+
+                    times_vm = np.array(all_columns).transpose()
+
+                np.savetxt(filename, times_vm, delimiter='\t', fmt='%s')
           
+            
+            for pop_id in spike_pop_indices:
+                pynn_pop = pynn_handler.populations[pop_id]
+                indices = spike_pop_indices[pop_id]
+                
+                filename = "%s.%s.spikes" % (simulation.id, pop_id)
+                all_columns = []
+                print_v("Writing spike data for %s %s to %s" % (pop_id, indices, filename))
+                
+                data =  pynn_pop.get_data('spikes', gather=False)
+                spiketrains = data.segments[0].spiketrains
+        
+                ff = open(filename, 'w')
+
+                for spiketrain in spiketrains:
+                    source_id = spiketrain.annotations['source_id']
+                    source_index = spiketrain.annotations['source_index']
+                    print("Writing spike data for cell %s[%s] (gid: %i): %i spikes "%(pynn_pop.label,source_index, source_id, len(spiketrain)))
+                    if source_index in indices:
+                        for t in spiketrain:
+                            #ff.write('%s\t%i\n'%(t.magnitude/1000.,source_index))
+                            ff.write('%i\t%s\n'%(source_index,t.magnitude/1000.))
+                ff.close()
         
         if return_results:
             _print_result_info(traces, events)
@@ -883,11 +920,12 @@ def generate_and_run(simulation,
         
 
         for pop in netpyne_handler.popParams.values():
-            if 'all' in simulation.recordTraces or pop.id in simulation.recordTraces:
+            if simulation.recordTraces is not None and \
+              ('all' in simulation.recordTraces or pop.id in simulation.recordTraces):
                 for i in pop['cellsList']:
-                    id = pop['pop']
+                    pop_id = pop['pop']
                     index = i['cellLabel']
-                    simConfig.recordTraces['v_%s_%s' % (id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':id, 'cellLabel':index}}
+                    simConfig.recordTraces['%s.%s.%s.v' % (simulation.id, pop_id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':pop_id, 'cellLabel':index}}
 
         simConfig.saveDat = True
         
@@ -956,11 +994,11 @@ def generate_and_run(simulation,
 
         nml_file_name, nml_doc = generate_neuroml2_from_network(network, simulation=simulation, base_dir=base_dir, target_dir=target_dir)
         included_files = ['PyNN.xml']
-
+        ''' Needed?
         for c in network.cells:        
             if c.lems_source_file:
                 included_files.append(c.lems_source_file)
-        '''
+        
         if network.cells:
             for c in network.cells:
                 included_files.append(c.neuroml2_source_file)
@@ -1053,8 +1091,10 @@ def generate_and_run(simulation,
                                                            load_saved_data=return_results, 
                                                            reload_events=return_results,
                                                            num_processors=num_processors)
-
-        print_v("Finished running LEMS file %s in %s (returning results: %s)" % (lems_file_name, simulator, return_results))
+        
+        from pyneuroml import __version__, JNEUROML_VERSION
+        print_v("Finished running LEMS file %s in %s (pyNeuroML v%s containing jNeuroML v%s; returning results: %s)" % \
+                (lems_file_name, simulator, __version__, JNEUROML_VERSION, return_results))
 
         if return_results:
             traces, events = results

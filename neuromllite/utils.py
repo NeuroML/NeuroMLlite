@@ -121,6 +121,33 @@ def evaluate(expr, parameters={}):
             return expr
         
         
+def get_pops_vs_cell_indices(recordSpec, network):
+    
+    pvc = {}
+    if recordSpec is not None:
+        for p in recordSpec:
+            indices = recordSpec[p]
+            if p=='all':
+                for pop in network.populations:
+                    pvc[pop.id] = _generate_cell_indices(pop.id, indices, network)
+                    
+            else:
+                #pop = network.get_child(p, 'populations')
+                pvc[p] = _generate_cell_indices(p, indices, network)
+            
+    return pvc
+    
+    
+def _generate_cell_indices(pop_id, indices, network):
+    a = []
+    if indices=='*':
+        pop = network.get_child(pop_id, 'populations')
+        size = evaluate(pop.size, network.parameters)
+        for i in range(size):
+            a.append(i)
+    return a
+
+        
 def create_new_model(reference,
                      duration, 
                      dt=0.025, # ms 
