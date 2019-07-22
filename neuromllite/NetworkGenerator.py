@@ -801,7 +801,8 @@ def generate_and_run(simulation,
         
         for pid in pynn_handler.populations:
             pop = pynn_handler.populations[pid]
-            if 'all' in simulation.recordTraces or pop.label in simulation.recordTraces:
+            if simulation.recordTraces is not None and \
+               ('all' in simulation.recordTraces or pop.label in simulation.recordTraces):
                 if pop.can_record('v'):
                     pop.record('v')
         
@@ -818,7 +819,8 @@ def generate_and_run(simulation,
             for pid in pynn_handler.populations:
                 pop = pynn_handler.populations[pid]
 
-                if 'all' in simulation.recordTraces or pop.label in simulation.recordTraces:
+                if simulation.recordTraces is not None and \
+                   ('all' in simulation.recordTraces or pop.label in simulation.recordTraces):
                     
                     filename = "%s.%s.v.dat" % (simulation.id, pop.label)
                     all_columns = []

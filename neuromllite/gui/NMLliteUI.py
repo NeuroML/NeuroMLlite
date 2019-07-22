@@ -1,6 +1,5 @@
 
 from os.path import dirname, realpath
-import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
@@ -12,33 +11,64 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from neuromllite.utils import load_simulation_json, load_network_json
 from pyneuroml.pynml import get_next_hex_color
 
-
-    
     
 
 class NMLliteUI(QWidget):
     
     default_vals = {}
     
+    simulators = ['jNeuroML','jNeuroML_NEURON','PyNN_NEURON','PyNN_NEST']
+    
+    
+    def updated_param(self, p):
+        
+        print('=====   Param %s changed'%p)
+        
+        if self.autoRunCheckBox.isChecked():
+            self.runSimulation()
+        else:
+            print('Nothing changing...')
+        
+    
     def get_value_entry(self, name, value, entry_map):
         
-        entry = QLineEdit()
-        entry_map[name] = entry
-        entry.setText(str(value))
+        simple = False
+        simple = True
         
-        '''
-        try:
-
-            entry = QDoubleSpinBox()
-            entry_map[name] = entry
-            entry.setValue(float(value))
-        except:
+        if simple:
             entry = QLineEdit()
             entry_map[name] = entry
-            entry.setValue(str(value))'''
+            entry.setText(str(value))
+
+        else:
         
+            try:
+                entry = QDoubleSpinBox()
+                entry_map[name] = entry
+                entry.setMaximum(1e6)
+                entry.setMinimum(-1e6)
+                entry.setSingleStep(value/20.0)
+                entry.setValue(float(value))
+                '''
+                print 555
+                print entry.maximum()
+                print entry.minimum()
+                print entry.singleStep()
+                print entry.text()
+                '''
+                
+                entry.valueChanged.connect(self.updated_param)
+                
+            except Exception as e:
+                print e
+                
+                entry = QLineEdit()
+                entry_map[name] = entry
+                entry.setText(str(value))
+                entry.textChanged.connect(self.updated_param)
+        
+        print('Created value entry widget for %s (= %s): %s (%s)'%(name, value, entry, entry.text()))
         return entry
-    
     
         
     def __init__(self, nml_sim_file, parent=None):
@@ -218,20 +248,20 @@ class NMLliteUI(QWidget):
         paramLayout.addWidget(QLabel("Simulator:"), rows, 0)
         
         self.simulatorComboBox = QComboBox(self)
-        self.simulatorComboBox.addItem("jNeuroML")
-        self.simulatorComboBox.addItem("jNeuroML_NEURON")
+        for sim in self.simulators:
+            self.simulatorComboBox.addItem(sim)
         
         paramLayout.addWidget(self.simulatorComboBox, rows, 1)
-        
-        
         rows+=1
 
         self.runButton = QPushButton("Run simulation")
         self.runButton.show()
         self.runButton.clicked.connect(self.runSimulation)
         
+        self.autoRunCheckBox = QCheckBox("Auto run")
         rows+=1
         paramLayout.addWidget(self.runButton, rows, 0)
+        paramLayout.addWidget(self.autoRunCheckBox, rows, 1)
         
         
         
@@ -339,6 +369,7 @@ class NMLliteUI(QWidget):
         self.tabs.setCurrentWidget(self.simTab)
         
         self.update_net_sim()
+        
 
         from neuromllite.NetworkGenerator import generate_and_run
         #return
@@ -353,8 +384,6 @@ class NMLliteUI(QWidget):
         info = "Data from sim of %s%s" \
                                             % (self.simulation.id, ' (%s)' % simulator 
                                                           if simulator else '')
-
-        #from pyneuroml.pynml import generate_plot
 
         xs = []
         ys = []
@@ -421,20 +450,9 @@ class NMLliteUI(QWidget):
         
         self.heatmapCanvas.draw()
 
-        
-
-
         print('Done!')
     
- 
-'''
-btn = Button(window, text="Click Me", command=clicked)
-rows+=1
-btn.grid(column=0, row=rows)
 
-
-window.mainloop()
-'''
 
 def main():
     import sys
