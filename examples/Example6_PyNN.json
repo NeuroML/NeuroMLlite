@@ -5,6 +5,7 @@
             "N_scaling": 0.005, 
             "depth": 100, 
             "layer_height": 400, 
+            "input_weight": 0.1, 
             "width": 100
         }, 
         "notes": "Another network for PyNN - work in progress...", 
@@ -113,7 +114,7 @@
             {
                 "L23_E_input": {
                     "size": "int(20683*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -138,7 +139,7 @@
             {
                 "L23_I_input": {
                     "size": "int(5834*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -163,7 +164,7 @@
             {
                 "L4_E_input": {
                     "size": "int(21915*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -188,7 +189,7 @@
             {
                 "L4_I_input": {
                     "size": "int(5479*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -213,7 +214,7 @@
             {
                 "L5_E_input": {
                     "size": "int(4850*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -238,7 +239,7 @@
             {
                 "L5_I_input": {
                     "size": "int(1065*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -263,7 +264,7 @@
             {
                 "L6_E_input": {
                     "size": "int(14395*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -288,7 +289,7 @@
             {
                 "L6_I_input": {
                     "size": "int(2948*N_scaling)", 
-                    "component": "CorticalCell", 
+                    "component": "InputCell", 
                     "properties": {
                         "color": ".8 .8 .8"
                     }, 
@@ -305,7 +306,7 @@
                     "postsynaptic": "L23_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -315,7 +316,7 @@
                     "postsynaptic": "L23_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -325,7 +326,7 @@
                     "postsynaptic": "L4_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -335,7 +336,7 @@
                     "postsynaptic": "L4_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -345,7 +346,7 @@
                     "postsynaptic": "L5_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -355,7 +356,7 @@
                     "postsynaptic": "L5_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -365,7 +366,7 @@
                     "postsynaptic": "L6_E", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 
@@ -375,7 +376,7 @@
                     "postsynaptic": "L6_I", 
                     "synapse": "ampa", 
                     "delay": 2, 
-                    "weight": 0.1, 
+                    "weight": "input_weight", 
                     "one_to_one_connector": {}
                 }
             }, 

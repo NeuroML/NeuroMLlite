@@ -8,8 +8,13 @@ from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtWidgets import *
 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+
+import matplotlib
+from matplotlib.figure import Figure
+
 from neuromllite.utils import load_network_json
 from neuromllite.utils import load_simulation_json
+from neuromllite.utils import evaluate
 from pyneuroml.pynml import get_next_hex_color
 
 
@@ -72,8 +77,8 @@ class NMLliteUI(QWidget):
                 entry.setText(str(value))
                 entry.textChanged.connect(self.updated_param)
         
-        print('Created value entry widget for %s (= %s): %s (%s)' % \
-              (name, value, entry, entry.text()))
+        '''print('Created value entry widget for %s (= %s): %s (%s)' % \
+              (name, value, entry, entry.text()))'''
         return entry
     
     
@@ -81,6 +86,7 @@ class NMLliteUI(QWidget):
         """Constructor for the GUI"""
         
         super(NMLliteUI, self).__init__(parent)
+        
         
         #print('Styles available: %s'%QStyleFactory.keys())
         QApplication.setStyle(QStyleFactory.create('Fusion'))
@@ -127,24 +133,35 @@ class NMLliteUI(QWidget):
         
         self.simTabLayout.addWidget(self.plotTabs)
         
+        self.tracesTabTopLayout = QGridLayout()
+        self.tracesTab.setLayout(self.tracesTabTopLayout)
         
-        self.tracesLayout = QGridLayout()
-        self.tracesTab.setLayout(self.tracesLayout)
+        self.tracesTabOptionsLayout = QGridLayout()
+        self.tracesTabTopLayout.addLayout(self.tracesTabOptionsLayout, 0, 0)
+        
+        self.showTracesLegend = QCheckBox("Legend")
+        self.tracesTabOptionsLayout.addWidget(self.showTracesLegend, 0, 0)
+        
+        self.tracesTabLayout = QGridLayout()
+        self.tracesTabTopLayout.addLayout(self.tracesTabLayout, 1, 0)
         
         self.heatmapLayout = QGridLayout()
         self.heatmapTab.setLayout(self.heatmapLayout)
         self.heatmapColorbar = None
         
-        
-        from matplotlib.figure import Figure
-        
         self.tracesFigure = Figure()
         self.tracesCanvas = FigureCanvas(self.tracesFigure)
-        self.tracesLayout.addWidget(self.tracesCanvas)
+        self.tracesTabLayout.addWidget(self.tracesCanvas)
         
         self.heatmapFigure = Figure()
         self.heatmapCanvas = FigureCanvas(self.heatmapFigure)
         self.heatmapLayout.addWidget(self.heatmapCanvas)
+        
+        self.spikesLayout = QGridLayout()
+        self.spikesTab.setLayout(self.spikesLayout)
+        self.spikesFigure = Figure()
+        self.spikesCanvas = FigureCanvas(self.spikesFigure)
+        self.spikesLayout.addWidget(self.spikesCanvas)
 
         
         self.tabs.addTab(self.graphTab, "Graph")
@@ -381,23 +398,23 @@ class NMLliteUI(QWidget):
 
         from neuromllite.NetworkGenerator import generate_and_run
         #return
-        traces, events = generate_and_run(self.simulation,
+        self.current_traces, self.current_events = generate_and_run(self.simulation,
                                           simulator=simulator,
                                           network=self.network,
                                           return_results=True,
                                           base_dir=self.sim_base_dir)
+                                          
+        self.replotSimResults()
+        
 
-        import matplotlib.pyplot as plt
+    def replotSimResults(self):
+        
+        simulator = str(self.simulatorComboBox.currentText())
 
         info = "Data from sim of %s%s" \
             % (self.simulation.id, ' (%s)' % simulator 
                if simulator else '')
-
-        xs = []
-        ys = []
-        labels = []
-        colors = []
-        
+               
         pop_colors = {}
         
         for pop in self.network.populations:
@@ -408,14 +425,22 @@ class NMLliteUI(QWidget):
                     for a in rgb:
                         color = color + '%02x' % int(float(a) * 255)
                         pop_colors[pop.id] = color
+
+        ## Plot traces
+        
+        xs = []
+        ys = []
+        labels = []
+        colors = []
+        
                         
         colors_used = []
         heat_array = []
         
-        for key in sorted(traces.keys()):
+        for key in sorted(self.current_traces.keys()):
 
             if key != 't':
-                heat_array.append(traces[key])
+                heat_array.append(self.current_traces[key])
                 pop_id = key.split('/')[0]
                 if pop_id in pop_colors and not pop_colors[pop_id] in colors_used:
                     colors.append(pop_colors[pop_id])
@@ -429,26 +454,29 @@ class NMLliteUI(QWidget):
                         self.backup_colors[key] = c
                         
                     
-                xs.append(traces['t'])
-                ys.append(traces[key])
+                xs.append(self.current_traces['t'])
+                ys.append(self.current_traces[key])
                 labels.append(key)
 
-        ax = self.tracesFigure.add_subplot(111)
+        ax_traces = self.tracesFigure.add_subplot(111)
         
-        ax.clear()
+        ax_traces.clear()
         for i in range(len(xs)):
-            ax.plot(xs[i], ys[i], label=labels[i], linewidth=0.5, color=colors[i])
+            ax_traces.plot(xs[i], ys[i], label=labels[i], linewidth=0.5, color=colors[i])
             
-        ax.set_xlabel('Time (s)')
+        ax_traces.set_xlabel('Time (s)')
 
-        self.tracesFigure.legend()
+        if self.showTracesLegend.isChecked():
+            self.tracesFigure.legend()
         self.tracesCanvas.draw()
         
-        import matplotlib
-        cm = matplotlib.cm.get_cmap('jet')
+        
+        ## Plot heatmap
         
         ax_heatmap = self.heatmapFigure.add_subplot(111)
         ax_heatmap.clear()
+        
+        cm = matplotlib.cm.get_cmap('jet')
         hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
         #cbar = ax_heatmap.colorbar(im)
         
@@ -457,14 +485,65 @@ class NMLliteUI(QWidget):
             self.heatmapColorbar.set_label('Firing rate')
         
         self.heatmapCanvas.draw()
-
-        print('Done!')
+        
+        
+        ## Plot spikes
+        
+        ax_spikes = self.spikesFigure.add_subplot(111)
+        ax_spikes.clear()
+        
+        ids_for_pop = {}
+        ts_for_pop = {}
+        
+        for k in self.current_events.keys():
+            spikes = self.current_events[k]
+            print('%s: %s'%(k, len(spikes)))
+            pop_id = k.split('/')[0]
+            cell_id = int(k.split('/')[1])
+            if not pop_id in ids_for_pop:
+                ids_for_pop[pop_id] = []
+                ts_for_pop[pop_id] = []
+            
+            for t in spikes:
+                ids_for_pop[pop_id].append(cell_id)
+                ts_for_pop[pop_id].append(t)
+                
+        
+        max_id = 0
+        for pop_id in sorted(ids_for_pop.keys()):
+            shifted_ids = [id+max_id for id in ids_for_pop[pop_id]]
+            
+            if pop_id in pop_colors:
+                c = pop_colors[pop_id]
+            else:
+                c = get_next_hex_color()
+            
+            ax_spikes.plot(ts_for_pop[pop_id], shifted_ids, label=pop_id, linewidth=0, marker='.', color=c)
+            
+            pop = self.network.get_child(pop_id, 'populations')
+            if pop.size is not None:
+                max_id_here = evaluate(pop.size, self.network.parameters)
+            else:
+                max_id_here = max(ids_for_pop[pop_id]) if len(ids_for_pop[pop_id])>0 else 0
+                
+            print('Finished with spikes for %s, go from %i with max %i'%(pop_id, max_id, max_id_here))
+            max_id += max_id_here
+            
+        ax_spikes.set_xlabel('Time (s)')
+        ax_spikes.set_ylabel('Index')
+        
+        tmax = self.simulation.duration/1000.
+        ax_spikes.set_xlim(tmax/-20.0, tmax*1.05)
+        ax_spikes.set_ylim(max_id/-20., max_id*1.05)
+        
+        self.spikesFigure.legend()
+        self.spikesCanvas.draw()
+                
+        print('Done with plotting!')
     
 
 def main():
     """Main run method"""
-
-    from PyQt5.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
     

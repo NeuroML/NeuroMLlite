@@ -348,17 +348,18 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
     these to the equivalent elements in a NeuroMLDocument
     """
     
+    import copy
+    
     if nml_doc == None:
         from neuroml import NeuroMLDocument
         nml_doc = NeuroMLDocument(id="temp")
     
     for c in nl_model.cells:
-        
         if c.pynn_cell:
             
             if nml_doc.get_by_id(c.id) == None:
                 import pyNN.neuroml
-                cell_params = c.parameters if c.parameters else {}
+                cell_params = copy.deepcopy(c.parameters) if c.parameters else {}
                 #print('------- %s: %s' % (c, cell_params))
                 for p in cell_params:
                     cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
@@ -410,7 +411,9 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
       
         if i.pynn_input:
             import pyNN.neuroml
-            input_params = i.parameters if i.parameters else {}
+            input_params = copy.deepcopy(i.parameters) if i.parameters else {}
+            for ip in input_params:
+                input_params[ip] = evaluate(input_params[ip], nl_model.parameters)
             exec('input__%s = pyNN.neuroml.%s(**input_params)' % (i.id, i.pynn_input))
             exec('temp_input = input__%s' % i.id)
             pg_id = temp_input.add_to_nml_doc(nml_doc, None)
@@ -776,8 +779,9 @@ def generate_and_run(simulation,
                 dont_set_here = ['tau_syn_E', 'e_rev_E', 'tau_syn_I', 'e_rev_I']
                 for d in dont_set_here:
                     if d in c.parameters:
-                        raise Exception('Synaptic parameters like %s should be set '+
-                          'in individual synapses, not in the list of parameters associated with the cell' % d)
+                        print ('Problem with %s, %s'%(c.id, c.parameters))
+                        raise Exception('Synaptic parameters like %s should be set ' % d+
+                          'in individual synapses, not in the list of parameters associated with the cell')
                 if c.id in syn_cell_params:
                     cell_params.update(syn_cell_params[c.id])
                 print_v("Creating cell with params: %s" % cell_params)
@@ -796,8 +800,9 @@ def generate_and_run(simulation,
         pynn_handler.set_receptor_types(receptor_types)
         
         for input_source in network.input_sources:
+            
             if input_source.pynn_input:
-                pynn_handler.add_input_source(input_source)
+                pynn_handler.add_input_source(input_source, network)
         
         generate_network(network, pynn_handler, always_include_props=True, base_dir=base_dir)
         
@@ -844,14 +849,19 @@ def generate_and_run(simulation,
                 
                 for index in indices:
                     ref = '%s[%i]'%(pop_id,index)
+                    ref = '%s/%i/???/v'%(pop_id,index)
                     traces[ref] = []
                     vm = analogsignal.transpose()[analogsignal_index[index]]
 
                     if len(all_columns) == 0:
                         tt = np.array([t * simulation.dt / 1000. for t in range(len(vm))])
                         all_columns.append(tt)
-                    vm_si = vm/1000.
+                    vm_si = np.array(vm/1000.)
+                    
                     traces[ref] = vm_si
+                    if not 't' in traces:
+                        traces['t'] = tt
+                    
                     all_columns.append(vm_si)
 
                     times_vm = np.array(all_columns).transpose()

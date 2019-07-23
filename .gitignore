@@ -111,3 +111,6 @@ report*.txt
 /examples/hhcell.cell.nml
 /examples/inputs.nml
 /examples/Example8_Extension.net.nml
+/examples/Example6_PyNN.net.nml.h5
+/examples/Example6_PyNN_node_types.csv
+/examples/Example6_PyNN_nodes.sonata.h5
