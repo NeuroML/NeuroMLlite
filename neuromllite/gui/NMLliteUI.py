@@ -38,6 +38,31 @@ class NMLliteUI(QWidget):
             self.runSimulation()
         else:
             print('Nothing changing...')
+            
+        self.update_net_sim()
+        if self.tabs.currentWidget() == self.nmlliteTab:
+            self.update_network_json()
+            self.update_simulation_json()
+        
+        
+            
+    def update_network_json(self):
+        
+        self.nmlliteNetText.clear()
+        try:
+            j = self.network.to_json()
+            self.nmlliteNetText.insertPlainText(j)
+        except Exception as e:
+            self.nmlliteNetText.insertPlainText("Error parsing model: %s"%e)
+            
+    def update_simulation_json(self):
+        
+        self.nmlliteSimText.clear()
+        try:
+            j = self.simulation.to_json()
+            self.nmlliteSimText.insertPlainText(j)
+        except Exception as e:
+            self.nmlliteSimText.insertPlainText("Error parsing model: %s"%e)
         
         
     def get_value_entry(self, name, value, entry_map):
@@ -49,6 +74,8 @@ class NMLliteUI(QWidget):
             entry = QLineEdit()
             entry_map[name] = entry
             entry.setText(str(value))
+            
+            entry.textChanged.connect(self.updated_param)
 
         else:
         
@@ -111,10 +138,13 @@ class NMLliteUI(QWidget):
         midLayout = QGridLayout()
         
         self.tabs = QTabWidget()
+        self.nmlliteTab = QWidget()
+        self.nml2Tab = QWidget()
         self.simTab = QWidget()
         self.graphTab = QWidget()
         self.matrixTab = QWidget()
         self.tabs.resize(300, 200)
+        
         
         # Add tabs
         self.tabs.addTab(self.simTab, "Simulation")
@@ -207,6 +237,38 @@ class NMLliteUI(QWidget):
         self.matrixTabLayout = QGridLayout()
         self.matrixTab.setLayout(self.matrixTabLayout)
         
+        
+        # Add tabs
+        self.tabs.addTab(self.nmlliteTab, "NeuroMLlite")
+        
+        self.nmlliteTabLayout = QGridLayout()
+        self.nmlliteTab.setLayout(self.nmlliteTabLayout)
+        
+        self.nmlliteTabs = QTabWidget()
+        self.nmlliteTabLayout.addWidget(self.nmlliteTabs)
+        
+        self.nmlliteSimTab = QWidget()
+        self.nmlliteTabs.addTab(self.nmlliteSimTab, "Simulation")
+        self.nmlliteSimTabLayout = QGridLayout()
+        self.nmlliteSimTab.setLayout(self.nmlliteSimTabLayout)
+        self.nmlliteSimText = QPlainTextEdit()
+        self.nmlliteSimTabLayout.addWidget(self.nmlliteSimText,0,0)
+        
+        self.nmlliteNetTab = QWidget()
+        self.nmlliteTabs.addTab(self.nmlliteNetTab, "Network")
+        self.nmlliteNetTabLayout = QGridLayout()
+        self.nmlliteNetTab.setLayout(self.nmlliteNetTabLayout)
+        self.nmlliteNetText = QPlainTextEdit()
+        self.nmlliteNetTabLayout.addWidget(self.nmlliteNetText,0,0)
+        
+        
+        self.tabs.addTab(self.nml2Tab, "NeuroML 2")
+        self.nml2Layout = QGridLayout()
+        self.nml2Tab.setLayout(self.nml2Layout)
+        self.nml2Text = QPlainTextEdit()
+        self.nml2Layout.addWidget(self.nml2Text,0,0)
+        
+        
         # Add tabs to widget
         midLayout.addWidget(self.tabs, 0, 0)
         mainLayout = QGridLayout()
@@ -246,6 +308,13 @@ class NMLliteUI(QWidget):
         
         rows += 1
         paramLayout.addWidget(self.matrixButton, rows, 0)
+                
+        self.nml2Button = QPushButton("Generate NeuroML 2")
+        self.nml2Button.show()
+        self.nml2Button.clicked.connect(self.generateNeuroML2)
+        
+        rows += 1
+        paramLayout.addWidget(self.nml2Button, rows, 0)
                 
         rows += 1
         l = QLabel("Simulation parameters")
@@ -295,6 +364,9 @@ class NMLliteUI(QWidget):
         self.setLayout(mainLayout)
         
         self.setWindowTitle("NeuroMLlite GUI")
+        
+        self.update_network_json()
+        self.update_simulation_json()
  
     
     def showMatrix(self):
@@ -316,6 +388,35 @@ class NMLliteUI(QWidget):
     
         print("Done with MatrixHandler...")
     
+    
+    def generateNeuroML2(self):
+        """Generate NeuroML 2 representation of network"""
+        
+        print("Generate NeuroML 2 button was clicked.")
+        
+        self.update_net_sim()
+        from neuromllite.NetworkGenerator import generate_neuroml2_from_network
+        
+        nml_file_name, nml_doc = generate_neuroml2_from_network(self.network, 
+                                   print_summary=True, 
+                                   seed=self.simulation.seed if self.simulation.seed is not None else 1234, 
+                                   format='xml', 
+                                   base_dir=None,
+                                   copy_included_elements=False,
+                                   target_dir=None,
+                                   validate=False,
+                                   simulation=self.simulation)
+                                   
+        with open(nml_file_name, 'r') as reader: 
+            nml_txt = reader.read()
+            
+        self.nml2Text.clear()
+        self.nml2Text.insertPlainText(nml_txt)
+        
+        self.tabs.setCurrentWidget(self.nml2Tab)
+        
+        
+        
     
     def showGraph(self):
         """Generate graph buttom has been pressed"""
