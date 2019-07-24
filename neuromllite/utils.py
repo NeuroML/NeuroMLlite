@@ -86,7 +86,8 @@ def load_simulation_json(filename):
 def evaluate(expr, parameters={}):
     
     verbose = False
-    print_('Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
+    #verbose = True
+    print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
     try:
         if expr in parameters:
             expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
@@ -109,7 +110,7 @@ def evaluate(expr, parameters={}):
             return float(expr)
     except:
         try:
-            print_('Trying eval with Python...')
+            print_('Trying eval with Python...',verbose)
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
             if int(v)==v:

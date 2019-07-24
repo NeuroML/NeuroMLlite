@@ -886,6 +886,8 @@ def generate_and_run(simulation,
                     source_id = spiketrain.annotations['source_id']
                     source_index = spiketrain.annotations['source_index']
                     print("Writing spike data for cell %s[%s] (gid: %i): %i spikes "%(pynn_pop.label,source_index, source_id, len(spiketrain)))
+                    ref = '%s/%i/???'%(pynn_pop.label,source_index)
+                    events[ref] = [t.magnitude/1000. for t in spiketrain]
                     if source_index in indices:
                         for t in spiketrain:
                             #ff.write('%s\t%i\n'%(t.magnitude/1000.,source_index))
