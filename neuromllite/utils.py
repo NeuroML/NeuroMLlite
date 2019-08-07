@@ -1,8 +1,54 @@
 from neuromllite import *
 import sys
+import json
 
 from neuromllite.BaseTypes import print_v, print_
     
+    
+def load_json(filename):
+    """
+    Load a generic JSON file
+    """
+
+    with open(filename, 'r') as f:
+        
+        data = json.load(f, object_hook=ascii_encode_dict)
+        
+    return data
+
+    
+def load_network_json(filename):
+    """
+    Load a NeuroMLlite network JSON file
+    """
+    
+    data = load_json(filename)
+        
+    print_v("Loaded network specification from %s"%filename)
+    
+    net = Network()
+    net = _parse_element(data, net)
+    
+    return net
+    
+    
+def load_simulation_json(filename):
+    """
+    Load a NeuroMLlite simulation JSON file
+    """
+
+    with open(filename, 'r') as f:
+        
+        data = json.load(f, object_hook=ascii_encode_dict)
+        
+        
+    print_v("Loaded simulation specification from %s"%filename)
+    
+    sim = Simulation()
+    sim = _parse_element(data, sim)
+    
+    return sim
+
     
 def ascii_encode_dict(data):
     ascii_encode = lambda x: x.encode('ascii') if (sys.version_info[0]==2 and isinstance(x, unicode)) else x
@@ -44,46 +90,13 @@ def _parse_attributes(json, to_build):
         
     return to_build
     
-    
-def load_json(filename):
-    import json
-
-    with open(filename, 'r') as f:
-        
-        data = json.load(f, object_hook=ascii_encode_dict)
-        
-    return data
-
-    
-def load_network_json(filename):
-    
-    data = load_json(filename)
-        
-    print_v("Loaded network specification from %s"%filename)
-    
-    net = Network()
-    net = _parse_element(data, net)
-    
-    return net
-    
-    
-def load_simulation_json(filename):
-    import json
-
-    with open(filename, 'r') as f:
-        
-        data = json.load(f, object_hook=ascii_encode_dict)
-        
-        
-    print_v("Loaded simulation specification from %s"%filename)
-    
-    sim = Simulation()
-    sim = _parse_element(data, sim)
-    
-    return sim
-
 
 def evaluate(expr, parameters={}):
+    """
+    Evaluate a general string like expression (e.g. "2 * weight") using a dict
+    of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's 
+    given in expr
+    """
     
     verbose = False
     #verbose = True
@@ -140,11 +153,18 @@ def get_pops_vs_cell_indices(recordSpec, network):
     
     
 def _generate_cell_indices(pop_id, indices, network):
+    
     a = []
+    pop = network.get_child(pop_id, 'populations')
+    
     if indices=='*':
-        pop = network.get_child(pop_id, 'populations')
         size = evaluate(pop.size, network.parameters)
         for i in range(size):
+            a.append(i)
+    if isinstance(indices, int):
+        a.append(indices)
+    if isinstance(indices, list):
+        for i in indices:
             a.append(i)
     return a
 

@@ -59,6 +59,7 @@ def generate(ref='Example6_PyNN', add_inputs=True):
     scale = 0.1
 
     pops = []
+    pop_dict = {}
 
     layers = ['L23']
     layers = ['L23','L4','L5','L6']
@@ -101,6 +102,8 @@ def generate(ref='Example6_PyNN', add_inputs=True):
             exec(ref + " = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color, 'type':t})")
             exec("%s.random_layout = RandomLayout(region = r.id)"%ref)
             exec("net.populations.append(%s)"%ref)
+            exec("pop_dict['%s'] = %s"%(pop_id,ref))
+            
 
             if add_inputs:
                 color = '.8 .8 .8'
@@ -169,8 +172,11 @@ def generate(ref='Example6_PyNN', add_inputs=True):
 
     recordTraces={}
     recordSpikes={}
+    
+    from neuromllite.utils import evaluate
     for p in pops:
-        recordTraces[p]='0'
+        forecast_size = evaluate(pop_dict[p].size, net.parameters)
+        recordTraces[p]=range(min(2,forecast_size))
         recordSpikes[p]='*'
         
     sim = Simulation(id='Sim%s'%net.id,

@@ -114,10 +114,9 @@ class PyNNHandler(DefaultNetworkHandler):
                                                     delay = 0, \
                                                     weight = 1):
         
-        self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
-        print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
+        #self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
+        #print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
          
-        import random
         exec('self.projection__%s_conns.append((%s,%s,float(%s),float(%s)))'%(projName,preCellId,postCellId,weight,delay))
 
         

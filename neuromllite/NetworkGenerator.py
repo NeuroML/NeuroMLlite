@@ -1027,20 +1027,39 @@ def generate_and_run(simulation,
         gen_plots_for_quantities = {}
         gen_saves_for_quantities = {}
         
-        for p in network.populations:
-            
-            if simulation.recordTraces and ('all' in simulation.recordTraces or p.id in simulation.recordTraces):
-                pops_plot_save.append(p.id)
+        trace_pop_indices = get_pops_vs_cell_indices(simulation.recordTraces, network)
+        spike_pop_indices = get_pops_vs_cell_indices(simulation.recordSpikes, network)
+        rate_pop_indices = get_pops_vs_cell_indices(simulation.recordRates, network)
+        
+        pops = network.populations
+        pops.sort(key=id)
+        for p in pops:
                 
-            if simulation.recordSpikes and ('all' in simulation.recordSpikes or p.id in simulation.recordSpikes):
+            #TODO: just save the particular cells specified...
+            if p.id in spike_pop_indices:
                 pops_spike_save.append(p.id)
                 
-            if simulation.recordRates and ('all' in simulation.recordRates or p.id in simulation.recordRates):
-                size = evaluate(p.size, network.parameters)
-                for i in range(size):
+            if p.id in trace_pop_indices:
+                plot_ref = '%s_v' % (p.id)
+                save_ref = '%s.%s.v.dat' % (simulation.id,p.id)
+                gen_plots_for_quantities[plot_ref] = []
+                gen_saves_for_quantities[save_ref] = []
+                
+                for i in trace_pop_indices[p.id]:
+                    quantity = '%s/%i/%s/v' % (p.id, i, p.component)
+                    gen_plots_for_quantities[plot_ref].append(quantity)
+                    gen_saves_for_quantities[save_ref].append(quantity)
+            
+            if p.id in rate_pop_indices:
+                plot_ref = '%s_r' % (p.id)
+                save_ref = '%s.%s.r.dat' % (simulation.id,p.id)
+                gen_plots_for_quantities[plot_ref] = []
+                gen_saves_for_quantities[save_ref] = []
+                
+                for i in rate_pop_indices[p.id]:
                     quantity = '%s/%i/%s/r' % (p.id, i, p.component)
-                    gen_plots_for_quantities['%s_%i_r' % (p.id, i)] = [quantity]
-                    gen_saves_for_quantities['%s_%i.r.dat' % (p.id, i)] = [quantity]
+                    gen_plots_for_quantities[plot_ref].append(quantity)
+                    gen_saves_for_quantities[save_ref].append(quantity)
                 
             if simulation.recordVariables:
                 for var in simulation.recordVariables:
