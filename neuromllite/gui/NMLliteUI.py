@@ -25,6 +25,7 @@ class NMLliteUI(QWidget):
     simulators = ['jNeuroML',
         'jNeuroML_NEURON',
         'jNeuroML_NetPyNE',
+        'NetPyNE',
         'PyNN_NEURON',
         'PyNN_NEST']
     

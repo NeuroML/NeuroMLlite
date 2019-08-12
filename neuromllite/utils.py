@@ -49,6 +49,13 @@ def load_simulation_json(filename):
     
     return sim
 
+
+def save_to_json_file(info, filename, indent=4):
+
+    strj = json.dumps(info, indent=indent)    
+    with open(filename, 'w') as fp:
+        fp.write(strj)
+
     
 def ascii_encode_dict(data):
     ascii_encode = lambda x: x.encode('ascii') if (sys.version_info[0]==2 and isinstance(x, unicode)) else x

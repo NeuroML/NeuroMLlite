@@ -114,3 +114,15 @@ report*.txt
 /examples/Example6_PyNN.net.nml.h5
 /examples/Example6_PyNN_node_types.csv
 /examples/Example6_PyNN_nodes.sonata.h5
+/examples/*_types.csv
+/examples/*.sonata.h5
+/examples/circuit_config.json
+/examples/config.json
+/examples/simulation_config.json
+*.gv
+*.gv.png
+*.spikes
+/examples/sonatatest/LEMS_SimSonataExample.xml
+/examples/sonatatest/SonataExample.net.nml
+/examples/sonatatest/output/log.txt
+/examples/sonatatest/output/config.json

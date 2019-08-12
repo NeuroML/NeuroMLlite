@@ -1,0 +1,66 @@
+{
+    "SonataExample": {
+        "version": "NeuroMLlite v0.1.8", 
+        "parameters": {
+            "input_amp": 0.99
+        }, 
+        "notes": "Example for testing Sonata", 
+        "cells": [
+            {
+                "testcell": {
+                    "pynn_cell": "IF_cond_alpha", 
+                    "parameters": {
+                        "tau_refrac": 5
+                    }
+                }
+            }
+        ], 
+        "input_sources": [
+            {
+                "i_clamp": {
+                    "pynn_input": "DCSource", 
+                    "parameters": {
+                        "start": 200.0, 
+                        "stop": 800.0, 
+                        "amplitude": "input_amp"
+                    }
+                }
+            }
+        ], 
+        "regions": [
+            {
+                "region1": {
+                    "x": 0.0, 
+                    "y": 0.0, 
+                    "z": 0.0, 
+                    "width": 1000.0, 
+                    "height": 100.0, 
+                    "depth": 1000.0
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "pop0": {
+                    "size": 2, 
+                    "component": "testcell", 
+                    "properties": {
+                        "color": "1 0 0"
+                    }, 
+                    "random_layout": {
+                        "region": "region1"
+                    }
+                }
+            }
+        ], 
+        "inputs": [
+            {
+                "stim": {
+                    "input_source": "i_clamp", 
+                    "population": "pop0", 
+                    "percentage": 50.0
+                }
+            }
+        ]
+    }
+}

@@ -3,6 +3,7 @@ from neuromllite.utils import evaluate
 from neuromllite.utils import load_network_json
 from neuromllite.utils import print_v
 from neuromllite.utils import get_pops_vs_cell_indices
+from neuromllite.utils import save_to_json_file
 import numpy as np
 import os
 import random
@@ -686,13 +687,67 @@ def generate_and_run(simulation,
             raise NotImplementedError("Reloading results not supported in Neuron yet...")
 
 
-    elif simulator.lower() == 'sonata': # Will not "run" obviously...
+    elif simulator.lower() == 'sonata': 
+    
+        target_simulator = "NEST"
         
         from neuromllite.SonataHandler import SonataHandler
         
         sonata_handler = SonataHandler()
         
         generate_network(network, sonata_handler, always_include_props=True, base_dir=base_dir)
+        
+        sim_file_info = {}
+        
+        sim_file_info["run"] = {}
+        sim_file_info["run"]["tstop"] = simulation.duration
+        sim_file_info["run"]["dt"] = simulation.dt
+        
+        sim_file_info["target_simulator"] = target_simulator
+        sim_file_info["manifest"] = {}
+        sim_file_info["manifest"]["$OUTPUT_DIR"] = "./output"
+        sim_file_info["manifest"]["$INPUT_DIR"] = "./"
+        sim_file_info["output"] = {}
+        sim_file_info["output"]["output_dir"] = "$OUTPUT_DIR"
+        sim_file_info["output"]["log_file"] = "log.txt"
+        sim_file_info["output"]["spikes_file"] = "spikes.h5"
+        sim_file_info["output"]["spikes_sort_order"] = "time"
+        
+        save_to_json_file(sim_file_info, 'simulation_config.json', indent=2)
+        
+        
+        run_bmtk_template="""#!/bin/env python
+
+import sys
+
+def run(config_file, simulator):
+    
+    if simulator=='NEURON':
+        from bmtk.simulator import bionet
+        conf = bionet.Config.from_json(config_file, validate=True)
+        conf.build_env()
+        net = bionet.BioNetwork.from_config(conf)
+        sim = bionet.BioSimulator.from_config(conf, network=net)
+        
+    
+    elif simulator=='NEST':
+        from bmtk.simulator import pointnet
+        conf = pointnet.Config.from_json(config_file)
+        conf.build_env()
+        net = pointnet.PointNetwork.from_config(conf)
+        sim = pointnet.PointSimulator.from_config(conf, net)
+        
+    sim.run()
+
+
+if __name__ == '__main__':
+
+        run('config.json', '%s')
+
+        """
+        
+        run_bmtk_file = open('run_bmtk.py','w')
+        run_bmtk_file.write(run_bmtk_template%(target_simulator))
     
         print_v("Done with Sonata...")
 

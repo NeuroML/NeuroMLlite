@@ -9,6 +9,7 @@ from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
 import h5py
 import numpy as np
+from neuromllite.utils import save_to_json_file
 
 class SonataHandler(DefaultNetworkHandler):
         
@@ -16,35 +17,42 @@ class SonataHandler(DefaultNetworkHandler):
     pop_indices = {}
     
     DEFAULT_NODE_GROUP_ID = 0
-    
     pop_type_ids = {}
-    
     node_type_csv_info = {}
-    
+        
+
     def __init__(self):
         print_v("Initiating Sonata handler")
-    
-    '''
-    def set_cells(self, cells):
-        self.cells = cells
-        
-    def set_receptor_types(self, receptor_types):
-        self.receptor_types = receptor_types
-        
-    def add_input_source(self, input_source):
-        input_params = input_source.parameters if input_source.parameters else {}
-        exec('self.input_sources["%s"] = self.sim.%s(**input_params)'%(input_source.id,input_source.pynn_input))'''
+
 
     def handle_document_start(self, id, notes):
             
-        print_v("Document: %s"%id)
+        print_v("Parsing for Sonata export: %s"%id)
+        
+        self.config_file_info = {}
+        self.config_file_info["network"]="./circuit_config.json"
+        self.config_file_info["simulation"]="./simulation_config.json"
+        
+        self.circuit_file_info = {}
+        self.circuit_file_info["manifest"]={}
+        self.circuit_file_info["manifest"]['$NETWORK_DIR']='./'
+        self.circuit_file_info["manifest"]['$COMPONENT_DIR']='./'
+        
+        self.circuit_file_info["networks"]={}
+        self.circuit_file_info["networks"]["nodes"]=[]
+        self.circuit_file_info["networks"]["nodes"].append({})
+        
         
     def finalise_document(self):
-        
+                
         print_v("Writing file...: %s"%id)
         self.sonata_nodes.close()
         
-        node_type_file = open("%s_node_types.csv"%self.network_id, "w")
+        node_type_filename = "%s_node_types.csv"%self.network_id
+        
+        self.circuit_file_info["networks"]["nodes"][0]["node_types_file"] = "$NETWORK_DIR/%s"%node_type_filename
+        
+        node_type_file = open(node_type_filename, "w")
         header = ''
         for var in self.node_type_csv_info[self.node_type_csv_info.keys()[0]]:
             header+='%s '%var
@@ -58,6 +66,11 @@ class SonataHandler(DefaultNetworkHandler):
                 
         node_type_file.close()
         
+        
+        save_to_json_file(self.config_file_info, 'config.json', indent=2)
+        save_to_json_file(self.circuit_file_info, 'circuit_config.json', indent=2)
+        
+        
 
     def handle_network(self, network_id, notes, temperature=None):
             
@@ -69,8 +82,13 @@ class SonataHandler(DefaultNetworkHandler):
         if notes:
             print_v("  Notes: "+notes)
             
+        nodes_filename = "%s_nodes.sonata.h5"%network_id
+        self.circuit_file_info["networks"]["nodes"][0]["nodes_file"] = "$NETWORK_DIR/%s"%nodes_filename
             
-        self.sonata_nodes = h5py.File("%s_nodes.sonata.h5"%network_id, "w")
+        self.sonata_nodes = h5py.File(nodes_filename, "w")
+        self.sonata_nodes.attrs.create('version',[0,1], dtype=np.uint32)
+        self.sonata_nodes.attrs.create('magic', np.uint32(0x0A7A))
+        
 
     def handle_population(self, 
                           population_id, 
@@ -96,6 +114,7 @@ class SonataHandler(DefaultNetworkHandler):
         
         self.node_type_csv_info[population_id] = {}
         self.node_type_csv_info[population_id]['node_type_id'] = node_type_id
+        self.node_type_csv_info[population_id]['pop_name'] = population_id
         self.node_type_csv_info[population_id]['model_name'] = component
         self.node_type_csv_info[population_id]['location'] = '???'
         self.node_type_csv_info[population_id]['model_template'] = component
