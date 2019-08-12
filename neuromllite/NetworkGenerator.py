@@ -669,7 +669,7 @@ def generate_and_run(simulation,
     
     print_v("Generating network %s and running in simulator: %s..." % (network.id, simulator))
     
-    if simulator == 'NEURON':
+    if simulator == 'NEURON': # NOT YET WORKING...
         
         _generate_neuron_files_from_neuroml(network, dir_for_mod_files=target_dir)
         
@@ -985,16 +985,13 @@ if __name__ == '__main__':
         simConfig.recordCells = ['all'] 
         simConfig.recordTraces = {}
         
+        trace_pop_indices = get_pops_vs_cell_indices(simulation.recordTraces, network)
 
-        for pop in netpyne_handler.popParams.values():
-            if simulation.recordTraces is not None and \
-              ('all' in simulation.recordTraces or pop.id in simulation.recordTraces):
-                for i in pop['cellsList']:
-                    pop_id = pop['pop']
-                    index = i['cellLabel']
-                    simConfig.recordTraces['%s.%s.%s.v' % (simulation.id, pop_id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':pop_id, 'cellLabel':index}}
+        for pop_id in trace_pop_indices:
+            for index in trace_pop_indices[pop_id]:
+                simConfig.recordTraces['%s.%s.%s.v' % (simulation.id, pop_id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':pop_id, 'cellLabel':index}}
 
-        simConfig.saveDat = True
+        #simConfig.saveDat = True
         
         print_v("NetPyNE netParams: ")
         pp.pprint(netParams.todict())
@@ -1049,8 +1046,44 @@ if __name__ == '__main__':
         sim.gatherData()                  # gather spiking data and cell info from each node
         sim.saveData()                    # save params, cell info and sim output to file (pickle,mat,txt,etc)
         
-        if return_results:
-            raise NotImplementedError("Reloading results not supported in NetPyNE yet...")
+        print_v("Finished running simulation in NetPyNE")
+            
+        print_v('Extracting results from %s'%(sim.allSimData.keys()))
+                
+        times = [t/1000. for t in sim.allSimData['t']]
+        traces = {}
+        traces['t'] = times
+        events = {}
+        
+        for pop_id in trace_pop_indices:
+            indices = trace_pop_indices[pop_id]
+            print('Saving in pop %s: %s'%(pop_id, indices))
+            save_ref = '%s.%s.v.dat' % (simulation.id,pop_id)
+            pop_v_file = open(save_ref,'w')
+            all_v = []
+            for index in indices: 
+                ref = '%s.%s.%s.v' % (simulation.id, pop_id, index)
+                #print ref
+                v = [v/1000.0 for v in sim.allSimData[ref][list(sim.allSimData[ref])[0]]]
+                #print _print_info(v)
+                
+                ref = '%s/%i/???/v'%(pop_id,index)
+                traces[ref] = v
+                all_v.append(v)
+                
+            for ti in range(len(times)):
+                vs = ''
+                for v in all_v: 
+                    vs+='\t%s'%(v[ti])
+                pop_v_file.write('%s\t'%(times[ti])+ vs + '\n')
+            pop_v_file.close()
+                
+            
+        spike_pop_indices = get_pops_vs_cell_indices(simulation.recordSpikes, network)
+        
+        
+        if return_results or True: ###########################################################
+            return traces, events
         
     elif simulator == 'jNeuroML' or  simulator == 'jNeuroML_NEURON' or simulator == 'jNeuroML_NetPyNE':
 
@@ -1187,6 +1220,8 @@ if __name__ == '__main__':
             _print_result_info(traces, events)
             return results # traces, events =
         
+def _print_info(l):
+    print("List %s of %i elements of type %s: %s -> %s (min: %s, max: %s)"%(type(l), len(l), type(l[0]), l[0], l[-1], min(l), max(l)))
         
 def _print_result_info(traces, events):
     """
