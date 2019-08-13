@@ -1,0 +1,2 @@
+node_type_id dynamics_params pop_name model_template model_type model_name 
+100 testcell.json pop0 nest:iaf_psc_alpha point_process testcell 

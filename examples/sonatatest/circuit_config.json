@@ -1,0 +1,18 @@
+{
+  "networks": {
+    "nodes": [
+      {
+        "node_types_file": "$NETWORK_DIR/SonataExample_node_types.csv", 
+        "nodes_file": "$NETWORK_DIR/SonataExample_nodes.sonata.h5"
+      }
+    ]
+  }, 
+  "components": {
+    "point_neuron_models_dir": "$COMPONENT_DIR/point_neuron_models_dir", 
+    "synaptic_models_dir": "$COMPONENT_DIR/synaptic_models"
+  }, 
+  "manifest": {
+    "$NETWORK_DIR": "./network", 
+    "$COMPONENT_DIR": "./components"
+  }
+}

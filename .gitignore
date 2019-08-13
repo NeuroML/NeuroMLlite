@@ -126,3 +126,9 @@ report*.txt
 /examples/sonatatest/SonataExample.net.nml
 /examples/sonatatest/output/log.txt
 /examples/sonatatest/output/config.json
+/examples/SimExample5.json
+/examples/sonatatest/output/membrane_potential.h5
+/examples/sonatatest/output/spikes.h5
+/examples/run_bmtk.py
+/examples/network/Example3_Network_node_types.csv
+/examples/network/Example3_Network_nodes.sonata.h5

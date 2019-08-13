@@ -731,10 +731,6 @@ class NMLliteUI(QWidget):
         ax_pop_rate.set_xticklabels(labels)
         ax_pop_rate.set_xticklabels(ax_pop_rate.get_xticklabels(), rotation=45, horizontalalignment='right')
         
-        #plt.xticks(xs, labels, rotation='vertical')
-            
-        
-        
         self.all_canvases[self.SPIKES_POP_RATE_AVE].draw()
                 
         print_v('Done with plotting!')

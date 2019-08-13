@@ -697,6 +697,36 @@ def generate_and_run(simulation,
         
         generate_network(network, sonata_handler, always_include_props=True, base_dir=base_dir)
         
+        
+        import pyNN.neuroml
+        for c in network.cells:
+            if c.pynn_cell:
+                
+                cell_params = {}
+                if c.parameters: 
+                    for p in c.parameters:
+                        cell_params[p] = evaluate(c.parameters[p], network.parameters)
+                        
+                temp_cell = eval('pyNN.neuroml.%s(**cell_params)' % c.pynn_cell)
+                
+                mappings = {'i_offset':"I_e","tau_m":"tau_m",'cm':"C_m",'tau_refrac':"t_ref",'v_rest':"E_L",'v_thresh':"V_th",'v_reset':"V_reset"}
+                scales = {'cm':1000}
+                
+                print_v('Converting %s (%s) to Sonata format...'%(c, temp_cell))
+                comp_file = './components/point_neuron_models_dir/%s.json'%c.id  # Oi! Hardcoding!
+                comp_file_info ={}
+                
+                for p in temp_cell.default_parameters:
+                    print('  Param %s = %s'%(p, temp_cell.parameter_space[p].base_value))
+                    if p in mappings:
+                        sim_name = mappings[p]
+                        sim_val = temp_cell.parameter_space[p].base_value * (scales[p] if p in scales else 1)
+                        print('    Translated %s = %s'%(sim_name, sim_val))
+                        comp_file_info[sim_name]=sim_val
+                
+                save_to_json_file(comp_file_info, comp_file, indent=2)
+                    
+        
         sim_file_info = {}
         
         sim_file_info["run"] = {}
@@ -712,6 +742,19 @@ def generate_and_run(simulation,
         sim_file_info["output"]["log_file"] = "log.txt"
         sim_file_info["output"]["spikes_file"] = "spikes.h5"
         sim_file_info["output"]["spikes_sort_order"] = "time"
+        
+        sim_file_info["node_sets"] = {}
+        sim_file_info["node_sets"]["point_nodes"] = {}
+        sim_file_info["node_sets"]["point_nodes"]["model_type"] = "point_process"
+        
+        sim_file_info["reports"] = {}
+        sim_file_info["reports"]["membrane_potential"] = {}
+        sim_file_info["reports"]["membrane_potential"]["cells"] = "point_nodes"
+        sim_file_info["reports"]["membrane_potential"]["variable_name"] = "V_m"
+        sim_file_info["reports"]["membrane_potential"]["module"] = "multimeter_report"
+        sim_file_info["reports"]["membrane_potential"]["sections"] = "soma"
+        sim_file_info["reports"]["membrane_potential"]["enabled"] = True
+        
         
         save_to_json_file(sim_file_info, 'simulation_config.json', indent=2)
         

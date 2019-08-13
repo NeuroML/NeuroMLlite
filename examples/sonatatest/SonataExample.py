@@ -10,7 +10,15 @@ net.notes = 'Example for testing Sonata'
 net.parameters = { 'input_amp':       0.99} 
 
 cell = Cell(id='testcell', pynn_cell='IF_cond_alpha')
-cell.parameters = { "tau_refrac":5, }
+cell.parameters = { "i_offset":   0.190, 
+                    "cm":         0.117,
+                    "tau_m":      22.1,
+                    "tau_refrac": 3,
+                    "v_reset":    -50,
+                    "v_rest":     -78,
+                    "v_thresh":   -47 }
+                     
+                    
 net.cells.append(cell)
 '''
 cell2 = Cell(id='testcell2', pynn_cell='IF_cond_alpha')
@@ -58,12 +66,12 @@ net.projections.append(Projection(id='proj1',
                                   synapse='gabaSyn',
                                   delay=2,
                                   weight=0.01))
-net.projections[1].random_connectivity=RandomConnectivity(probability=1)'''
+net.projections[1].random_connectivity=RandomConnectivity(probability=1)
 
 net.inputs.append(Input(id='stim',
                         input_source=input_source.id,
                         population=p0.id,
-                        percentage=50))
+                        percentage=50))'''
 
 print(net.to_json())
 new_file = net.to_json_file('%s.json'%net.id)
