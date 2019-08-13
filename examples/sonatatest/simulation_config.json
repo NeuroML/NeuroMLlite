@@ -1,4 +1,14 @@
 {
+  "inputs": {
+    "stim": {
+      "input_type": "current_clamp", 
+      "node_set": "inputset_stim_i_clamp", 
+      "module": "IClamp", 
+      "delay": 100.0, 
+      "duration": 800.0, 
+      "amp": 190.00000000000003
+    }
+  }, 
   "target_simulator": "NEST", 
   "reports": {
     "membrane_potential": {
@@ -20,6 +30,10 @@
   "node_sets": {
     "point_nodes": {
       "model_type": "point_process"
+    }, 
+    "inputset_stim_i_clamp": {
+      "model_type": "point_process", 
+      "population": "pop0"
     }
   }, 
   "output": {

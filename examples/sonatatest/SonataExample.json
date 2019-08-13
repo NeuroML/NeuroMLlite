@@ -2,7 +2,9 @@
     "SonataExample": {
         "version": "NeuroMLlite v0.1.8", 
         "parameters": {
-            "input_amp": 0.99
+            "input_del": 100, 
+            "input_dur": 800, 
+            "input_amp": 0.19
         }, 
         "notes": "Example for testing Sonata", 
         "cells": [
@@ -12,7 +14,7 @@
                     "parameters": {
                         "tau_refrac": 3, 
                         "tau_m": 22.1, 
-                        "i_offset": 0.19, 
+                        "i_offset": 0, 
                         "cm": 0.117, 
                         "v_thresh": -47, 
                         "v_rest": -78, 
@@ -26,8 +28,8 @@
                 "i_clamp": {
                     "pynn_input": "DCSource", 
                     "parameters": {
-                        "start": 200.0, 
-                        "stop": 800.0, 
+                        "start": "input_del", 
+                        "stop": "input_del+input_dur", 
                         "amplitude": "input_amp"
                     }
                 }
@@ -56,6 +58,15 @@
                     "random_layout": {
                         "region": "region1"
                     }
+                }
+            }
+        ], 
+        "inputs": [
+            {
+                "stim": {
+                    "input_source": "i_clamp", 
+                    "population": "pop0", 
+                    "percentage": 50.0
                 }
             }
         ]

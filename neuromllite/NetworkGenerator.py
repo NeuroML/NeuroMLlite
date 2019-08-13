@@ -697,7 +697,6 @@ def generate_and_run(simulation,
         
         generate_network(network, sonata_handler, always_include_props=True, base_dir=base_dir)
         
-        
         import pyNN.neuroml
         for c in network.cells:
             if c.pynn_cell:
@@ -721,7 +720,7 @@ def generate_and_run(simulation,
                     if p in mappings:
                         sim_name = mappings[p]
                         sim_val = temp_cell.parameter_space[p].base_value * (scales[p] if p in scales else 1)
-                        print('    Translated %s = %s'%(sim_name, sim_val))
+                        #print('    Translated %s = %s'%(sim_name, sim_val))
                         comp_file_info[sim_name]=sim_val
                 
                 save_to_json_file(comp_file_info, comp_file, indent=2)
@@ -754,6 +753,36 @@ def generate_and_run(simulation,
         sim_file_info["reports"]["membrane_potential"]["module"] = "multimeter_report"
         sim_file_info["reports"]["membrane_potential"]["sections"] = "soma"
         sim_file_info["reports"]["membrane_potential"]["enabled"] = True
+        
+        #print sonata_handler.input_info
+        
+        temp_nml_doc = _extract_pynn_components_to_neuroml(network)
+        
+        summary = temp_nml_doc.summary()
+        print summary
+        from pyneuroml.pynml import convert_to_units
+    
+        sim_file_info["inputs"] = {}
+        for input in sonata_handler.input_info:
+            sim_file_info["inputs"][input] = {}
+            input_comp = sonata_handler.input_info[input][1]
+            c = temp_nml_doc.get_by_id(input_comp)
+            ref = 'inputset_%s_%s'%(input, input_comp)
+            if c.__class__.__name__=='PulseGenerator':
+                sim_file_info["inputs"][input]['input_type'] = 'current_clamp'
+                sim_file_info["inputs"][input]['module'] = 'IClamp'
+                sim_file_info["inputs"][input]['amp'] = convert_to_units(c.amplitude,'pA')
+                sim_file_info["inputs"][input]['delay'] = convert_to_units(c.delay,'ms')
+                sim_file_info["inputs"][input]['duration'] = convert_to_units(c.duration,'ms')
+                sim_file_info["inputs"][input]['node_set'] = ref
+            else:
+                raise Exception("Can't yet handle input of type: %s"% c)
+                
+            sim_file_info["node_sets"][ref] = {}
+            sim_file_info["node_sets"][ref]["model_type"] = "point_process"
+            sim_file_info["node_sets"][ref]['population'] = sonata_handler.input_info[input][0]
+            #sim_file_info["node_sets"][ref]['node_id'] = sonata_handler.input_info[input][2]
+                
         
         
         save_to_json_file(sim_file_info, 'simulation_config.json', indent=2)

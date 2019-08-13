@@ -7,10 +7,12 @@ import sys
 
 net = Network(id='SonataExample')
 net.notes = 'Example for testing Sonata'
-net.parameters = { 'input_amp':       0.99} 
+net.parameters = { 'input_amp':       0.190,
+                   'input_del':       100,
+                   'input_dur':       800} 
 
 cell = Cell(id='testcell', pynn_cell='IF_cond_alpha')
-cell.parameters = { "i_offset":   0.190, 
+cell.parameters = { "i_offset":   0, 
                     "cm":         0.117,
                     "tau_m":      22.1,
                     "tau_refrac": 3,
@@ -27,7 +29,7 @@ net.cells.append(cell2)'''
 
 input_source = InputSource(id='i_clamp', 
                            pynn_input='DCSource', 
-                           parameters={'amplitude':'input_amp', 'start':200., 'stop':800.})
+                           parameters={'amplitude':'input_amp', 'start':'input_del', 'stop':'input_del+input_dur'})
 net.input_sources.append(input_source)
 
 r1 = RectangularRegion(id='region1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
@@ -66,12 +68,12 @@ net.projections.append(Projection(id='proj1',
                                   synapse='gabaSyn',
                                   delay=2,
                                   weight=0.01))
-net.projections[1].random_connectivity=RandomConnectivity(probability=1)
+net.projections[1].random_connectivity=RandomConnectivity(probability=1)'''
 
 net.inputs.append(Input(id='stim',
                         input_source=input_source.id,
                         population=p0.id,
-                        percentage=50))'''
+                        percentage=50))
 
 print(net.to_json())
 new_file = net.to_json_file('%s.json'%net.id)
