@@ -163,7 +163,7 @@ def generate():
                      duration=simtime,
                      dt=dt,
                      seed= 123,
-                     recordTraces={pE.id:'*',pI.id:'*'},
+                     recordTraces={pE.id:[0,1],pI.id:[0,1]},
                      recordSpikes={'all':'*'})
 
     sim.to_json_file()

@@ -15,6 +15,7 @@ from matplotlib.figure import Figure
 from neuromllite.utils import load_network_json
 from neuromllite.utils import load_simulation_json
 from neuromllite.utils import evaluate
+from neuromllite.utils import print_v
 from pyneuroml.pynml import get_next_hex_color
 
 
@@ -33,12 +34,12 @@ class NMLliteUI(QWidget):
     def updated_param(self, p):
         """A parameter has been updated"""
         
-        print('=====   Param %s changed' % p)
+        print_v('=====   Param %s changed' % p)
         
         if self.autoRunCheckBox.isChecked():
             self.runSimulation()
         else:
-            print('Nothing changing...')
+            print_v('Nothing changing...')
             
         self.update_net_sim()
         if self.tabs.currentWidget() == self.nmlliteTab:
@@ -46,7 +47,6 @@ class NMLliteUI(QWidget):
             self.update_simulation_json()
         
         
-            
     def update_network_json(self):
         
         self.nmlliteNetText.clear()
@@ -55,6 +55,7 @@ class NMLliteUI(QWidget):
             self.nmlliteNetText.insertPlainText(j)
         except Exception as e:
             self.nmlliteNetText.insertPlainText("Error parsing model: %s"%e)
+            
             
     def update_simulation_json(self):
         
@@ -65,9 +66,34 @@ class NMLliteUI(QWidget):
         except Exception as e:
             self.nmlliteSimText.insertPlainText("Error parsing model: %s"%e)
         
+    all_tabs = {}
+    all_tab_layouts = {}
+    all_figures = {}
+    all_canvases = {}
+    
+    
+    def add_tab(self, name, parent_tab_holder, figure=False):
+        
+        thisTab = QWidget()
+        parent_tab_holder.addTab(thisTab, name)
+        self.all_tabs[name] = thisTab
+        
+        thisLayout = QGridLayout()
+        thisTab.setLayout(thisLayout)
+        self.all_tab_layouts[name] = thisLayout
+        
+        if figure:
+            thisFigure = Figure()
+            thisCanvas = FigureCanvas(thisFigure)
+            thisLayout.addWidget(thisCanvas)
+            self.all_canvases[name] = thisCanvas
+            self.all_figures[name] = thisFigure
+            
+        
         
     def get_value_entry(self, name, value, entry_map):
         """Create a graphical element for displaying/setting values"""
+        
         simple = False
         simple = True
         
@@ -98,7 +124,7 @@ class NMLliteUI(QWidget):
                 entry.valueChanged.connect(self.updated_param)
                 
             except Exception as e:
-                print e
+                print_(e)
                 
                 entry = QLineEdit()
                 entry_map[name] = entry
@@ -115,6 +141,9 @@ class NMLliteUI(QWidget):
         
         super(NMLliteUI, self).__init__(parent)
         
+        
+        self.SPIKES_RASTERPLOT = "Rasterplot"
+        self.SPIKES_POP_RATE_AVE = "Pop rate averages"
         
         #print('Styles available: %s'%QStyleFactory.keys())
         QApplication.setStyle(QStyleFactory.create('Fusion'))
@@ -141,13 +170,13 @@ class NMLliteUI(QWidget):
         self.tabs = QTabWidget()
         self.nmlliteTab = QWidget()
         self.nml2Tab = QWidget()
-        self.simTab = QWidget()
         self.graphTab = QWidget()
         self.matrixTab = QWidget()
         self.tabs.resize(300, 200)
         
         
         # Add tabs
+        self.simTab = QWidget()
         self.tabs.addTab(self.simTab, "Simulation")
         
         self.simTabLayout = QGridLayout()
@@ -159,8 +188,9 @@ class NMLliteUI(QWidget):
         self.plotTabs.addTab(self.tracesTab, "Traces")
         self.heatmapTab = QWidget()
         self.plotTabs.addTab(self.heatmapTab, "Heatmap")
-        self.spikesTab = QWidget()
-        self.plotTabs.addTab(self.spikesTab, "Spikes")
+        
+        self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True)
+        self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True)
         
         self.simTabLayout.addWidget(self.plotTabs)
         
@@ -188,12 +218,6 @@ class NMLliteUI(QWidget):
         self.heatmapCanvas = FigureCanvas(self.heatmapFigure)
         self.heatmapLayout.addWidget(self.heatmapCanvas)
         
-        self.spikesLayout = QGridLayout()
-        self.spikesTab.setLayout(self.spikesLayout)
-        self.spikesFigure = Figure()
-        self.spikesCanvas = FigureCanvas(self.spikesFigure)
-        self.spikesLayout.addWidget(self.spikesCanvas)
-
         
         self.tabs.addTab(self.graphTab, "Graph")
         self.graphTabTopLayout = QGridLayout()
@@ -267,6 +291,9 @@ class NMLliteUI(QWidget):
         self.nml2Layout = QGridLayout()
         self.nml2Tab.setLayout(self.nml2Layout)
         self.nml2Text = QPlainTextEdit()
+        self.nml2Text.insertPlainText("\n   Generate an instance of the populations and projections in this network in NeuroML 2"+
+                                      "\n   format by pressing the Generate NeuroML 2 button on the left"+
+                                      "\n\n\n   WARNING: depending on the size of the generated network, text may take some time to load!")
         self.nml2Layout.addWidget(self.nml2Text,0,0)
         
         
@@ -373,7 +400,7 @@ class NMLliteUI(QWidget):
     def showMatrix(self):
         """Generate matrix buttom has been pressed"""
         
-        print("Matrix button was clicked.")
+        print_v("Matrix button was clicked.")
         
         self.update_net_sim()
         self.tabs.setCurrentWidget(self.matrixTab)
@@ -387,13 +414,13 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
     
-        print("Done with MatrixHandler...")
+        print_v("Done with MatrixHandler...")
     
     
     def generateNeuroML2(self):
         """Generate NeuroML 2 representation of network"""
         
-        print("Generate NeuroML 2 button was clicked.")
+        print_v("Generate NeuroML 2 button was clicked.")
         
         self.update_net_sim()
         from neuromllite.NetworkGenerator import generate_neuroml2_from_network
@@ -422,7 +449,7 @@ class NMLliteUI(QWidget):
     def showGraph(self):
         """Generate graph buttom has been pressed"""
         
-        print("Graph button was clicked.")
+        print_v("Graph button was clicked.")
         
         self.update_net_sim()
         self.tabs.setCurrentWidget(self.graphTab)
@@ -440,7 +467,7 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
     
-        print("Done with GraphViz...")
+        print_v("Done with GraphViz...")
         
         if format == 'svg':
             genFile = '%s.gv.svg' % self.network.id
@@ -476,14 +503,14 @@ class NMLliteUI(QWidget):
                 except:
                     pass # leave as string...
                 
-            print('Setting param %s to %s' % (p, v))
+            print_v('Setting param %s to %s' % (p, v))
             self.network.parameters[p] = v
             
-        print('All params: %s' % self.network.parameters)
+        print_v('All params: %s' % self.network.parameters)
 
         for s in self.sim_entries:
             v = float(self.sim_entries[s].text())
-            print('Setting simulation variable %s to %s' % (s, v))
+            print_v('Setting simulation variable %s to %s' % (s, v))
             self.simulation.__setattr__(s, v)
         
          
@@ -491,7 +518,7 @@ class NMLliteUI(QWidget):
         """Run a simulation in the chosen simulator"""
         
         simulator = str(self.simulatorComboBox.currentText())
-        print("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
+        print_v("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
 
         self.tabs.setCurrentWidget(self.simTab)
         
@@ -508,6 +535,15 @@ class NMLliteUI(QWidget):
                                           
         self.replotSimResults()
         
+    def _get_sorted_population_ids(self):
+        all_pop_ids = []
+        for pop in self.network.populations:
+            all_pop_ids.append(pop.id)
+        return sorted(all_pop_ids)
+    
+    def _get_pop_size(self, pop_id):
+        pop = self.network.get_child(pop_id, 'populations')
+        return evaluate(pop.size, self.network.parameters)
 
     def replotSimResults(self):
         
@@ -591,7 +627,8 @@ class NMLliteUI(QWidget):
         
         ## Plot spikes
         
-        ax_spikes = self.spikesFigure.add_subplot(111)
+        spikesFigure = self.all_figures[self.SPIKES_RASTERPLOT]
+        ax_spikes = spikesFigure.add_subplot(111)
         ax_spikes.clear()
         
         ids_for_pop = {}
@@ -599,7 +636,7 @@ class NMLliteUI(QWidget):
         
         for k in self.current_events.keys():
             spikes = self.current_events[k]
-            print('%s: %s'%(k, len(spikes)))
+            #print_v('%s: %s'%(k, len(spikes)))
             pop_id = k.split('/')[0]
             cell_id = int(k.split('/')[1])
             if not pop_id in ids_for_pop:
@@ -612,23 +649,25 @@ class NMLliteUI(QWidget):
                 
         
         max_id = 0
+                
         for pop_id in sorted(ids_for_pop.keys()):
-            shifted_ids = [id+max_id for id in ids_for_pop[pop_id]]
             
             if pop_id in pop_colors:
                 c = pop_colors[pop_id]
             else:
                 c = get_next_hex_color()
             
-            ax_spikes.plot(ts_for_pop[pop_id], shifted_ids, label=pop_id, linewidth=0, marker='.', color=c)
+            if pop_id in ts_for_pop:
+                shifted_ids = [id+max_id for id in ids_for_pop[pop_id]]
+                ax_spikes.plot(ts_for_pop[pop_id], shifted_ids, label=pop_id, linewidth=0, marker='.', color=c)
             
             pop = self.network.get_child(pop_id, 'populations')
             if pop.size is not None:
-                max_id_here = evaluate(pop.size, self.network.parameters)
+                max_id_here = self._get_pop_size(pop_id)
             else:
                 max_id_here = max(ids_for_pop[pop_id]) if len(ids_for_pop[pop_id])>0 else 0
                 
-            print('Finished with spikes for %s, go from %i with max %i'%(pop_id, max_id, max_id_here))
+            print_v('Finished with spikes for %s, go from %i with max %i'%(pop_id, max_id, max_id_here))
             max_id += max_id_here
             
         ax_spikes.set_xlabel('Time (s)')
@@ -638,10 +677,67 @@ class NMLliteUI(QWidget):
         ax_spikes.set_xlim(tmax/-20.0, tmax*1.05)
         ax_spikes.set_ylim(max_id/-20., max_id*1.05)
         
-        self.spikesFigure.legend()
-        self.spikesCanvas.draw()
+        spikesFigure.legend()
+        self.all_canvases[self.SPIKES_RASTERPLOT].draw()
+        
+        
+        ## Plot pop spike rates
+        
+        popRateFigure = self.all_figures[self.SPIKES_POP_RATE_AVE]
+        ax_pop_rate = popRateFigure.add_subplot(111)
+        ax_pop_rate.clear()
+        
+        rates = {}
+        print_v('Generating rates from %s'%self.current_events.keys())
+        
+        xs = []
+        labels = []
+        pop_sizes = {}
+        count = 0
+        rates = {}
+        
+        for pop_id in self._get_sorted_population_ids():
+            xs.append(count)
+            labels.append(pop_id)
+            count +=1 
+            pop_sizes[pop_id] = self._get_pop_size(pop_id)
+            rates[pop_id] = []
                 
-        print('Done with plotting!')
+        for k in self.current_events.keys():
+            spikes = self.current_events[k]
+            pop_id = k.split('/')[0]
+            cell_id = int(k.split('/')[1])
+            rate = len(spikes)/self.simulation.duration
+            
+            print_v('%s: %s[%s] has %s spikes, so %s Hz'%(k, pop_id, cell_id, len(spikes), rate))
+            rates[pop_id].append(rate)
+        
+        avg_rates = []
+        sd_rates = []
+        import numpy as np
+        
+        for pop_id in self._get_sorted_population_ids():
+            avg_rates.append(np.mean(rates[pop_id]) if len(rates[pop_id])>0 else 0)
+            sd_rates.append(np.std(rates[pop_id]) if len(rates[pop_id])>0 else 0)
+        
+        print('Rates: %s; means: %s; stds: %s'%(rates,avg_rates,sd_rates))
+        
+        bars = ax_pop_rate.bar(xs, avg_rates, yerr=sd_rates)
+        for bi in range(len(bars)):
+            bar = bars[bi]
+            bar.set_facecolor(pop_colors[labels[bi]])
+        
+        ax_pop_rate.set_xticks(xs)
+        ax_pop_rate.set_xticklabels(labels)
+        ax_pop_rate.set_xticklabels(ax_pop_rate.get_xticklabels(), rotation=45, horizontalalignment='right')
+        
+        #plt.xticks(xs, labels, rotation='vertical')
+            
+        
+        
+        self.all_canvases[self.SPIKES_POP_RATE_AVE].draw()
+                
+        print_v('Done with plotting!')
     
 
 def main():

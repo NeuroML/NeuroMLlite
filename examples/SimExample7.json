@@ -6,8 +6,14 @@
         "dt": 0.025, 
         "seed": 123, 
         "recordTraces": {
-            "Epop": "*", 
-            "Ipop": "*"
+            "Epop": [
+                0, 
+                1
+            ], 
+            "Ipop": [
+                0, 
+                1
+            ]
         }, 
         "recordSpikes": {
             "all": "*"
