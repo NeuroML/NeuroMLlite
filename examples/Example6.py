@@ -59,6 +59,7 @@ def generate(ref='Example6_PyNN', add_inputs=True):
     scale = 0.1
 
     pops = []
+    input_pops = []
     pop_dict = {}
 
     layers = ['L23']
@@ -108,6 +109,7 @@ def generate(ref='Example6_PyNN', add_inputs=True):
             if add_inputs:
                 color = '.8 .8 .8'
                 input_id = '%s_%s_input'%(l,t)
+                input_pops.append(input_id)
                 input_ref = 'l%s%s_i'%(l[1:],t.lower())
                 exec(input_ref + " = Population(id=input_id, size='int(%s*N_scaling)'%N_full[l][t], component=input_cell.id, properties={'color':color})")
                 exec("%s.random_layout = RandomLayout(region = r.id)"%input_ref)
@@ -178,6 +180,8 @@ def generate(ref='Example6_PyNN', add_inputs=True):
         forecast_size = evaluate(pop_dict[p].size, net.parameters)
         recordTraces[p]=range(min(2,forecast_size))
         recordSpikes[p]='*'
+    for ip in input_pops:
+        recordSpikes[ip]='*'
         
     sim = Simulation(id='Sim%s'%net.id,
                      network=new_file,

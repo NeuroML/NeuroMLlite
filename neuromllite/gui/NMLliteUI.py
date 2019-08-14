@@ -16,6 +16,7 @@ from neuromllite.utils import load_network_json
 from neuromllite.utils import load_simulation_json
 from neuromllite.utils import evaluate
 from neuromllite.utils import print_v
+from neuromllite.utils import is_spiking_input_population
 from pyneuroml.pynml import get_next_hex_color
 
 
@@ -67,28 +68,41 @@ class NMLliteUI(QWidget):
             self.nmlliteSimText.insertPlainText("Error parsing model: %s"%e)
         
     all_tabs = {}
-    all_tab_layouts = {}
+    #all_tab_layouts = {}
     all_figures = {}
     all_canvases = {}
     
     
-    def add_tab(self, name, parent_tab_holder, figure=False):
+    def add_tab(self, name, parent_tab_holder, figure=False, options = False):
         
         thisTab = QWidget()
         parent_tab_holder.addTab(thisTab, name)
         self.all_tabs[name] = thisTab
         
-        thisLayout = QGridLayout()
-        thisTab.setLayout(thisLayout)
-        self.all_tab_layouts[name] = thisLayout
+        topLayout = QGridLayout()
+        thisTab.setLayout(topLayout)
+        
+        if options:
+            thisOptionsLayout = QGridLayout()
+            topLayout.addLayout(thisOptionsLayout, 0, 0)
+        
+        #self.all_tab_layouts[name] = thisLayout
         
         if figure:
             thisFigure = Figure()
             thisCanvas = FigureCanvas(thisFigure)
-            thisLayout.addWidget(thisCanvas)
+            
             self.all_canvases[name] = thisCanvas
             self.all_figures[name] = thisFigure
-            
+            if options:
+                thisFigureLayout = QGridLayout()
+                topLayout.addLayout(thisFigureLayout, 1, 0)
+                thisFigureLayout.addWidget(thisCanvas)
+            else:
+                topLayout.addWidget(thisCanvas)
+                
+        if options:
+            return thisOptionsLayout
         
         
     def get_value_entry(self, name, value, entry_map):
@@ -189,8 +203,21 @@ class NMLliteUI(QWidget):
         self.heatmapTab = QWidget()
         self.plotTabs.addTab(self.heatmapTab, "Heatmap")
         
-        self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True)
-        self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True)
+        rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, options=True)
+        self.rasterLegend = QCheckBox("Show legend")
+        self.rasterLegend.setChecked(True)
+        rasterOptionsLayout.addWidget(self.rasterLegend, 0, 0)
+        self.rasterLegend.toggled.connect(self.replotSimResults)
+        self.rasterInPops = QCheckBox("Include input pops")
+        self.rasterInPops.setChecked(True)
+        rasterOptionsLayout.addWidget(self.rasterInPops, 0, 1)
+        self.rasterInPops.toggled.connect(self.replotSimResults)
+        
+        spikeStatOptionsLayout = self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True, options=True)
+        self.spikeStatInPops = QCheckBox("Include input pops")
+        self.spikeStatInPops.setChecked(True)
+        spikeStatOptionsLayout.addWidget(self.spikeStatInPops, 0, 0)
+        self.spikeStatInPops.toggled.connect(self.replotSimResults)
         
         self.simTabLayout.addWidget(self.plotTabs)
         
@@ -253,6 +280,17 @@ class NMLliteUI(QWidget):
         self.graphTabOptionsLayout.addWidget(QLabel("GraphViz engine:"), 0, 2)
         self.graphTabOptionsLayout.addWidget(self.graphTypeComboBox, 0, 3)
         self.graphTypeComboBox.currentIndexChanged.connect(self.showGraph)
+        
+        
+        self.graphShowExtInputs = QCheckBox("Show ext inputs")
+        self.graphShowExtInputs.setChecked(True)
+        self.graphTabOptionsLayout.addWidget(self.graphShowExtInputs, 0, 4)
+        self.graphShowExtInputs.toggled.connect(self.showGraph)
+        
+        self.graphShowInputPops = QCheckBox("Show input pops")
+        self.graphShowInputPops.setChecked(True)
+        self.graphTabOptionsLayout.addWidget(self.graphShowInputPops, 0, 5)
+        self.graphShowInputPops.toggled.connect(self.showGraph)
         
         self.graphTabLayout = QGridLayout()
         self.graphTabTopLayout.addLayout(self.graphTabLayout, 1, 0)
@@ -459,10 +497,19 @@ class NMLliteUI(QWidget):
         engine = str(self.graphTypeComboBox.currentText()).split(' - ')[1]
         level = int(self.graphLevelComboBox.currentText())
         
+        show_ext_inputs = self.graphShowExtInputs.isChecked()
+        show_input_pops = self.graphShowInputPops.isChecked()
+        
         format = 'svg'
         format = 'png'
         
-        handler = GraphVizHandler(level, engine=engine, nl_network=self.network, output_format=format, view_on_render=False)
+        handler = GraphVizHandler(level, 
+                                  engine=engine, 
+                                  nl_network=self.network, 
+                                  output_format=format, 
+                                  view_on_render=False,
+                                  include_ext_inputs=show_ext_inputs,
+                                  include_input_pops=show_input_pops)
         
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
@@ -535,15 +582,35 @@ class NMLliteUI(QWidget):
                                           
         self.replotSimResults()
         
-    def _get_sorted_population_ids(self):
+        
+    def _get_sorted_population_ids(self, include_input_pops = True):
         all_pop_ids = []
         for pop in self.network.populations:
-            all_pop_ids.append(pop.id)
+            if not include_input_pops and is_spiking_input_population(pop, self.network):
+                pass # ignoring...
+            else:
+                all_pop_ids.append(pop.id)
         return sorted(all_pop_ids)
+    
     
     def _get_pop_size(self, pop_id):
         pop = self.network.get_child(pop_id, 'populations')
         return evaluate(pop.size, self.network.parameters)
+    
+    
+    def _get_pop_id_cell_id(self, quantity):
+        
+        if '[' in quantity:
+            # e.g. Epop[5]/v
+            pop_id = quantity.split('[')[0]
+            cell_id = int(quantity.split('[')[1].split(']')[0])
+        else:
+            # e.g. Epop/0/iafcell/v
+            pop_id = quantity.split('/')[0]
+            cell_id = int(quantity.split('/')[1])
+            
+        return pop_id, cell_id
+
 
     def replotSimResults(self):
         
@@ -569,9 +636,7 @@ class NMLliteUI(QWidget):
         xs = []
         ys = []
         labels = []
-        colors = []
-        
-                        
+        colors = []  
         colors_used = []
         heat_array = []
         
@@ -597,8 +662,8 @@ class NMLliteUI(QWidget):
                 labels.append(key)
 
         ax_traces = self.tracesFigure.add_subplot(111)
-        
         ax_traces.clear()
+        
         for i in range(len(xs)):
             ax_traces.plot(xs[i], ys[i], label=labels[i], linewidth=0.5, color=colors[i])
             
@@ -634,20 +699,22 @@ class NMLliteUI(QWidget):
         ids_for_pop = {}
         ts_for_pop = {}
         
+        include_input_pops = self.rasterInPops.isChecked()
+        pops_to_use = self._get_sorted_population_ids(include_input_pops=include_input_pops)
+        
         for k in self.current_events.keys():
             spikes = self.current_events[k]
-            #print_v('%s: %s'%(k, len(spikes)))
-            pop_id = k.split('/')[0]
-            cell_id = int(k.split('/')[1])
-            if not pop_id in ids_for_pop:
-                ids_for_pop[pop_id] = []
-                ts_for_pop[pop_id] = []
             
-            for t in spikes:
-                ids_for_pop[pop_id].append(cell_id)
-                ts_for_pop[pop_id].append(t)
+            pop_id, cell_id = self._get_pop_id_cell_id(k)
+            if pop_id in pops_to_use:
+                if not pop_id in ids_for_pop:
+                    ids_for_pop[pop_id] = []
+                    ts_for_pop[pop_id] = []
+
+                for t in spikes:
+                    ids_for_pop[pop_id].append(cell_id)
+                    ts_for_pop[pop_id].append(t)
                 
-        
         max_id = 0
                 
         for pop_id in sorted(ids_for_pop.keys()):
@@ -677,7 +744,8 @@ class NMLliteUI(QWidget):
         ax_spikes.set_xlim(tmax/-20.0, tmax*1.05)
         ax_spikes.set_ylim(max_id/-20., max_id*1.05)
         
-        spikesFigure.legend()
+        if self.rasterLegend.isChecked():
+            spikesFigure.legend()
         self.all_canvases[self.SPIKES_RASTERPLOT].draw()
         
         
@@ -696,7 +764,10 @@ class NMLliteUI(QWidget):
         count = 0
         rates = {}
         
-        for pop_id in self._get_sorted_population_ids():
+        include_input_pops = self.spikeStatInPops.isChecked()
+        pops_to_use = self._get_sorted_population_ids(include_input_pops=include_input_pops)
+        
+        for pop_id in pops_to_use:
             xs.append(count)
             labels.append(pop_id)
             count +=1 
@@ -705,24 +776,25 @@ class NMLliteUI(QWidget):
                 
         for k in self.current_events.keys():
             spikes = self.current_events[k]
-            pop_id = k.split('/')[0]
-            cell_id = int(k.split('/')[1])
-            rate = len(spikes)/self.simulation.duration
-            
-            print_v('%s: %s[%s] has %s spikes, so %s Hz'%(k, pop_id, cell_id, len(spikes), rate))
-            rates[pop_id].append(rate)
+            pop_id, cell_id = self._get_pop_id_cell_id(k)
+            if pop_id in pops_to_use:
+                rate = 1000*len(spikes)/self.simulation.duration
+                print_v('%s: %s[%s] has %s spikes, so %s Hz'%(k, pop_id, cell_id, len(spikes), rate))
+                rates[pop_id].append(rate)
         
         avg_rates = []
         sd_rates = []
         import numpy as np
         
-        for pop_id in self._get_sorted_population_ids():
+        for pop_id in pops_to_use:
             avg_rates.append(np.mean(rates[pop_id]) if len(rates[pop_id])>0 else 0)
             sd_rates.append(np.std(rates[pop_id]) if len(rates[pop_id])>0 else 0)
         
         print('Rates: %s; means: %s; stds: %s'%(rates,avg_rates,sd_rates))
         
         bars = ax_pop_rate.bar(xs, avg_rates, yerr=sd_rates)
+        
+        ax_pop_rate.set_ylabel('Rate (Hz)')
         for bi in range(len(bars)):
             bar = bars[bi]
             bar.set_facecolor(pop_colors[labels[bi]])

@@ -110,6 +110,12 @@ class Population(BaseWithId):
                                
                       
         super(Population, self).__init__(**kwargs)
+        
+    def has_positions(self):
+        if self.random_layout: return True
+        elif self.relative_layout: return True
+        elif self.single_location: return True
+        else: return False
  
  
 class RandomLayout(Base):

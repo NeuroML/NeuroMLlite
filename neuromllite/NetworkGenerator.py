@@ -1194,7 +1194,7 @@ if __name__ == '__main__':
         pops = network.populations
         pops.sort(key=id)
         for p in pops:
-                
+            
             #TODO: just save the particular cells specified...
             if p.id in spike_pop_indices:
                 pops_spike_save.append(p.id)
@@ -1207,6 +1207,8 @@ if __name__ == '__main__':
                 
                 for i in trace_pop_indices[p.id]:
                     quantity = '%s/%i/%s/v' % (p.id, i, p.component)
+                    if not p.has_positions():
+                        quantity = '%s[%i]/v' % (p.id, i)
                     gen_plots_for_quantities[plot_ref].append(quantity)
                     gen_saves_for_quantities[save_ref].append(quantity)
             

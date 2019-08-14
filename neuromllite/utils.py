@@ -175,6 +175,27 @@ def _generate_cell_indices(pop_id, indices, network):
             a.append(i)
     return a
 
+
+def is_spiking_input_population(population, network):
+    
+    cell = network.get_child(population.component, 'cells')
+    
+    return is_spiking_input_cell(cell)
+
+
+def is_spiking_input_cell(cell):
+    if cell.pynn_cell:
+        if cell.pynn_cell=="SpikeSourcePoisson":
+            return True
+        else:
+            return False
+
+def is_spiking_input_nml_cell(component_obj):
+    if component_obj.__class__.__name__=='SpikeSourcePoisson':
+        return True
+    else:
+        return False
+
         
 def create_new_model(reference,
                      duration, 

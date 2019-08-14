@@ -13,13 +13,14 @@ class ConnectivityHandler(DefaultNetworkHandler):
         
     CUTOFF_INH_SYN_MV = -50 # erev below -50mV => inhibitory, above => excitatory
     
-    include_inputs = False
+    include_ext_inputs = False
     
     positions = {}
     
     pop_sizes = {}
     pop_colors = {}
     pop_types = {}
+    pop_nml_component_objs = {}
     
     proj_weights = {}
     proj_shapes = {}
@@ -206,7 +207,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
     
     
     def handle_input_list(self, inputListId, population_id, component, size, input_comp_obj=None):
-        if self.include_inputs:
+        if self.include_ext_inputs:
             #self.print_input_information('INIT:  '+inputListId, population_id, component, size)
             self.sizes_ils[inputListId] = 0
             self.pops_ils[inputListId] = population_id
@@ -215,7 +216,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
             
 
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
-        if self.include_inputs:
+        if self.include_ext_inputs:
             self.sizes_ils[inputListId]+=1
             self.weights_ils[inputListId]+=weight
         

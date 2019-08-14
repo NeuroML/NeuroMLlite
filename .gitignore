@@ -132,3 +132,10 @@ report*.txt
 /examples/run_bmtk.py
 /examples/network/Example3_Network_node_types.csv
 /examples/network/Example3_Network_nodes.sonata.h5
+/examples/sonatatest/LEMS_Sim_sim.xml
+/examples/sonatatest/Back2NML.net.nml
+/examples/sonatatest/LEMS_Sim_Back2NML.xml
+/examples/spikeratetest/Example7_Brunel2000.net.nml
+/examples/spikeratetest/LEMS_SimSpikers.xml
+/examples/spikeratetest/x86_64
+/examples/spikeratetest/Spikers.net.nml
