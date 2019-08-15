@@ -29,7 +29,8 @@ class NMLliteUI(QWidget):
         'jNeuroML_NetPyNE',
         'NetPyNE',
         'PyNN_NEURON',
-        'PyNN_NEST']
+        'PyNN_NEST',
+        'PyNN_Brian']
     
     
     def updated_param(self, p):
