@@ -139,3 +139,6 @@ report*.txt
 /examples/spikeratetest/LEMS_SimSpikers.xml
 /examples/spikeratetest/x86_64
 /examples/spikeratetest/Spikers.net.nml
+/examples/Example9_HindmarshRose.net.nml
+/examples/HindmarshRose3d.xml
+/examples/LEMS_SimExample9.xml

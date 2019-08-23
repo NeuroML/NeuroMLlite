@@ -7,7 +7,11 @@ import sys
 ###   Build new network
 
 net = Network(id='Example8_Extension')
-net.notes = 'Example 8: extending exising networks'
+net.notes = 'Example 8: general testing...'
+
+net.seed = 7890
+net.temperature = 32
+
 net.parameters = { 'N': 10, 'fractionE': 0.8, 'weightInput': 1}
 
 cell = Cell(id='hhcell', neuroml2_source_file='test_files/hhcell.cell.nml')
@@ -60,6 +64,7 @@ new_file = net.to_json_file('%s.json'%net.id)
 sim = Simulation(id='SimExample8',
                  network=new_file,
                  duration='1000',
+                 seed='1111',
                  dt='0.025',
                  recordTraces={'all':'*'})
                  

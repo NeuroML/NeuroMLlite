@@ -360,6 +360,23 @@ class NMLliteUI(QWidget):
                 paramLayout.addWidget(label, rows, 0)
                 entry = self.get_value_entry(p, pval, self.param_entries)
                 paramLayout.addWidget(entry, rows, 1)
+        
+        if self.network.seed is not None:
+            rows += 1
+            pval = self.network.seed
+            label = QLabel('Net generation seed')
+            paramLayout.addWidget(label, rows, 0)
+            entry = self.get_value_entry('seed', pval, self.param_entries)
+            paramLayout.addWidget(entry, rows, 1)
+            
+        if self.network.temperature is not None:
+            rows += 1
+            pval = self.network.temperature
+            label = QLabel('Temperature')
+            paramLayout.addWidget(label, rows, 0)
+            entry = self.get_value_entry('temperature', pval, self.param_entries)
+            paramLayout.addWidget(entry, rows, 1)
+            
                 
                 
         self.graphButton = QPushButton("Generate graph")
@@ -466,7 +483,6 @@ class NMLliteUI(QWidget):
         
         nml_file_name, nml_doc = generate_neuroml2_from_network(self.network, 
                                    print_summary=True, 
-                                   seed=self.simulation.seed if self.simulation.seed is not None else 1234, 
                                    format='xml', 
                                    base_dir=None,
                                    copy_included_elements=False,
@@ -552,7 +568,12 @@ class NMLliteUI(QWidget):
                     pass # leave as string...
                 
             print_v('Setting param %s to %s' % (p, v))
-            self.network.parameters[p] = v
+            if p=='seed':
+                self.network.seed = v
+            elif p=='temperature':
+                self.network.temperature = v
+            else:
+                self.network.parameters[p] = v
             
         print_v('All params: %s' % self.network.parameters)
 

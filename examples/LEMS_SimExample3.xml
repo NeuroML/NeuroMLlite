@@ -19,7 +19,7 @@
     <Include file="test_files/inputs.nml"/>
     <Include file="test_files/hhcell.cell.nml"/>
    
-    <Simulation id="SimExample3" length="1000.0ms" step="0.025ms" target="Example3_Network" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
+    <Simulation id="SimExample3" length="1000.0ms" step="0.025ms" target="Example3_Network" seed="5678">  <!-- Note seed: ensures same random numbers used every run -->
         
         <Display id="pop0_v" title="Plots of pop0_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
             <Line id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v" scale="1mV" color="#6aa799" timeScale="1ms"/>

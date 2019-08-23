@@ -8,6 +8,8 @@ import numpy as np
 import os
 import random
 
+DEFAULT_NET_GENERATION_SEED = 1234
+DEFAULT_SIMULATION_SEED = 5678
 
 def _locate_file(f, base_dir):
     """
@@ -23,7 +25,6 @@ def _locate_file(f, base_dir):
 
 def generate_network(nl_model, 
                      handler, 
-                     seed=1234, 
                      always_include_props=False,
                      include_connections=True,
                      include_inputs=True,
@@ -39,6 +40,9 @@ def generate_network(nl_model,
     
     print_v("Starting net generation for %s%s..." % (nl_model.id, 
                                 ' (base dir: %s)' % base_dir if base_dir else ''))
+                                
+    seed = nl_model.seed if nl_model.seed is not None else DEFAULT_NET_GENERATION_SEED
+    
     rng = random.Random(seed)
     
     if nl_model.network_reader:
@@ -429,7 +433,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
 def generate_neuroml2_from_network(nl_model, 
                                    nml_file_name=None, 
                                    print_summary=True, 
-                                   seed=1234, 
                                    format='xml', 
                                    base_dir=None,
                                    copy_included_elements=False,
@@ -449,7 +452,7 @@ def generate_neuroml2_from_network(nl_model,
 
     neuroml_handler = NetworkBuilder()
 
-    generate_network(nl_model, neuroml_handler, seed=seed, base_dir=base_dir)
+    generate_network(nl_model, neuroml_handler, base_dir=base_dir)
 
     nml_doc = neuroml_handler.get_nml_doc()
     
@@ -759,7 +762,6 @@ def generate_and_run(simulation,
         temp_nml_doc = _extract_pynn_components_to_neuroml(network)
         
         summary = temp_nml_doc.summary()
-        print summary
         from pyneuroml.pynml import convert_to_units
     
         sim_file_info["inputs"] = {}
@@ -906,7 +908,7 @@ if __name__ == '__main__':
                 dont_set_here = ['tau_syn_E', 'e_rev_E', 'tau_syn_I', 'e_rev_I']
                 for d in dont_set_here:
                     if d in c.parameters:
-                        print ('Problem with %s, %s'%(c.id, c.parameters))
+                        print('Problem with %s, %s'%(c.id, c.parameters))
                         raise Exception('Synaptic parameters like %s should be set ' % d+
                           'in individual synapses, not in the list of parameters associated with the cell')
                 if c.id in syn_cell_params:
@@ -1230,6 +1232,8 @@ if __name__ == '__main__':
                         size = evaluate(p.size, network.parameters)
                         for i in range(size):
                             quantity = '%s/%i/%s/%s' % (p.id, i, p.component,var)
+                            if not p.has_positions():
+                                quantity = '%s[%i]/%s' % (p.id, i,var)
                             gen_plots_for_quantities['%s_%i_%s' % (p.id, i, var)] = [quantity]
                             gen_saves_for_quantities['%s_%i.%s.dat' % (p.id, i, var)] = [quantity]
                 
@@ -1262,7 +1266,7 @@ if __name__ == '__main__':
                                        copy_neuroml=True,
                                        lems_file_generate_seed=12345,
                                        report_file_name='report.%s.txt' % simulation.id,
-                                       simulation_seed=simulation.seed if simulation.seed else 12345,
+                                       simulation_seed=simulation.seed if simulation.seed else DEFAULT_SIMULATION_SEED,
                                        verbose=True)
               
         lems_file_name = _locate_file(lems_file_name, target_dir)

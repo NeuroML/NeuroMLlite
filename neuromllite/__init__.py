@@ -27,6 +27,7 @@ class Network(BaseWithId):
                                  ('inputs',('The inputs to apply...',Input))])
                                  
         self.allowed_fields = collections.OrderedDict([('version',('Information on verson of NeuroMLlite',str)),
+                                                       ('seed',('Seed for random number generator used when building network',int)),
                                                        ('temperature',('Temperature at which to run network (float in deg C)',float)),
                                                        ('parameters',('Dict of global parameters for the network',dict)),
                                                        ('network_reader',('Can read in network',NetworkReader))])
