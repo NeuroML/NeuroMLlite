@@ -204,6 +204,22 @@ class NMLliteUI(QWidget):
         self.heatmapTab = QWidget()
         self.plotTabs.addTab(self.heatmapTab, "Heatmap")
         
+        
+        if self.simulation.plots2D is not None:
+            
+            self.plot2DTab = QTabWidget()
+            self.plotTabs.addTab(self.plot2DTab, "2D plots")
+
+            self.plot2DTabLayout = QGridLayout()
+            self.plot2DTab.setLayout(self.plot2DTabLayout)
+        
+            for plot2D in self.simulation.plots2D:
+                info = self.simulation.plots2D[plot2D]
+                pLayout = self.add_tab(plot2D, self.plot2DTab, figure=True, options=True)
+                
+        
+        
+        
         rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, options=True)
         self.rasterLegend = QCheckBox("Show legend")
         self.rasterLegend.setChecked(True)
@@ -711,6 +727,29 @@ class NMLliteUI(QWidget):
         
         self.heatmapCanvas.draw()
         
+        
+        ## Plot 2D 
+        
+        if self.simulation.plots2D is not None:
+            
+            for plot2D in self.simulation.plots2D:
+                info = self.simulation.plots2D[plot2D]
+                fig = self.all_figures[plot2D]
+                
+                ax_2d = fig.add_subplot(111)
+                ax_2d.clear()
+                
+                ax_2d.set_xlabel(info['x_axis'])
+                ax_2d.set_ylabel(info['y_axis'])
+        
+                print('Plotting for %s in %s: %s'%(plot2D, fig, info))
+                print self.current_traces.keys()
+                xs = self.current_traces[info['x_axis']]
+                ys = self.current_traces[info['y_axis']]
+                ax_2d.plot(xs,ys, linewidth=0.5)
+                
+                self.all_canvases[plot2D].draw()
+                
         
         ## Plot spikes
         

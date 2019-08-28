@@ -240,7 +240,9 @@ class Simulation(BaseWithId):
                                ('recordTraces',('Record traces?',dict)),
                                ('recordSpikes',('Record spikes?',dict)),
                                ('recordRates',('Record rates?',dict)),
-                               ('recordVariables',('Record named variables?',dict))])
+                               ('recordVariables',('Record named variables?',dict)),
+                               ('plots2D',('Work in progress...',dict)),
+                               ('plots3D',('Work in progress...',dict))])
                         
         super(Simulation, self).__init__(**kwargs)
      

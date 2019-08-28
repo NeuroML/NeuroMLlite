@@ -14,6 +14,20 @@
             "z": {
                 "all": "*"
             }
+        }, 
+        "plots2D": {
+            "Y-Z": {
+                "y_axis": "hrPop[0]/z", 
+                "x_axis": "hrPop[0]/y"
+            }, 
+            "X-Y": {
+                "y_axis": "hrPop[0]/y", 
+                "x_axis": "hrPop[0]/x"
+            }, 
+            "X-Z": {
+                "y_axis": "hrPop[0]/z", 
+                "x_axis": "hrPop[0]/x"
+            }
         }
     }
 }

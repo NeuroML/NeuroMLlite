@@ -38,7 +38,13 @@ sim = Simulation(id='SimExample9',
                  dt='25',
                  recordVariables={'x':{'all':'*'},
                                   'y':{'all':'*'},
-                                  'z':{'all':'*'}})
+                                  'z':{'all':'*'}},
+                 plots2D={'X-Y':{'x_axis':'hrPop[0]/x',
+                                 'y_axis':'hrPop[0]/y'},
+                          'Y-Z':{'x_axis':'hrPop[0]/y',
+                                 'y_axis':'hrPop[0]/z'},
+                          'X-Z':{'x_axis':'hrPop[0]/x',
+                                 'y_axis':'hrPop[0]/z'}})
                  
 sim.to_json_file()
 
