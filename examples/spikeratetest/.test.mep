@@ -1,0 +1,11 @@
+system: Test 
+
+experiments:
+
+    spike_rate_in_0:
+        expected:
+            spike rate: 40
+
+    spike_rate_in_1:
+        expected:
+            spike rate: 100

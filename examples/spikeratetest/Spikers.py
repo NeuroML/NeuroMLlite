@@ -22,9 +22,17 @@ input_cell.parameters = {
 }
 net.cells.append(input_cell)
 
+input_cell_100 = Cell(id='InputCell100', pynn_cell='SpikeSourcePoisson')
+input_cell_100.parameters = {
+    'start':    0,
+    'duration': 10000000000,
+     'rate':    100
+}
+net.cells.append(input_cell_100)
 
-input_source0 = InputSource(id='poissonFiringSyn', neuroml2_source_file='../test_files/inputs.nml')
-net.input_sources.append(input_source0)
+
+input_source_p0 = InputSource(id='poissonFiringSyn', neuroml2_source_file='../test_files/inputs.nml')
+net.input_sources.append(input_source_p0)
 
 input_source1 = InputSource(id='iclamp1', 
                            pynn_input='DCSource', 
@@ -43,6 +51,8 @@ net.populations.append(pop2)
 
 ipop0 = Population(id='input_pop0', size='N', component=input_cell.id, properties={'color':'.7 .7 .7'})
 net.populations.append(ipop0)
+ipop1 = Population(id='input_pop1', size='N', component=input_cell_100.id, properties={'color':'.7 .1 .7'})
+net.populations.append(ipop1)
 
 #pRS = Population(id='RSpop', size='N - int(N*fractionE)', component=cell.id, properties={'color':'0 0 .7'})
 
@@ -62,7 +72,7 @@ net.projections.append(Projection(id='projEI',
                             
                             '''
 net.inputs.append(Input(id='stim0',
-                        input_source=input_source0.id,
+                        input_source=input_source_p0.id,
                         population=pop0.id,
                         percentage=50,
                         weight='weightInput'))
@@ -87,7 +97,7 @@ new_file = net.to_json_file('%s.json'%net.id)
 
 sim = Simulation(id='SimSpikers',
                  network=new_file,
-                 duration='1000',
+                 duration='10000',
                  dt='0.025',
                  recordTraces={'pop0':'*','pop1':'*','pop2':'*'},
                  recordSpikes={'all':'*'})

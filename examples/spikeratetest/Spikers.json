@@ -1,6 +1,6 @@
 {
     "Spikers": {
-        "version": "NeuroMLlite v0.1.8", 
+        "version": "NeuroMLlite v0.1.9", 
         "parameters": {
             "weightInput": 10, 
             "input_rate": 40, 
@@ -23,6 +23,16 @@
                         "duration": 10000000000, 
                         "start": 0, 
                         "rate": "input_rate"
+                    }
+                }
+            }, 
+            {
+                "InputCell100": {
+                    "pynn_cell": "SpikeSourcePoisson", 
+                    "parameters": {
+                        "duration": 10000000000, 
+                        "start": 0, 
+                        "rate": 100
                     }
                 }
             }
@@ -78,6 +88,15 @@
                     "component": "InputCell", 
                     "properties": {
                         "color": ".7 .7 .7"
+                    }
+                }
+            }, 
+            {
+                "input_pop1": {
+                    "size": "N", 
+                    "component": "InputCell100", 
+                    "properties": {
+                        "color": ".7 .1 .7"
                     }
                 }
             }

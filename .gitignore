@@ -142,3 +142,4 @@ report*.txt
 /examples/Example9_HindmarshRose.net.nml
 /examples/HindmarshRose3d.xml
 /examples/LEMS_SimExample9.xml
+/examples/spikeratetest/inputs.nml

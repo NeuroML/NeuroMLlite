@@ -12,6 +12,8 @@
     <spikeGeneratorPoisson id="spikeGenPoisson" averageRate="50 Hz"/>
     
     <poissonFiringSynapse id="poissonFiringSyn" averageRate="10 Hz" synapse="synInput" spikeTarget="./synInput"/>
+    
+    <poissonFiringSynapse id="poissonFiringSyn100Hz" averageRate="100 Hz" synapse="synInput" spikeTarget="./synInput"/>
 
 </neuroml>
 
