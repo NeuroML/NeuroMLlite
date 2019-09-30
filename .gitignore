@@ -143,3 +143,4 @@ report*.txt
 /examples/HindmarshRose3d.xml
 /examples/LEMS_SimExample9.xml
 /examples/spikeratetest/inputs.nml
+/examples/Lorenz1963.xml

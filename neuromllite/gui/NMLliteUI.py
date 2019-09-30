@@ -216,8 +216,19 @@ class NMLliteUI(QWidget):
             for plot2D in self.simulation.plots2D:
                 info = self.simulation.plots2D[plot2D]
                 pLayout = self.add_tab(plot2D, self.plot2DTab, figure=True, options=True)
-                
         
+        if self.simulation.plots3D is not None:
+            
+            self.plot3DTab = QTabWidget()
+            self.plotTabs.addTab(self.plot3DTab, "3D plots")
+
+            self.plot3DTabLayout = QGridLayout()
+            self.plot3DTab.setLayout(self.plot3DTabLayout)
+        
+            for plot3D in self.simulation.plots3D:
+                info = self.simulation.plots3D[plot3D]
+                pLayout = self.add_tab(plot3D, self.plot3DTab, figure=True, options=True)
+                
         
         
         rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, options=True)
@@ -749,6 +760,32 @@ class NMLliteUI(QWidget):
                 ax_2d.plot(xs,ys, linewidth=0.5)
                 
                 self.all_canvases[plot2D].draw()
+        
+        ## Plot 3D 
+        
+        if self.simulation.plots3D is not None:
+            
+            for plot3D in self.simulation.plots3D:
+                info = self.simulation.plots3D[plot3D]
+                fig = self.all_figures[plot3D]
+                
+                #ax_3d = fig.add_subplot(111)
+                from mpl_toolkits.mplot3d import Axes3D
+                ax_3d = fig.gca(projection='3d')
+                
+                ax_3d.clear()
+                xs = self.current_traces[info['x_axis']]
+                ys = self.current_traces[info['y_axis']]
+                zs = self.current_traces[info['z_axis']]
+                
+                ax_3d.plot(xs,ys,zs, linewidth=0.5)
+                ax_3d.set_xlabel(info['x_axis'])
+                ax_3d.set_ylabel(info['y_axis'])
+                ax_3d.set_zlabel(info['z_axis'])
+                
+                print('Plotting for %s in %s: %s'%(plot3D, fig, info))
+                
+                self.all_canvases[plot3D].draw()
                 
         
         ## Plot spikes

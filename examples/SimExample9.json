@@ -28,6 +28,13 @@
                 "y_axis": "hrPop[0]/z", 
                 "x_axis": "hrPop[0]/x"
             }
+        }, 
+        "plots3D": {
+            "X-Y-Z": {
+                "y_axis": "hrPop[0]/y", 
+                "x_axis": "hrPop[0]/x", 
+                "z_axis": "hrPop[0]/z"
+            }
         }
     }
 }

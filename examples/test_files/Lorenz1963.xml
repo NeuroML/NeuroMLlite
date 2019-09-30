@@ -1,0 +1,62 @@
+<Lems xmlns="http://www.neuroml.org/lems/0.6"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.neuroml.org/lems/0.6 https://raw.github.com/LEMS/LEMS/master/Schemas/LEMS/LEMS_v0.6.xsd">
+
+<!--
+
+    LEMS definition of the Lorenz model for cellular convection, which
+    gives rise to the famous "butterfly" attractor.
+
+    Lorenz, E Nn (1963). "Deterministic nonperiodic flow".
+    Journal of the Atmospheric Sciences 20 (2): 130–141
+    
+    Author: Boris Marin
+
+-->
+
+    <ComponentType name="lorenz"
+                   description="The Lorenz system is a simplified model for atomspheric
+convection, derived from the Navier Stokes equations.">
+    
+        <Parameter name="sigma" dimension="none" description="Prandtl Number"/>
+        <Parameter name="b" dimension="none" description="also named beta elsewhere"/>
+        <Parameter name="r" dimension="none" description="Related to the Rayleigh number, also named rho elsewhere"/>
+
+        <!-- Initial Conditions -->
+        <Parameter name="x0" dimension="none"/>
+        <Parameter name="y0" dimension="none"/>
+        <Parameter name="z0" dimension="none"/>
+
+
+        <Exposure name="x" dimension="none"/>
+        <Exposure name="y" dimension="none"/>
+        <Exposure name="z" dimension="none"/>
+
+        <Constant name="sec" dimension="time" value="1s"/>
+    
+        <Dynamics>
+        
+            <StateVariable name="x" dimension="none" exposure="x"/>
+            <StateVariable name="y" dimension="none" exposure="y"/>
+            <StateVariable name="z" dimension="none" exposure="z"/>
+
+            <TimeDerivative variable="x" value="( sigma * (y - x) ) / sec"/>
+            <TimeDerivative variable="y" value="( r * x - y - x * z ) / sec"/>
+            <TimeDerivative variable="z" value="( x * y - b * z) / sec"/>
+        
+            <OnStart>
+                <StateAssignment variable="x" value="x0"/>
+                <StateAssignment variable="y" value="y0"/>
+                <StateAssignment variable="z" value="z0"/>
+            </OnStart>
+        
+        </Dynamics>
+    
+    </ComponentType>
+
+<!-- parameter set for chaotic attractor -->
+<lorenz id="lorenzCell" sigma="10" b="2.67" r="28"
+    x0="1.0" y0="1.0" z0="1.0"/>
+
+</Lems>
+

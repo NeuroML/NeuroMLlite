@@ -1,0 +1,27 @@
+{
+    "Example10_Lorenz": {
+        "version": "NeuroMLlite v0.1.9", 
+        "parameters": {
+            "N": 1
+        }, 
+        "notes": "Example 10: Lorenz", 
+        "cells": [
+            {
+                "lorenzCell": {
+                    "lems_source_file": "test_files/Lorenz1963.xml"
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "lorenzPop": {
+                    "size": "1", 
+                    "component": "lorenzCell", 
+                    "properties": {
+                        "color": ".7 0 0"
+                    }
+                }
+            }
+        ]
+    }
+}
