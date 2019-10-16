@@ -12,7 +12,7 @@ experiments:
           path: SimSpikers.input_pop0.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.026779347947616827
+        tolerance: 0.010150624862620106
         
   spike_rate_in_1:
     observables:
@@ -21,4 +21,4 @@ experiments:
           path: SimSpikers.input_pop1.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.00020596665203768795
+        tolerance: 0.006355926459857528

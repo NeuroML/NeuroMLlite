@@ -30,7 +30,7 @@ experiments:
           path: ../SimExample7.Epop.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.021763698652775408
+        tolerance: 0.031537895555913804
 
   spike_rate_i:
     observables:
