@@ -3,10 +3,13 @@ from neuromllite.utils import evaluate
 from neuromllite.utils import load_network_json
 from neuromllite.utils import print_v
 from neuromllite.utils import get_pops_vs_cell_indices
+from neuromllite.utils import save_to_json_file
 import numpy as np
 import os
 import random
 
+DEFAULT_NET_GENERATION_SEED = 1234
+DEFAULT_SIMULATION_SEED = 5678
 
 def _locate_file(f, base_dir):
     """
@@ -22,7 +25,6 @@ def _locate_file(f, base_dir):
 
 def generate_network(nl_model, 
                      handler, 
-                     seed=1234, 
                      always_include_props=False,
                      include_connections=True,
                      include_inputs=True,
@@ -38,6 +40,9 @@ def generate_network(nl_model,
     
     print_v("Starting net generation for %s%s..." % (nl_model.id, 
                                 ' (base dir: %s)' % base_dir if base_dir else ''))
+                                
+    seed = nl_model.seed if nl_model.seed is not None else DEFAULT_NET_GENERATION_SEED
+    
     rng = random.Random(seed)
     
     if nl_model.network_reader:
@@ -348,17 +353,18 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
     these to the equivalent elements in a NeuroMLDocument
     """
     
+    import copy
+    
     if nml_doc == None:
         from neuroml import NeuroMLDocument
         nml_doc = NeuroMLDocument(id="temp")
     
     for c in nl_model.cells:
-        
         if c.pynn_cell:
             
             if nml_doc.get_by_id(c.id) == None:
                 import pyNN.neuroml
-                cell_params = c.parameters if c.parameters else {}
+                cell_params = copy.deepcopy(c.parameters) if c.parameters else {}
                 #print('------- %s: %s' % (c, cell_params))
                 for p in cell_params:
                     cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
@@ -410,7 +416,9 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
       
         if i.pynn_input:
             import pyNN.neuroml
-            input_params = i.parameters if i.parameters else {}
+            input_params = copy.deepcopy(i.parameters) if i.parameters else {}
+            for ip in input_params:
+                input_params[ip] = evaluate(input_params[ip], nl_model.parameters)
             exec('input__%s = pyNN.neuroml.%s(**input_params)' % (i.id, i.pynn_input))
             exec('temp_input = input__%s' % i.id)
             pg_id = temp_input.add_to_nml_doc(nml_doc, None)
@@ -425,7 +433,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
 def generate_neuroml2_from_network(nl_model, 
                                    nml_file_name=None, 
                                    print_summary=True, 
-                                   seed=1234, 
                                    format='xml', 
                                    base_dir=None,
                                    copy_included_elements=False,
@@ -445,7 +452,7 @@ def generate_neuroml2_from_network(nl_model,
 
     neuroml_handler = NetworkBuilder()
 
-    generate_network(nl_model, neuroml_handler, seed=seed, base_dir=base_dir)
+    generate_network(nl_model, neuroml_handler, base_dir=base_dir)
 
     nml_doc = neuroml_handler.get_nml_doc()
     
@@ -665,7 +672,7 @@ def generate_and_run(simulation,
     
     print_v("Generating network %s and running in simulator: %s..." % (network.id, simulator))
     
-    if simulator == 'NEURON':
+    if simulator == 'NEURON': # NOT YET WORKING...
         
         _generate_neuron_files_from_neuroml(network, dir_for_mod_files=target_dir)
         
@@ -683,13 +690,138 @@ def generate_and_run(simulation,
             raise NotImplementedError("Reloading results not supported in Neuron yet...")
 
 
-    elif simulator.lower() == 'sonata': # Will not "run" obviously...
+    elif simulator.lower() == 'sonata': 
+    
+        target_simulator = "NEST"
         
         from neuromllite.SonataHandler import SonataHandler
         
         sonata_handler = SonataHandler()
         
         generate_network(network, sonata_handler, always_include_props=True, base_dir=base_dir)
+        
+        import pyNN.neuroml
+        for c in network.cells:
+            if c.pynn_cell:
+                
+                cell_params = {}
+                if c.parameters: 
+                    for p in c.parameters:
+                        cell_params[p] = evaluate(c.parameters[p], network.parameters)
+                        
+                temp_cell = eval('pyNN.neuroml.%s(**cell_params)' % c.pynn_cell)
+                
+                mappings = {'i_offset':"I_e","tau_m":"tau_m",'cm':"C_m",'tau_refrac':"t_ref",'v_rest':"E_L",'v_thresh':"V_th",'v_reset':"V_reset"}
+                scales = {'cm':1000}
+                
+                print_v('Converting %s (%s) to Sonata format...'%(c, temp_cell))
+                comp_file = './components/point_neuron_models_dir/%s.json'%c.id  # Oi! Hardcoding!
+                comp_file_info ={}
+                
+                for p in temp_cell.default_parameters:
+                    print('  Param %s = %s'%(p, temp_cell.parameter_space[p].base_value))
+                    if p in mappings:
+                        sim_name = mappings[p]
+                        sim_val = temp_cell.parameter_space[p].base_value * (scales[p] if p in scales else 1)
+                        #print('    Translated %s = %s'%(sim_name, sim_val))
+                        comp_file_info[sim_name]=sim_val
+                
+                save_to_json_file(comp_file_info, comp_file, indent=2)
+                    
+        
+        sim_file_info = {}
+        
+        sim_file_info["run"] = {}
+        sim_file_info["run"]["tstop"] = simulation.duration
+        sim_file_info["run"]["dt"] = simulation.dt
+        
+        sim_file_info["target_simulator"] = target_simulator
+        sim_file_info["manifest"] = {}
+        sim_file_info["manifest"]["$OUTPUT_DIR"] = "./output"
+        sim_file_info["manifest"]["$INPUT_DIR"] = "./"
+        sim_file_info["output"] = {}
+        sim_file_info["output"]["output_dir"] = "$OUTPUT_DIR"
+        sim_file_info["output"]["log_file"] = "log.txt"
+        sim_file_info["output"]["spikes_file"] = "spikes.h5"
+        sim_file_info["output"]["spikes_sort_order"] = "time"
+        
+        sim_file_info["node_sets"] = {}
+        sim_file_info["node_sets"]["point_nodes"] = {}
+        sim_file_info["node_sets"]["point_nodes"]["model_type"] = "point_process"
+        
+        sim_file_info["reports"] = {}
+        sim_file_info["reports"]["membrane_potential"] = {}
+        sim_file_info["reports"]["membrane_potential"]["cells"] = "point_nodes"
+        sim_file_info["reports"]["membrane_potential"]["variable_name"] = "V_m"
+        sim_file_info["reports"]["membrane_potential"]["module"] = "multimeter_report"
+        sim_file_info["reports"]["membrane_potential"]["sections"] = "soma"
+        sim_file_info["reports"]["membrane_potential"]["enabled"] = True
+        
+        #print sonata_handler.input_info
+        
+        temp_nml_doc = _extract_pynn_components_to_neuroml(network)
+        
+        summary = temp_nml_doc.summary()
+        from pyneuroml.pynml import convert_to_units
+    
+        sim_file_info["inputs"] = {}
+        for input in sonata_handler.input_info:
+            sim_file_info["inputs"][input] = {}
+            input_comp = sonata_handler.input_info[input][1]
+            c = temp_nml_doc.get_by_id(input_comp)
+            ref = 'inputset_%s_%s'%(input, input_comp)
+            if c.__class__.__name__=='PulseGenerator':
+                sim_file_info["inputs"][input]['input_type'] = 'current_clamp'
+                sim_file_info["inputs"][input]['module'] = 'IClamp'
+                sim_file_info["inputs"][input]['amp'] = convert_to_units(c.amplitude,'pA')
+                sim_file_info["inputs"][input]['delay'] = convert_to_units(c.delay,'ms')
+                sim_file_info["inputs"][input]['duration'] = convert_to_units(c.duration,'ms')
+                sim_file_info["inputs"][input]['node_set'] = ref
+            else:
+                raise Exception("Can't yet handle input of type: %s"% c)
+                
+            sim_file_info["node_sets"][ref] = {}
+            sim_file_info["node_sets"][ref]["model_type"] = "point_process"
+            sim_file_info["node_sets"][ref]['population'] = sonata_handler.input_info[input][0]
+            #sim_file_info["node_sets"][ref]['node_id'] = sonata_handler.input_info[input][2]
+                
+        
+        
+        save_to_json_file(sim_file_info, 'simulation_config.json', indent=2)
+        
+        
+        run_bmtk_template="""#!/bin/env python
+
+import sys
+
+def run(config_file, simulator):
+    
+    if simulator=='NEURON':
+        from bmtk.simulator import bionet
+        conf = bionet.Config.from_json(config_file, validate=True)
+        conf.build_env()
+        net = bionet.BioNetwork.from_config(conf)
+        sim = bionet.BioSimulator.from_config(conf, network=net)
+        
+    
+    elif simulator=='NEST':
+        from bmtk.simulator import pointnet
+        conf = pointnet.Config.from_json(config_file)
+        conf.build_env()
+        net = pointnet.PointNetwork.from_config(conf)
+        sim = pointnet.PointSimulator.from_config(conf, net)
+        
+    sim.run()
+
+
+if __name__ == '__main__':
+
+        run('config.json', '%s')
+
+        """
+        
+        run_bmtk_file = open('run_bmtk.py','w')
+        run_bmtk_file.write(run_bmtk_template%(target_simulator))
     
         print_v("Done with Sonata...")
 
@@ -776,8 +908,9 @@ def generate_and_run(simulation,
                 dont_set_here = ['tau_syn_E', 'e_rev_E', 'tau_syn_I', 'e_rev_I']
                 for d in dont_set_here:
                     if d in c.parameters:
-                        raise Exception('Synaptic parameters like %s should be set '+
-                          'in individual synapses, not in the list of parameters associated with the cell' % d)
+                        print('Problem with %s, %s'%(c.id, c.parameters))
+                        raise Exception('Synaptic parameters like %s should be set ' % d+
+                          'in individual synapses, not in the list of parameters associated with the cell')
                 if c.id in syn_cell_params:
                     cell_params.update(syn_cell_params[c.id])
                 print_v("Creating cell with params: %s" % cell_params)
@@ -796,8 +929,9 @@ def generate_and_run(simulation,
         pynn_handler.set_receptor_types(receptor_types)
         
         for input_source in network.input_sources:
+            
             if input_source.pynn_input:
-                pynn_handler.add_input_source(input_source)
+                pynn_handler.add_input_source(input_source, network)
         
         generate_network(network, pynn_handler, always_include_props=True, base_dir=base_dir)
         
@@ -844,14 +978,19 @@ def generate_and_run(simulation,
                 
                 for index in indices:
                     ref = '%s[%i]'%(pop_id,index)
+                    ref = '%s/%i/???/v'%(pop_id,index)
                     traces[ref] = []
                     vm = analogsignal.transpose()[analogsignal_index[index]]
 
                     if len(all_columns) == 0:
                         tt = np.array([t * simulation.dt / 1000. for t in range(len(vm))])
                         all_columns.append(tt)
-                    vm_si = vm/1000.
+                    vm_si = np.array(vm/1000.)
+                    
                     traces[ref] = vm_si
+                    if not 't' in traces:
+                        traces['t'] = tt
+                    
                     all_columns.append(vm_si)
 
                     times_vm = np.array(all_columns).transpose()
@@ -876,6 +1015,8 @@ def generate_and_run(simulation,
                     source_id = spiketrain.annotations['source_id']
                     source_index = spiketrain.annotations['source_index']
                     print("Writing spike data for cell %s[%s] (gid: %i): %i spikes "%(pynn_pop.label,source_index, source_id, len(spiketrain)))
+                    ref = '%s/%i/???'%(pynn_pop.label,source_index)
+                    events[ref] = [t.magnitude/1000. for t in spiketrain]
                     if source_index in indices:
                         for t in spiketrain:
                             #ff.write('%s\t%i\n'%(t.magnitude/1000.,source_index))
@@ -918,16 +1059,13 @@ def generate_and_run(simulation,
         simConfig.recordCells = ['all'] 
         simConfig.recordTraces = {}
         
+        trace_pop_indices = get_pops_vs_cell_indices(simulation.recordTraces, network)
 
-        for pop in netpyne_handler.popParams.values():
-            if simulation.recordTraces is not None and \
-              ('all' in simulation.recordTraces or pop.id in simulation.recordTraces):
-                for i in pop['cellsList']:
-                    pop_id = pop['pop']
-                    index = i['cellLabel']
-                    simConfig.recordTraces['%s.%s.%s.v' % (simulation.id, pop_id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':pop_id, 'cellLabel':index}}
+        for pop_id in trace_pop_indices:
+            for index in trace_pop_indices[pop_id]:
+                simConfig.recordTraces['%s.%s.%s.v' % (simulation.id, pop_id, index)] = {'sec':'soma', 'loc':0.5, 'var':'v', 'conds':{'pop':pop_id, 'cellLabel':index}}
 
-        simConfig.saveDat = True
+        #simConfig.saveDat = True
         
         print_v("NetPyNE netParams: ")
         pp.pprint(netParams.todict())
@@ -982,8 +1120,44 @@ def generate_and_run(simulation,
         sim.gatherData()                  # gather spiking data and cell info from each node
         sim.saveData()                    # save params, cell info and sim output to file (pickle,mat,txt,etc)
         
-        if return_results:
-            raise NotImplementedError("Reloading results not supported in NetPyNE yet...")
+        print_v("Finished running simulation in NetPyNE")
+            
+        print_v('Extracting results from %s'%(sim.allSimData.keys()))
+                
+        times = [t/1000. for t in sim.allSimData['t']]
+        traces = {}
+        traces['t'] = times
+        events = {}
+        
+        for pop_id in trace_pop_indices:
+            indices = trace_pop_indices[pop_id]
+            print('Saving in pop %s: %s'%(pop_id, indices))
+            save_ref = '%s.%s.v.dat' % (simulation.id,pop_id)
+            pop_v_file = open(save_ref,'w')
+            all_v = []
+            for index in indices: 
+                ref = '%s.%s.%s.v' % (simulation.id, pop_id, index)
+                #print ref
+                v = [v/1000.0 for v in sim.allSimData[ref][list(sim.allSimData[ref])[0]]]
+                #print _print_info(v)
+                
+                ref = '%s/%i/???/v'%(pop_id,index)
+                traces[ref] = v
+                all_v.append(v)
+                
+            for ti in range(len(times)):
+                vs = ''
+                for v in all_v: 
+                    vs+='\t%s'%(v[ti])
+                pop_v_file.write('%s\t'%(times[ti])+ vs + '\n')
+            pop_v_file.close()
+                
+            
+        spike_pop_indices = get_pops_vs_cell_indices(simulation.recordSpikes, network)
+        
+        
+        if return_results or True: ###########################################################
+            return traces, events
         
     elif simulator == 'jNeuroML' or  simulator == 'jNeuroML_NEURON' or simulator == 'jNeuroML_NetPyNE':
 
@@ -1015,20 +1189,41 @@ def generate_and_run(simulation,
         gen_plots_for_quantities = {}
         gen_saves_for_quantities = {}
         
-        for p in network.populations:
+        trace_pop_indices = get_pops_vs_cell_indices(simulation.recordTraces, network)
+        spike_pop_indices = get_pops_vs_cell_indices(simulation.recordSpikes, network)
+        rate_pop_indices = get_pops_vs_cell_indices(simulation.recordRates, network)
+        
+        pops = network.populations
+        pops.sort(key=id)
+        for p in pops:
             
-            if simulation.recordTraces and ('all' in simulation.recordTraces or p.id in simulation.recordTraces):
-                pops_plot_save.append(p.id)
-                
-            if simulation.recordSpikes and ('all' in simulation.recordSpikes or p.id in simulation.recordSpikes):
+            #TODO: just save the particular cells specified...
+            if p.id in spike_pop_indices:
                 pops_spike_save.append(p.id)
                 
-            if simulation.recordRates and ('all' in simulation.recordRates or p.id in simulation.recordRates):
-                size = evaluate(p.size, network.parameters)
-                for i in range(size):
+            if p.id in trace_pop_indices:
+                plot_ref = '%s_v' % (p.id)
+                save_ref = '%s.%s.v.dat' % (simulation.id,p.id)
+                gen_plots_for_quantities[plot_ref] = []
+                gen_saves_for_quantities[save_ref] = []
+                
+                for i in trace_pop_indices[p.id]:
+                    quantity = '%s/%i/%s/v' % (p.id, i, p.component)
+                    if not p.has_positions():
+                        quantity = '%s[%i]/v' % (p.id, i)
+                    gen_plots_for_quantities[plot_ref].append(quantity)
+                    gen_saves_for_quantities[save_ref].append(quantity)
+            
+            if p.id in rate_pop_indices:
+                plot_ref = '%s_r' % (p.id)
+                save_ref = '%s.%s.r.dat' % (simulation.id,p.id)
+                gen_plots_for_quantities[plot_ref] = []
+                gen_saves_for_quantities[save_ref] = []
+                
+                for i in rate_pop_indices[p.id]:
                     quantity = '%s/%i/%s/r' % (p.id, i, p.component)
-                    gen_plots_for_quantities['%s_%i_r' % (p.id, i)] = [quantity]
-                    gen_saves_for_quantities['%s_%i.r.dat' % (p.id, i)] = [quantity]
+                    gen_plots_for_quantities[plot_ref].append(quantity)
+                    gen_saves_for_quantities[save_ref].append(quantity)
                 
             if simulation.recordVariables:
                 for var in simulation.recordVariables:
@@ -1037,6 +1232,8 @@ def generate_and_run(simulation,
                         size = evaluate(p.size, network.parameters)
                         for i in range(size):
                             quantity = '%s/%i/%s/%s' % (p.id, i, p.component,var)
+                            if not p.has_positions():
+                                quantity = '%s[%i]/%s' % (p.id, i,var)
                             gen_plots_for_quantities['%s_%i_%s' % (p.id, i, var)] = [quantity]
                             gen_saves_for_quantities['%s_%i.%s.dat' % (p.id, i, var)] = [quantity]
                 
@@ -1069,7 +1266,7 @@ def generate_and_run(simulation,
                                        copy_neuroml=True,
                                        lems_file_generate_seed=12345,
                                        report_file_name='report.%s.txt' % simulation.id,
-                                       simulation_seed=simulation.seed if simulation.seed else 12345,
+                                       simulation_seed=simulation.seed if simulation.seed else DEFAULT_SIMULATION_SEED,
                                        verbose=True)
               
         lems_file_name = _locate_file(lems_file_name, target_dir)
@@ -1101,6 +1298,8 @@ def generate_and_run(simulation,
             _print_result_info(traces, events)
             return results # traces, events =
         
+def _print_info(l):
+    print("List %s of %i elements of type %s: %s -> %s (min: %s, max: %s)"%(type(l), len(l), type(l[0]), l[0], l[-1], min(l), max(l)))
         
 def _print_result_info(traces, events):
     """

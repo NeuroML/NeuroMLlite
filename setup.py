@@ -15,6 +15,7 @@ setup(
     license='LICENSE.lesser',
     description='A common JSON based format for compact network specification, closely tied to NeuroML v2',
     long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
     install_requires=[],
     classifiers = [
         'Intended Audience :: Science/Research',

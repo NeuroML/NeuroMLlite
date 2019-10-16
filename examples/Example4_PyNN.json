@@ -1,6 +1,9 @@
 {
     "Example4_PyNN": {
-        "version": "NeuroMLlite v0.1.8", 
+        "version": "NeuroMLlite v0.1.9", 
+        "parameters": {
+            "input_amp": 0.99
+        }, 
         "notes": "Example 4: a network with PyNN cells & inputs", 
         "cells": [
             {
@@ -51,7 +54,7 @@
                     "parameters": {
                         "start": 200.0, 
                         "stop": 800.0, 
-                        "amplitude": 0.99
+                        "amplitude": "input_amp"
                     }
                 }
             }

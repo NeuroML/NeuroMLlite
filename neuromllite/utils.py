@@ -1,8 +1,61 @@
 from neuromllite import *
 import sys
+import json
 
 from neuromllite.BaseTypes import print_v, print_
     
+    
+def load_json(filename):
+    """
+    Load a generic JSON file
+    """
+
+    with open(filename, 'r') as f:
+        
+        data = json.load(f, object_hook=ascii_encode_dict)
+        
+    return data
+
+    
+def load_network_json(filename):
+    """
+    Load a NeuroMLlite network JSON file
+    """
+    
+    data = load_json(filename)
+        
+    print_v("Loaded network specification from %s"%filename)
+    
+    net = Network()
+    net = _parse_element(data, net)
+    
+    return net
+    
+    
+def load_simulation_json(filename):
+    """
+    Load a NeuroMLlite simulation JSON file
+    """
+
+    with open(filename, 'r') as f:
+        
+        data = json.load(f, object_hook=ascii_encode_dict)
+        
+        
+    print_v("Loaded simulation specification from %s"%filename)
+    
+    sim = Simulation()
+    sim = _parse_element(data, sim)
+    
+    return sim
+
+
+def save_to_json_file(info, filename, indent=4):
+
+    strj = json.dumps(info, indent=indent)    
+    with open(filename, 'w') as fp:
+        fp.write(strj)
+
     
 def ascii_encode_dict(data):
     ascii_encode = lambda x: x.encode('ascii') if (sys.version_info[0]==2 and isinstance(x, unicode)) else x
@@ -44,49 +97,17 @@ def _parse_attributes(json, to_build):
         
     return to_build
     
-    
-def load_json(filename):
-    import json
-
-    with open(filename, 'r') as f:
-        
-        data = json.load(f, object_hook=ascii_encode_dict)
-        
-    return data
-
-    
-def load_network_json(filename):
-    
-    data = load_json(filename)
-        
-    print_v("Loaded network specification from %s"%filename)
-    
-    net = Network()
-    net = _parse_element(data, net)
-    
-    return net
-    
-    
-def load_simulation_json(filename):
-    import json
-
-    with open(filename, 'r') as f:
-        
-        data = json.load(f, object_hook=ascii_encode_dict)
-        
-        
-    print_v("Loaded simulation specification from %s"%filename)
-    
-    sim = Simulation()
-    sim = _parse_element(data, sim)
-    
-    return sim
-
 
 def evaluate(expr, parameters={}):
+    """
+    Evaluate a general string like expression (e.g. "2 * weight") using a dict
+    of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's 
+    given in expr
+    """
     
     verbose = False
-    print_('Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
+    #verbose = True
+    print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
     try:
         if expr in parameters:
             expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
@@ -109,7 +130,7 @@ def evaluate(expr, parameters={}):
             return float(expr)
     except:
         try:
-            print_('Trying eval with Python...')
+            print_('Trying eval with Python...',verbose)
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
             if int(v)==v:
@@ -139,13 +160,41 @@ def get_pops_vs_cell_indices(recordSpec, network):
     
     
 def _generate_cell_indices(pop_id, indices, network):
+    
     a = []
+    pop = network.get_child(pop_id, 'populations')
+    
     if indices=='*':
-        pop = network.get_child(pop_id, 'populations')
         size = evaluate(pop.size, network.parameters)
         for i in range(size):
             a.append(i)
+    if isinstance(indices, int):
+        a.append(indices)
+    if isinstance(indices, list):
+        for i in indices:
+            a.append(i)
     return a
+
+
+def is_spiking_input_population(population, network):
+    
+    cell = network.get_child(population.component, 'cells')
+    
+    return is_spiking_input_cell(cell)
+
+
+def is_spiking_input_cell(cell):
+    if cell.pynn_cell:
+        if cell.pynn_cell=="SpikeSourcePoisson":
+            return True
+        else:
+            return False
+
+def is_spiking_input_nml_cell(component_obj):
+    if component_obj.__class__.__name__=='SpikeSourcePoisson':
+        return True
+    else:
+        return False
 
         
 def create_new_model(reference,

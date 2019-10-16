@@ -5,6 +5,7 @@
 #
 
 from neuromllite.utils import print_v
+from neuromllite.utils import evaluate
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
 from importlib import import_module
@@ -32,8 +33,12 @@ class PyNNHandler(DefaultNetworkHandler):
     def set_receptor_types(self, receptor_types):
         self.receptor_types = receptor_types
         
-    def add_input_source(self, input_source):
+    def add_input_source(self, input_source, network):
         input_params = input_source.parameters if input_source.parameters else {}
+
+        for ip in input_params:
+            input_params[ip] = evaluate(input_params[ip], network.parameters)
+                
         exec('self.input_sources["%s"] = self.sim.%s(**input_params)'%(input_source.id,input_source.pynn_input))
 
     def handle_document_start(self, id, notes):
@@ -109,10 +114,9 @@ class PyNNHandler(DefaultNetworkHandler):
                                                     delay = 0, \
                                                     weight = 1):
         
-        self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
-        print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
+        #self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
+        #print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
          
-        import random
         exec('self.projection__%s_conns.append((%s,%s,float(%s),float(%s)))'%(projName,preCellId,postCellId,weight,delay))
 
         

@@ -7,41 +7,44 @@ try:
     import unittest2 as unittest
 except ImportError:
     import unittest
+    
+def get_example_network():
+    
+    net = Network(id='net0')
+    net.notes = "...."
+
+    p0 = Population(id='pop0', size=5, component='iaf', properties={'color':'0 .8 0'})
+    p1 = Population(id='pop1', size=10, component='iaf', properties={'color':'0 0 .8'})
+    net.populations.append(p0)
+    net.populations.append(p1)
+
+    net.projections.append(Projection(id='proj0',
+                                      presynaptic=p0.id, 
+                                      postsynaptic=p1.id,
+                                      synapse='ampa'))
+
+    net.projections[0].random_connectivity=RandomConnectivity(probability=0.5)
+
+    return net
+
+def get_example_simulation():
+
+    id = 'Sim0'
+    sim = Simulation(id=id,
+                     network='%s.json'%'net0',
+                     duration='1000',
+                     dt='0.01',
+                     recordTraces={'all':'*'})
+    return sim
 
 class TestBaseSaveLoad(unittest.TestCase):
     
-    def get_example_network(self):
-        net = Network(id='net0')
-        net.notes = "...."
 
-        p0 = Population(id='pop0', size=5, component='iaf', properties={'color':'0 .8 0'})
-        p1 = Population(id='pop1', size=10, component='iaf', properties={'color':'0 0 .8'})
-        net.populations.append(p0)
-        net.populations.append(p1)
-
-        net.projections.append(Projection(id='proj0',
-                                          presynaptic=p0.id, 
-                                          postsynaptic=p1.id,
-                                          synapse='ampa'))
-
-        net.projections[0].random_connectivity=RandomConnectivity(probability=0.5)
-        
-        return net
-    
-    def get_example_simulation(self):
-
-        id = 'Sim0'
-        sim = Simulation(id=id,
-                         network='%s.json'%'net0',
-                         duration='1000',
-                         dt='0.01',
-                         recordTraces={'all':'*'})
-        return sim
 
     def test_save_load_json(self):
         
         
-        for o in [self.get_example_simulation(), self.get_example_network()]:
+        for o in [get_example_simulation(), get_example_network()]:
         
             str0 = str(o)
             json0 = o.to_json()
@@ -66,7 +69,7 @@ class TestBaseSaveLoad(unittest.TestCase):
 
     def test_save_load_pickle(self):
         
-        for o in [self.get_example_simulation(), self.get_example_network()]:
+        for o in [get_example_simulation(), get_example_network()]:
             
             str0 = str(o)
             json0 = o.to_json()

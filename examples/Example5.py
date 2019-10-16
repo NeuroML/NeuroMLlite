@@ -39,19 +39,26 @@ new_file = net.to_json_file('%s.json'%net.id)
 ###   Builds a NeuroML 2 representation, save as XML
 
 format_='xml'
-generate_neuroml2_from_network(net, 
+nml_file_name, nml_doc = generate_neuroml2_from_network(net, 
                                nml_file_name='%s.net.nml%s'%(net.id, '.h5' if format_=='hdf5' else ''), 
                                format=format_)
 
 
 from neuromllite import Simulation
 
+recordTraces={'all':'*'}
+recordSpikes={'all':'*'}
+
+
 sim = Simulation(id='SimExample5',
                  network=new_file,
-                 duration='500',
-                 dt='0.025',
-                 recordTraces={'all':'*'})
-                               
+                 duration=500,
+                 dt=0.025,
+                 recordTraces=recordTraces,
+                 recordSpikes=recordSpikes)
+           
+print sim
+sim.to_json_file()           
                                
 
 ################################################################################

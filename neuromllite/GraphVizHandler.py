@@ -5,6 +5,7 @@
 #
 
 from neuromllite.utils import print_v
+from neuromllite.utils import is_spiking_input_nml_cell
 from neuromllite.ConnectivityHandler import ConnectivityHandler
 from neuromllite.utils import evaluate
             
@@ -39,7 +40,8 @@ class GraphVizHandler(ConnectivityHandler):
                  level=10, 
                  engine='dot', 
                  nl_network=None,
-                 include_inputs=True,
+                 include_ext_inputs=True,
+                 include_input_pops=True,
                  scale_by_post_pop_size = True,
                  scale_by_post_pop_cond = True,
                  show_chem_conns = True,
@@ -52,7 +54,8 @@ class GraphVizHandler(ConnectivityHandler):
         self.nl_network = nl_network
         self.level = level
         self.engine = engine
-        self.include_inputs = include_inputs
+        self.include_ext_inputs = include_ext_inputs
+        self.include_input_pops = include_input_pops
         self.scale_by_post_pop_size = scale_by_post_pop_size
         self.scale_by_post_pop_cond = scale_by_post_pop_cond
         self.min_weight_to_show = min_weight_to_show
@@ -74,7 +77,8 @@ class GraphVizHandler(ConnectivityHandler):
         print_v('*    level:                   %s'%self.level)
         print_v('*    is_cell_level:           %s'%self.is_cell_level())
         print_v('*    CUTOFF_INH_SYN_MV:       %s'%self.CUTOFF_INH_SYN_MV)
-        print_v('*    include_inputs:          %s'%self.include_inputs)
+        print_v('*    include_ext_inputs:      %s'%self.include_ext_inputs)
+        print_v('*    include_input_pops:      %s'%self.include_input_pops)
         print_v('*    scale_by_post_pop_size:  %s'%self.scale_by_post_pop_size)
         print_v('*    scale_by_post_pop_cond:  %s'%self.scale_by_post_pop_cond)
         print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
@@ -141,7 +145,7 @@ class GraphVizHandler(ConnectivityHandler):
                     show = self.show_cont_conns
                 else:
                     show = self.show_chem_conns
-
+                    
                 if show:
                     gbase_nS, gbase = self._get_gbase_nS(projName,return_orig_string_also=True)
 
@@ -259,6 +263,11 @@ class GraphVizHandler(ConnectivityHandler):
                             show = self.show_cont_conns
                         else:
                             show = self.show_chem_conns
+                            
+                        pre_pop = self.proj_pre_pops[projName]
+                        if pre_pop in self.pop_nml_component_objs:
+                            if not self.include_input_pops and is_spiking_input_nml_cell(self.pop_nml_component_objs[pre_pop]):
+                                show=False
 
                         if self.level>=2 and show:
                             print_v("EDGE: %s (%s): weight %s (all: %s -> %s); fw: %s; lw: %s"%(projName, proj_type, weight_used, max_abs_weight[proj_type],min_abs_weight[proj_type],fweight,lweight))
@@ -326,7 +335,7 @@ class GraphVizHandler(ConnectivityHandler):
             self.graph.render()
             
         if self.nl_network:
-            print_v("Finished generating graph with params: %s"%self.nl_network.parameters)
+            print_v("Finished generating graph with params: %s"%[p for p in self.nl_network.parameters])
 
         
 
@@ -349,6 +358,12 @@ class GraphVizHandler(ConnectivityHandler):
         else:
             compInfo=""
             
+        self.pop_nml_component_objs[population_id] = component_obj
+        
+        if not self.include_input_pops and is_spiking_input_nml_cell(component_obj):
+            print("Ignoring %s as it's a spiking ipout population")
+            return
+        
         self.pop_sizes[population_id] = size
             
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo+", properties: %s"%properties)
@@ -435,6 +450,10 @@ class GraphVizHandler(ConnectivityHandler):
         # between populations set at high level projection element in NeuroMLlite
         projection_weight = 1.0
         
+        if not (prePop in self.pop_sizes and postPop in self.pop_sizes):
+            print_v('Ignoring projection, as one of pops empty...')
+            return
+        
         self.proj_pre_pops[projName] = prePop
         self.proj_post_pops[projName] = postPop
         self.proj_types[projName] = type
@@ -500,7 +519,7 @@ class GraphVizHandler(ConnectivityHandler):
 
     def finalise_input_source(self, inputListId):
         
-        if self.include_inputs:
+        if self.include_ext_inputs:
             #self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
 
             if self.level>=2:

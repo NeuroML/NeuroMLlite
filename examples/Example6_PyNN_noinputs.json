@@ -1,10 +1,11 @@
 {
     "Example6_PyNN_noinputs": {
-        "version": "NeuroMLlite v0.1.8", 
+        "version": "NeuroMLlite v0.1.9", 
         "parameters": {
             "N_scaling": 0.005, 
             "depth": 100, 
             "layer_height": 400, 
+            "input_weight": 0.1, 
             "width": 100
         }, 
         "notes": "Another network for PyNN - work in progress...", 

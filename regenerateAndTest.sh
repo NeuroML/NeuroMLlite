@@ -19,7 +19,7 @@ python Example3.py
 python Example3.py -netpyne
 python Example3.py -jnmlnrn
 python Example3.py -jnmlnetpyne
-python Example3.py -sonata
+#python Example3.py -sonata
 
 echo
 echo "**** Running Example 4 ****"

@@ -1,6 +1,5 @@
 from neuromllite import Network, Cell, InputSource, Population, Synapse, RectangularRegion, RandomLayout 
 from neuromllite import Projection, RandomConnectivity, Input, Simulation
-from neuromllite.NetworkGenerator import generate_and_run
 import sys
 
 ################################################################################
@@ -8,6 +7,7 @@ import sys
 
 net = Network(id='Example4_PyNN')
 net.notes = 'Example 4: a network with PyNN cells & inputs'
+net.parameters = { 'input_amp':       0.99} 
 
 cell = Cell(id='testcell', pynn_cell='IF_cond_alpha')
 cell.parameters = { "tau_refrac":5, "i_offset":.1 }
@@ -19,7 +19,7 @@ net.cells.append(cell2)
 
 input_source = InputSource(id='i_clamp', 
                            pynn_input='DCSource', 
-                           parameters={'amplitude':0.99, 'start':200., 'stop':800.})
+                           parameters={'amplitude':'input_amp', 'start':200., 'stop':800.})
 net.input_sources.append(input_source)
 
 r1 = RectangularRegion(id='region1', x=0,y=0,z=0,width=1000,height=100,depth=1000)

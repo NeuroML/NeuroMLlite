@@ -1,12 +1,14 @@
 {
     "Example8_Extension": {
-        "version": "NeuroMLlite v0.1.8", 
+        "version": "NeuroMLlite v0.1.9", 
+        "seed": 7890, 
+        "temperature": 32.0, 
         "parameters": {
             "weightInput": 1, 
             "fractionE": 0.8, 
             "N": 10
         }, 
-        "notes": "Example 8: extending exising networks", 
+        "notes": "Example 8: general testing...", 
         "cells": [
             {
                 "hhcell": {

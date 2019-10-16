@@ -2,7 +2,7 @@
     
     <!-- 
 
-        This LEMS file has been automatically generated using PyNeuroML v0.3.18 (libNeuroML v0.2.47)
+        This LEMS file has been automatically generated using PyNeuroML v0.3.19 (libNeuroML v0.2.47)
 
      -->
     
@@ -19,48 +19,48 @@
     <Include file="test_files/inputs.nml"/>
     <Include file="test_files/hhcell.cell.nml"/>
    
-    <Simulation id="SimExample3" length="1000.0ms" step="0.025ms" target="Example3_Network" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
+    <Simulation id="SimExample3" length="1000.0ms" step="0.025ms" target="Example3_Network" seed="5678">  <!-- Note seed: ensures same random numbers used every run -->
         
-        <Display id="DispPop__pop0" title="Membrane potentials of cells in pop0" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-90" ymax="50">
-            <Line id="pop0[0]: v" quantity="pop0/0/hhcell/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
-            <Line id="pop0[1]: v" quantity="pop0/1/hhcell/v" scale="1mV" color="#029a72" timeScale="1ms"/>
-            <Line id="pop0[2]: v" quantity="pop0/2/hhcell/v" scale="1mV" color="#d340bb" timeScale="1ms"/>
-            <Line id="pop0[3]: v" quantity="pop0/3/hhcell/v" scale="1mV" color="#4c73a9" timeScale="1ms"/>
-            <Line id="pop0[4]: v" quantity="pop0/4/hhcell/v" scale="1mV" color="#5e503a" timeScale="1ms"/>
+        <Display id="pop0_v" title="Plots of pop0_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
+            <Line id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
+            <Line id="pop0_1_hhcell_v" quantity="pop0/1/hhcell/v" scale="1mV" color="#029a72" timeScale="1ms"/>
+            <Line id="pop0_2_hhcell_v" quantity="pop0/2/hhcell/v" scale="1mV" color="#d340bb" timeScale="1ms"/>
+            <Line id="pop0_3_hhcell_v" quantity="pop0/3/hhcell/v" scale="1mV" color="#4c73a9" timeScale="1ms"/>
+            <Line id="pop0_4_hhcell_v" quantity="pop0/4/hhcell/v" scale="1mV" color="#5e503a" timeScale="1ms"/>
         </Display>
         
-        <Display id="DispPop__pop1" title="Membrane potentials of cells in pop1" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-90" ymax="50">
-            <Line id="pop1[0]: v" quantity="pop1/0/hhcell/v" scale="1mV" color="#3193ca" timeScale="1ms"/>
-            <Line id="pop1[1]: v" quantity="pop1/1/hhcell/v" scale="1mV" color="#90e5e9" timeScale="1ms"/>
-            <Line id="pop1[2]: v" quantity="pop1/2/hhcell/v" scale="1mV" color="#29645f" timeScale="1ms"/>
-            <Line id="pop1[3]: v" quantity="pop1/3/hhcell/v" scale="1mV" color="#1fcff4" timeScale="1ms"/>
-            <Line id="pop1[4]: v" quantity="pop1/4/hhcell/v" scale="1mV" color="#6ed4e9" timeScale="1ms"/>
-            <Line id="pop1[5]: v" quantity="pop1/5/hhcell/v" scale="1mV" color="#8fe460" timeScale="1ms"/>
-            <Line id="pop1[6]: v" quantity="pop1/6/hhcell/v" scale="1mV" color="#2ca1c7" timeScale="1ms"/>
-            <Line id="pop1[7]: v" quantity="pop1/7/hhcell/v" scale="1mV" color="#8d9fe5" timeScale="1ms"/>
-            <Line id="pop1[8]: v" quantity="pop1/8/hhcell/v" scale="1mV" color="#5adad1" timeScale="1ms"/>
-            <Line id="pop1[9]: v" quantity="pop1/9/hhcell/v" scale="1mV" color="#f543bb" timeScale="1ms"/>
+        <Display id="pop1_v" title="Plots of pop1_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
+            <Line id="pop1_0_hhcell_v" quantity="pop1/0/hhcell/v" scale="1mV" color="#3193ca" timeScale="1ms"/>
+            <Line id="pop1_1_hhcell_v" quantity="pop1/1/hhcell/v" scale="1mV" color="#90e5e9" timeScale="1ms"/>
+            <Line id="pop1_2_hhcell_v" quantity="pop1/2/hhcell/v" scale="1mV" color="#29645f" timeScale="1ms"/>
+            <Line id="pop1_3_hhcell_v" quantity="pop1/3/hhcell/v" scale="1mV" color="#1fcff4" timeScale="1ms"/>
+            <Line id="pop1_4_hhcell_v" quantity="pop1/4/hhcell/v" scale="1mV" color="#6ed4e9" timeScale="1ms"/>
+            <Line id="pop1_5_hhcell_v" quantity="pop1/5/hhcell/v" scale="1mV" color="#8fe460" timeScale="1ms"/>
+            <Line id="pop1_6_hhcell_v" quantity="pop1/6/hhcell/v" scale="1mV" color="#2ca1c7" timeScale="1ms"/>
+            <Line id="pop1_7_hhcell_v" quantity="pop1/7/hhcell/v" scale="1mV" color="#8d9fe5" timeScale="1ms"/>
+            <Line id="pop1_8_hhcell_v" quantity="pop1/8/hhcell/v" scale="1mV" color="#5adad1" timeScale="1ms"/>
+            <Line id="pop1_9_hhcell_v" quantity="pop1/9/hhcell/v" scale="1mV" color="#f543bb" timeScale="1ms"/>
         </Display>
         
-        <OutputFile id="Volts_file__pop0" fileName="SimExample3.pop0.v.dat">
-            <OutputColumn id="v_pop0_0_hhcell_v" quantity="pop0/0/hhcell/v"/> 
-            <OutputColumn id="v_pop0_1_hhcell_v" quantity="pop0/1/hhcell/v"/> 
-            <OutputColumn id="v_pop0_2_hhcell_v" quantity="pop0/2/hhcell/v"/> 
-            <OutputColumn id="v_pop0_3_hhcell_v" quantity="pop0/3/hhcell/v"/> 
-            <OutputColumn id="v_pop0_4_hhcell_v" quantity="pop0/4/hhcell/v"/> 
+        <OutputFile id="SimExample3_pop0_v_dat" fileName="SimExample3.pop0.v.dat">
+            <OutputColumn id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v"/> 
+            <OutputColumn id="pop0_1_hhcell_v" quantity="pop0/1/hhcell/v"/> 
+            <OutputColumn id="pop0_2_hhcell_v" quantity="pop0/2/hhcell/v"/> 
+            <OutputColumn id="pop0_3_hhcell_v" quantity="pop0/3/hhcell/v"/> 
+            <OutputColumn id="pop0_4_hhcell_v" quantity="pop0/4/hhcell/v"/> 
         </OutputFile>
         
-        <OutputFile id="Volts_file__pop1" fileName="SimExample3.pop1.v.dat">
-            <OutputColumn id="v_pop1_0_hhcell_v" quantity="pop1/0/hhcell/v"/> 
-            <OutputColumn id="v_pop1_1_hhcell_v" quantity="pop1/1/hhcell/v"/> 
-            <OutputColumn id="v_pop1_2_hhcell_v" quantity="pop1/2/hhcell/v"/> 
-            <OutputColumn id="v_pop1_3_hhcell_v" quantity="pop1/3/hhcell/v"/> 
-            <OutputColumn id="v_pop1_4_hhcell_v" quantity="pop1/4/hhcell/v"/> 
-            <OutputColumn id="v_pop1_5_hhcell_v" quantity="pop1/5/hhcell/v"/> 
-            <OutputColumn id="v_pop1_6_hhcell_v" quantity="pop1/6/hhcell/v"/> 
-            <OutputColumn id="v_pop1_7_hhcell_v" quantity="pop1/7/hhcell/v"/> 
-            <OutputColumn id="v_pop1_8_hhcell_v" quantity="pop1/8/hhcell/v"/> 
-            <OutputColumn id="v_pop1_9_hhcell_v" quantity="pop1/9/hhcell/v"/> 
+        <OutputFile id="SimExample3_pop1_v_dat" fileName="SimExample3.pop1.v.dat">
+            <OutputColumn id="pop1_0_hhcell_v" quantity="pop1/0/hhcell/v"/> 
+            <OutputColumn id="pop1_1_hhcell_v" quantity="pop1/1/hhcell/v"/> 
+            <OutputColumn id="pop1_2_hhcell_v" quantity="pop1/2/hhcell/v"/> 
+            <OutputColumn id="pop1_3_hhcell_v" quantity="pop1/3/hhcell/v"/> 
+            <OutputColumn id="pop1_4_hhcell_v" quantity="pop1/4/hhcell/v"/> 
+            <OutputColumn id="pop1_5_hhcell_v" quantity="pop1/5/hhcell/v"/> 
+            <OutputColumn id="pop1_6_hhcell_v" quantity="pop1/6/hhcell/v"/> 
+            <OutputColumn id="pop1_7_hhcell_v" quantity="pop1/7/hhcell/v"/> 
+            <OutputColumn id="pop1_8_hhcell_v" quantity="pop1/8/hhcell/v"/> 
+            <OutputColumn id="pop1_9_hhcell_v" quantity="pop1/9/hhcell/v"/> 
         </OutputFile>
         
     </Simulation>

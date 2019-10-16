@@ -1,6 +1,6 @@
 import collections
 
-__version__ = '0.1.8'
+__version__ = '0.1.9'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
@@ -27,6 +27,7 @@ class Network(BaseWithId):
                                  ('inputs',('The inputs to apply...',Input))])
                                  
         self.allowed_fields = collections.OrderedDict([('version',('Information on verson of NeuroMLlite',str)),
+                                                       ('seed',('Seed for random number generator used when building network',int)),
                                                        ('temperature',('Temperature at which to run network (float in deg C)',float)),
                                                        ('parameters',('Dict of global parameters for the network',dict)),
                                                        ('network_reader',('Can read in network',NetworkReader))])
@@ -110,6 +111,12 @@ class Population(BaseWithId):
                                
                       
         super(Population, self).__init__(**kwargs)
+        
+    def has_positions(self):
+        if self.random_layout: return True
+        elif self.relative_layout: return True
+        elif self.single_location: return True
+        else: return False
  
  
 class RandomLayout(Base):
@@ -233,7 +240,9 @@ class Simulation(BaseWithId):
                                ('recordTraces',('Record traces?',dict)),
                                ('recordSpikes',('Record spikes?',dict)),
                                ('recordRates',('Record rates?',dict)),
-                               ('recordVariables',('Record named variables?',dict))])
+                               ('recordVariables',('Record named variables?',dict)),
+                               ('plots2D',('Work in progress...',dict)),
+                               ('plots3D',('Work in progress...',dict))])
                         
         super(Simulation, self).__init__(**kwargs)
      

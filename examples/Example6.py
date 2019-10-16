@@ -14,7 +14,8 @@ def generate(ref='Example6_PyNN', add_inputs=True):
     net.parameters = { 'N_scaling': 0.005,
                        'layer_height': 400,
                        'width': 100,
-                       'depth': 100}
+                       'depth': 100,
+                       'input_weight': 0.1}
 
     cell = Cell(id='CorticalCell', pynn_cell='IF_curr_exp')
     cell.parameters = {
@@ -58,7 +59,10 @@ def generate(ref='Example6_PyNN', add_inputs=True):
     scale = 0.1
 
     pops = []
+    input_pops = []
+    pop_dict = {}
 
+    layers = ['L23']
     layers = ['L23','L4','L5','L6']
 
     for l in layers:
@@ -99,12 +103,15 @@ def generate(ref='Example6_PyNN', add_inputs=True):
             exec(ref + " = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color, 'type':t})")
             exec("%s.random_layout = RandomLayout(region = r.id)"%ref)
             exec("net.populations.append(%s)"%ref)
+            exec("pop_dict['%s'] = %s"%(pop_id,ref))
+            
 
             if add_inputs:
                 color = '.8 .8 .8'
                 input_id = '%s_%s_input'%(l,t)
+                input_pops.append(input_id)
                 input_ref = 'l%s%s_i'%(l[1:],t.lower())
-                exec(input_ref + " = Population(id=input_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color})")
+                exec(input_ref + " = Population(id=input_id, size='int(%s*N_scaling)'%N_full[l][t], component=input_cell.id, properties={'color':color})")
                 exec("%s.random_layout = RandomLayout(region = r.id)"%input_ref)
                 exec("net.populations.append(%s)"%input_ref)
 
@@ -134,7 +141,7 @@ def generate(ref='Example6_PyNN', add_inputs=True):
                             postsynaptic=p,
                             synapse=e_syn.id,
                             delay=2,
-                            weight=0.1)
+                            weight='input_weight')
             proj.one_to_one_connector=OneToOneConnector()
             net.projections.append(proj)
 
@@ -165,12 +172,24 @@ def generate(ref='Example6_PyNN', add_inputs=True):
     ################################################################################
     ###   Build Simulation object & save as JSON
 
-
+    recordTraces={}
+    recordSpikes={}
+    
+    from neuromllite.utils import evaluate
+    for p in pops:
+        forecast_size = evaluate(pop_dict[p].size, net.parameters)
+        recordTraces[p]=range(min(2,forecast_size))
+        recordSpikes[p]='*'
+    for ip in input_pops:
+        recordSpikes[ip]='*'
+        
     sim = Simulation(id='Sim%s'%net.id,
                      network=new_file,
                      duration='100',
                      dt='0.025',
-                     recordTraces={'all':'*'})
+                     seed=1234,
+                     recordTraces=recordTraces,
+                     recordSpikes=recordSpikes)
 
     sim.to_json_file()
 
