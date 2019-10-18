@@ -2,7 +2,7 @@
     "Example9_HindmarshRose": {
         "version": "NeuroMLlite v0.1.9", 
         "parameters": {
-            "N": 10
+            "N": 1
         }, 
         "notes": "Example 9: HindmarshRose", 
         "cells": [
