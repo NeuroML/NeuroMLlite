@@ -58,6 +58,14 @@ python Example8.py
 #python Example8.py -jnml
 
 
+echo
+echo "**** Running Example 9 ****"
+python Example9.py
+
+echo
+echo "**** Running Example 10 ****"
+python Example10.py
+
 jnml -validate *nml
 
 cd ../neuromllite/test

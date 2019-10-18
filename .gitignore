@@ -149,3 +149,6 @@ report*.txt
 /examples/LEMS_SimExample9.xml
 /examples/spikeratetest/inputs.nml
 /examples/Lorenz1963.xml
+/tests.log
+/examples/Example10_Lorenz.net.nml
+/examples/LEMS_SimExample10.xml
