@@ -19,7 +19,6 @@ addons:
     - libgsl0-dev
     - cython
     - python-lxml
-    - libhdf5-7
     - python-h5py 
     
     
