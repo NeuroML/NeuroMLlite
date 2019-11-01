@@ -1,6 +1,6 @@
 # Framework for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
 
-dist: trusty
+#dist: trusty
 sudo: false  
 
 addons:
@@ -29,7 +29,7 @@ language: python
 python: 
   - "2.7"
   #- "3.4" # issue on Travis with pytables...
-  - "3.5"
+  #- "3.5"
   - "3.6"
 
 virtualenv:
