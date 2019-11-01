@@ -80,6 +80,7 @@ script:
     - jnml -v
     
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
+    - omv list -V  # list before installing...
     - pip install pyelectro
     
     - omv install NEURON
