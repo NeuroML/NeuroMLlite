@@ -728,15 +728,16 @@ class NMLliteUI(QWidget):
         ax_heatmap = self.heatmapFigure.add_subplot(111)
         ax_heatmap.clear()
         
-        cm = matplotlib.cm.get_cmap('jet')
-        hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
-        #cbar = ax_heatmap.colorbar(im)
-        
-        if self.heatmapColorbar == None:
-            self.heatmapColorbar = self.heatmapFigure.colorbar(hm)
-            self.heatmapColorbar.set_label('Firing rate')
-        
-        self.heatmapCanvas.draw()
+        if len(heat_array)>0:
+            cm = matplotlib.cm.get_cmap('jet')
+            hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
+            #cbar = ax_heatmap.colorbar(im)
+
+            if self.heatmapColorbar == None:
+                self.heatmapColorbar = self.heatmapFigure.colorbar(hm)
+                self.heatmapColorbar.set_label('Firing rate')
+
+            self.heatmapCanvas.draw()
         
         
         ## Plot 2D 
