@@ -83,8 +83,9 @@ script:
     - omv list -V  # list before installing...
     - pip install pyelectro
     
-    ####- omv install NEURON
-    ####- export NEURON_HOME=/home/travis/neuron/nrn/x86_64
+    - omv install NEURON
+    - export NEURON_HOME=/home/travis/neuron/nrn/x86_64
+    - ls -alt /home/travis/neuron/
     
     # Standard PyNN install...
     ####- omv install PyNN
@@ -96,9 +97,9 @@ script:
     
     - omv list -V  # list before testing...
     
-    - omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
-    - ls -alt
-    - cd ..
-    - ./regenerateAndTest.sh
+    #- omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
+    #- ls -alt
+    #- cd ..
+    #- ./regenerateAndTest.sh
     
-    - omv list -V 
+    #- omv list -V 
