@@ -29,7 +29,7 @@ python:
   - "2.7"
   #- "3.4" # issue on Travis with pytables...
   #- "3.5"
-  #- "3.6"
+  - "3.6"
 
 virtualenv:
     system_site_packages: true
@@ -97,9 +97,9 @@ script:
     
     - omv list -V  # list before testing...
     
-    #- omv all -V   # Use 'omv all_ -V'  to test all OMV tests...
+    #- omv all -V   # Use 'omv all_ -V'  to test all OMV tests...   #############   Neuron is installed correctly from above??
     #- ls -alt
     #- cd ..
-    #- ./regenerateAndTest.sh
+    #- ./regenerateAndTest.sh  #############   Nest is installed correctly from above??
     
     #- omv list -V 
