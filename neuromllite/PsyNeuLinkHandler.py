@@ -44,7 +44,7 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         print_v("Writing file for...: %s"%self.id)
 
         
-        save_to_json_file(self.bids_mdf_info, '%s.bids-mdf.json'%self.id, indent=2)
+        save_to_json_file(self.bids_mdf_info, '%s.bids-mdf.json'%self.id, indent=4)
         
         
         
@@ -64,6 +64,7 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         self.bids_mdf_graph['notes'] = notes
         self.bids_mdf_graph['nodes'] = {}
         self.bids_mdf_graph['edges'] = {}
+        self.bids_mdf_graph['parameters'] = {}
         self.bids_mdf_info["graphs"].append(self.bids_mdf_graph)
         
 
@@ -87,7 +88,11 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
             for i in range(size):
                 node_id = '%s_%i'%(population_id, i)
                 node = {}
-                node['type'] = component
+                node['type'] = {}
+                node['name'] = node_id
+                node['type']['NeuroML'] = component
+                node['parameters'] = {}
+                node['functions'] = {}
                 self.bids_mdf_graph['nodes'][node_id] = node
         
  

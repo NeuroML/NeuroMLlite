@@ -152,3 +152,4 @@ report*.txt
 /tests.log
 /examples/Example10_Lorenz.net.nml
 /examples/LEMS_SimExample10.xml
+*.bids-mdf.json
