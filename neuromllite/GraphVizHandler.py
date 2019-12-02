@@ -7,6 +7,7 @@
 from neuromllite.utils import print_v
 from neuromllite.utils import is_spiking_input_nml_cell
 from neuromllite.ConnectivityHandler import ConnectivityHandler
+from neuromllite.NetworkGenerator import _get_rng_for_network
 from neuromllite.utils import evaluate
             
 from pyneuroml.pynml import convert_to_units
@@ -65,6 +66,7 @@ class GraphVizHandler(ConnectivityHandler):
         self.output_format = output_format
         self.view_on_render = view_on_render
         
+        self.rng, seed = _get_rng_for_network(self.nl_network)
         
         print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
         
@@ -486,7 +488,7 @@ class GraphVizHandler(ConnectivityHandler):
             proj = self.nl_network.get_child(projName,'projections')  
             if proj:
                 if proj.weight:
-                    proj_weight = evaluate(proj.weight, self.nl_network.parameters)
+                    proj_weight = evaluate(proj.weight, self.nl_network.parameters, self.rng)
                     if proj_weight<0:
                         shape = self.INH_CONN_ARROW_SHAPE
                     projection_weight = abs(proj_weight)

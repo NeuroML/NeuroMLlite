@@ -35,7 +35,8 @@ python:
 
 install:
     - pip install tables==3.5.2
-    - pip install scipy==1.1.0
+    - pip install scipy==1.2.2    
+    - pip install matplotlib # This is more because Matplotlib v2.x is required...
     - pip install . 
     
     # Check to see if on development/experimental branches

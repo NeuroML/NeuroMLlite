@@ -98,7 +98,7 @@ def _parse_attributes(json, to_build):
     return to_build
     
 
-def evaluate(expr, parameters={}):
+def evaluate(expr, parameters={}, rng=None):
     """
     Evaluate a general string like expression (e.g. "2 * weight") using a dict
     of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's 
@@ -130,7 +130,12 @@ def evaluate(expr, parameters={}):
             return float(expr)
     except:
         try:
-            print_('Trying eval with Python...',verbose)
+            if rng:
+                expr = expr.replace('random()','rng.random()')
+                parameters['rng']=rng
+                
+            print_('Trying eval [%s] with Python using %s...'%(expr, parameters),verbose)
+            
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
             if int(v)==v:
