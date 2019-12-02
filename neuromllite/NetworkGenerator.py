@@ -342,6 +342,9 @@ def check_to_generate_or_run(argv, sim):
 
     elif '-sonata' in argv:
         generate_and_run(sim, simulator='sonata')
+
+    elif '-pnl' in argv or '-psyneulink' in argv:
+        generate_and_run(sim, simulator='psyneulink')
         
     elif '-nml' in argv or '-neuroml' in argv:
         
@@ -709,6 +712,15 @@ def generate_and_run(simulation,
         generate_network(network, nrn_handler, generate_network, base_dir)
         if return_results:
             raise NotImplementedError("Reloading results not supported in Neuron yet...")
+
+
+    elif simulator.lower() == 'psyneulink': 
+        
+        from neuromllite.PsyNeuLinkHandler import PsyNeuLinkHandler
+        
+        pnl_handler = PsyNeuLinkHandler()
+        
+        generate_network(network, pnl_handler)
 
 
     elif simulator.lower() == 'sonata': 
