@@ -1,0 +1,17 @@
+system: Test Ex7
+
+experiments:
+
+    spike_rate_e:
+        expected:
+            spike rate: 21.79479453574138
+    spike_rate_i:
+        expected:
+            spike rate: 22.14699587483277
+
+    spike_rate_exc_in:
+        expected:
+            spike rate: 10000
+    spike_rate_inh_in:
+        expected:
+            spike rate: 10000

@@ -1,7 +1,10 @@
 # Script for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
 
-target: test_ex4_jnml.py 
-engine: PyNN_NEURON 
+# Are connections in the pipeline jnml -> pynn -> neuron working???
+# Besides, shouldn't <IF_cond_alpha> be mapped back to IF_cond_alpha in the generated pynn???
+
+target: ../LEMS_SimExample4.xml 
+engine: jNeuroML_PyNN_NEURON
 mep: .test.ex4.mep
 experiments:
   v0:
@@ -14,7 +17,7 @@ experiments:
         spike detection: 
           method: threshold
           threshold: -64
-        tolerance: 0.0004586390927285425
+        tolerance: 0.000
 
   v1:
     observables:
@@ -26,4 +29,4 @@ experiments:
         spike detection: 
           method: threshold
           threshold: -69
-        tolerance: 0.00041250257814095143
+        tolerance: 0.0

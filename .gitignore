@@ -99,6 +99,11 @@ report*.txt
 /sonatafin
 /examples/tmp*.nml
 /examples/Example3_Network_node_types.csv
+/examples/Example7_Brunel2000_nodes.sonata.h5
+/examples/BBP_5percent_nodes.sonata.h5
+/examples/i_clamp.input.json
+/examples/testcell.cell.json
+/examples/testcell2.cell.json
 /examples/tests.log
 /neuromllite/gui/*.net.nml
 /neuromllite/gui/LEMS*.xml
@@ -147,3 +152,4 @@ report*.txt
 /tests.log
 /examples/Example10_Lorenz.net.nml
 /examples/LEMS_SimExample10.xml
+*.bids-mdf.json

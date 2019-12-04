@@ -14,7 +14,7 @@ experiments:
         spike detection: 
           method: threshold
           threshold: -64
-        tolerance: 0.00035447683389635914
+        tolerance: 0.0004586390927285425
 
   v1:
     observables:
@@ -26,4 +26,13 @@ experiments:
         spike detection: 
           method: threshold
           threshold: -69
-        tolerance: 0.0002719276859891263
+        tolerance: 0.00041250257814095143
+
+  spikes0:
+    observables:
+      spike times:
+        spiketimes file: 
+          path: ../SimExample4.pop0.spikes
+          format: ID_TIME
+          id: 0
+        tolerance: 0.0004558156126755435
