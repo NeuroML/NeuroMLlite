@@ -459,11 +459,11 @@ class SonataReader(NetworkReader):
                 node_info = self.cell_info[node_set]
                 
                 from pyneuroml.plot.PlotSpikes import read_sonata_spikes_hdf5_file
+                from pyneuroml.plot.PlotSpikes import POP_NAME_SPIKEFILE_WITH_GIDS
 
                 ids_times = read_sonata_spikes_hdf5_file(self.subs(info['input_file']))
-                
-                for id in ids_times:
-                    times = ids_times[id]
+                for id in ids_times[POP_NAME_SPIKEFILE_WITH_GIDS]:
+                    times = ids_times[POP_NAME_SPIKEFILE_WITH_GIDS][id]
                     if id in node_info['pop_map']:
                         nml_pop_id, cell_id = node_info['pop_map'][id] 
                         print_v("Cell %i in Sonata node set %s (cell %s in nml pop %s) has %i spikes"%(id, node_set, nml_pop_id, cell_id, len(times)))

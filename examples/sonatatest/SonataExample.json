@@ -1,6 +1,6 @@
 {
     "SonataExample": {
-        "version": "NeuroMLlite v0.1.8", 
+        "version": "NeuroMLlite v0.1.9", 
         "parameters": {
             "input_del": 100, 
             "input_dur": 800, 
