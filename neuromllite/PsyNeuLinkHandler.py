@@ -104,7 +104,38 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         
         pass
 
-
+    #
+    #  Should be overridden to handle network connection
+    #  
+    def handle_connection(self, projName, id, prePop, postPop, synapseType, \
+                                                    preCellId, \
+                                                    postCellId, \
+                                                    preSegId = 0, \
+                                                    preFract = 0.5, \
+                                                    postSegId = 0, \
+                                                    postFract = 0.5, \
+                                                    delay = 0, \
+                                                    weight = 1):
+        
+        #self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
+        print_v(">>>>>> Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
+         
+        pre_node_id = '%s_%i'%(prePop, preCellId)
+        post_node_id = '%s_%i'%(postPop, postCellId)
+        edge_id = 'Edge %s to %s'%(pre_node_id,post_node_id)
+        edge = {}
+        edge['name'] = edge_id
+        edge['type'] = {}
+        edge['type']['NeuroML'] = synapseType
+        edge['parameters'] = {}
+        edge['functions'] = {}
+        edge['sender_port'] = 'OutputPort'
+        edge['receiver_port'] = 'InputPort'
+        edge['sender'] = pre_node_id
+        edge['receiver'] = post_node_id
+        edge['weight'] = weight
+        
+        self.bids_mdf_graph['edges'][edge_id] = edge
         
     #
     #  Should be overridden to create input source array
