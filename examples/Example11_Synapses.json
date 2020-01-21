@@ -1,0 +1,107 @@
+{
+    "Example11_Synapses": {
+        "version": "NeuroMLlite v0.1.9", 
+        "parameters": {
+            "tau_syn": 2, 
+            "weight": 1, 
+            "input_amp": 0.99
+        }, 
+        "notes": "Example 11: synaptic properties", 
+        "cells": [
+            {
+                "testcell": {
+                    "pynn_cell": "IF_cond_alpha", 
+                    "parameters": {
+                        "tau_refrac": 5, 
+                        "i_offset": 0
+                    }
+                }
+            }
+        ], 
+        "synapses": [
+            {
+                "ampaSyn": {
+                    "pynn_synapse_type": "cond_alpha", 
+                    "pynn_receptor_type": "excitatory", 
+                    "parameters": {
+                        "e_rev": -10, 
+                        "tau_syn": "tau_syn"
+                    }
+                }
+            }
+        ], 
+        "input_sources": [
+            {
+                "i_clamp": {
+                    "pynn_input": "DCSource", 
+                    "parameters": {
+                        "start": 200.0, 
+                        "stop": 800.0, 
+                        "amplitude": "input_amp"
+                    }
+                }
+            }
+        ], 
+        "regions": [
+            {
+                "region1": {
+                    "x": 0.0, 
+                    "y": 0.0, 
+                    "z": 0.0, 
+                    "width": 1000.0, 
+                    "height": 100.0, 
+                    "depth": 1000.0
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "pop0": {
+                    "size": 1, 
+                    "component": "testcell", 
+                    "properties": {
+                        "color": "1 0 0"
+                    }, 
+                    "random_layout": {
+                        "region": "region1"
+                    }
+                }
+            }, 
+            {
+                "pop1": {
+                    "size": 1, 
+                    "component": "testcell", 
+                    "properties": {
+                        "color": "0 1 0"
+                    }, 
+                    "random_layout": {
+                        "region": "region1"
+                    }
+                }
+            }
+        ], 
+        "projections": [
+            {
+                "proj0": {
+                    "presynaptic": "pop0", 
+                    "postsynaptic": "pop1", 
+                    "synapse": "ampaSyn", 
+                    "delay": 2, 
+                    "weight": "weight", 
+                    "random_connectivity": {
+                        "probability": 1
+                    }
+                }
+            }
+        ], 
+        "inputs": [
+            {
+                "stim": {
+                    "input_source": "i_clamp", 
+                    "population": "pop0", 
+                    "percentage": 50.0
+                }
+            }
+        ]
+    }
+}

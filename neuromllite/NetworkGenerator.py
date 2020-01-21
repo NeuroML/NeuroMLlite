@@ -405,7 +405,7 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
                         elif synapse.pynn_receptor_type == 'inhibitory':
                             post = '_I'
                         for p in synapse.parameters:
-                            cell_params['%s%s' % (p, post)] = synapse.parameters[p]
+                            cell_params['%s%s' % (p, post)] = evaluate(synapse.parameters[p], nl_model.parameters)
 
                 temp_cell = eval('pyNN.neuroml.%s(**cell_params)' % c.pynn_cell)
                 if c.pynn_cell != 'SpikeSourcePoisson':
@@ -421,17 +421,20 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
             if s.pynn_synapse_type and s.pynn_receptor_type:
                 import neuroml
                 
+                tau_syn=evaluate(s.parameters['tau_syn'], nl_model.parameters)
+                if 'e_rev' in s.parameters:
+                    e_rev=evaluate(s.parameters['e_rev'], nl_model.parameters)
                 if s.pynn_synapse_type == 'cond_exp':
-                    syn = neuroml.ExpCondSynapse(id=s.id, tau_syn=s.parameters['tau_syn'], e_rev=s.parameters['e_rev'])
+                    syn = neuroml.ExpCondSynapse(id=s.id, tau_syn=tau_syn, e_rev=e_rev)
                     nml_doc.exp_cond_synapses.append(syn)
                 elif s.pynn_synapse_type == 'cond_alpha':
-                    syn = neuroml.AlphaCondSynapse(id=s.id, tau_syn=s.parameters['tau_syn'], e_rev=s.parameters['e_rev'])
+                    syn = neuroml.AlphaCondSynapse(id=s.id, tau_syn=tau_syn, e_rev=e_rev)
                     nml_doc.alpha_cond_synapses.append(syn)
                 elif s.pynn_synapse_type == 'curr_exp':
-                    syn = neuroml.ExpCurrSynapse(id=s.id, tau_syn=s.parameters['tau_syn'])
+                    syn = neuroml.ExpCurrSynapse(id=s.id, tau_syn=tau_syn)
                     nml_doc.exp_curr_synapses.append(syn)
                 elif s.pynn_synapse_type == 'curr_alpha':
-                    syn = neuroml.AlphaCurrSynapse(id=s.id, tau_syn=s.parameters['tau_syn'])
+                    syn = neuroml.AlphaCurrSynapse(id=s.id, tau_syn=tau_syn)
                     nml_doc.alpha_curr_synapses.append(syn)
     
     for i in nl_model.input_sources:
@@ -927,7 +930,7 @@ if __name__ == '__main__':
                     post = '_E'
                 elif synapse.pynn_receptor_type == "inhibitory":
                     post = '_I'
-                syn_cell_params[post_pop.component]['%s%s' % (p, post)] = synapse.parameters[p]
+                syn_cell_params[post_pop.component]['%s%s' % (p, post)] = evaluate(synapse.parameters[p], network.parameters)
                     
         
         cells = {}
