@@ -534,8 +534,9 @@ def generate_neuroml2_from_network(nl_model,
                     if p.component == c.id:
                         pass
             
-            if not incl in nml_doc.includes:
-                nml_doc.includes.append(incl) 
+            if nml_doc.get_by_id(c.id) == None: # cell (of any type) is not in nml_doc
+                if not incl in nml_doc.includes:
+                    nml_doc.includes.append(incl) 
                 
         '''  Needed??? '''
         if c.lems_source_file:      

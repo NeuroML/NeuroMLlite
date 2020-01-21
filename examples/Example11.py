@@ -7,12 +7,12 @@ import sys
 
 net = Network(id='Example11_Synapses')
 net.notes = 'Example 11: synaptic properties'
-net.parameters = { 'input_amp':   0.99,
-                   'weight':      1,
-                   'tau_syn':     2} 
+net.parameters = { 'input_amp':   0.23,
+                   'weight':      1.01}
+                   #'tau_syn':     2} 
 
-cell = Cell(id='testcell', pynn_cell='IF_cond_alpha')
-cell.parameters = { "tau_refrac":5, "i_offset":0 }
+cell = Cell(id='iafCell0', neuroml2_source_file='test_files/iaf.cell.nml')
+#cell.parameters = { "tau_refrac":5, "i_offset":0 }
 net.cells.append(cell)
 
 
@@ -30,24 +30,33 @@ p1 = Population(id='pop1', size=1, component=cell.id, properties={'color':'0 1 0
 net.populations.append(p0)
 net.populations.append(p1)
 
-net.synapses.append(Synapse(id='ampaSyn', 
-                            pynn_receptor_type='excitatory', 
-                            pynn_synapse_type='cond_alpha', 
-                            parameters={'e_rev':-10, 'tau_syn':'tau_syn'}))
+ampaSyn = Synapse(id='ampa', neuroml2_source_file='test_files/ampa.synapse.nml')
+net.synapses.append(ampaSyn)
+                      
+nmdaSyn = Synapse(id='nmdaSyn', neuroml2_source_file='test_files/NMDA.synapse.nml')      
+net.synapses.append(nmdaSyn)
 
 net.projections.append(Projection(id='proj0',
                                   presynaptic=p0.id, 
                                   postsynaptic=p1.id,
-                                  synapse='ampaSyn',
-                                  delay=2,
+                                  synapse=ampaSyn.id,
+                                  delay=0,
                                   weight='weight'))
 net.projections[0].random_connectivity=RandomConnectivity(probability=1)
+
+net.projections.append(Projection(id='proj1',
+                                  presynaptic=p0.id, 
+                                  postsynaptic=p1.id,
+                                  synapse=nmdaSyn.id,
+                                  delay=0,
+                                  weight='weight'))
+net.projections[1].random_connectivity=RandomConnectivity(probability=1)
 
 
 net.inputs.append(Input(id='stim',
                         input_source=input_source.id,
                         population=p0.id,
-                        percentage=50))
+                        percentage=100))
 
 print(net.to_json())
 new_file = net.to_json_file('%s.json'%net.id)
@@ -61,7 +70,8 @@ sim = Simulation(id='SimExample11',
                  duration='1000',
                  dt='0.01',
                  recordTraces={'all':'*'},
-                 recordVariables={'synapses:ampaSyn:0/g':{'pop1':'*'}},
+                 recordVariables={'synapses:%s:0/g'%ampaSyn.id:{'pop1':'*'},
+                                  'synapses:%s:0/g'%nmdaSyn.id:{'pop1':'*'}},
                  recordSpikes={'pop0':'*'})
                  
 sim.to_json_file()

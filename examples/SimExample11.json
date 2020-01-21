@@ -11,7 +11,10 @@
             "pop0": "*"
         }, 
         "recordVariables": {
-            "synapses:ampaSyn:0/g": {
+            "synapses:ampa:0/g": {
+                "pop1": "*"
+            }, 
+            "synapses:nmdaSyn:0/g": {
                 "pop1": "*"
             }
         }

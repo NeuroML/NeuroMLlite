@@ -2,31 +2,26 @@
     "Example11_Synapses": {
         "version": "NeuroMLlite v0.1.9", 
         "parameters": {
-            "tau_syn": 2, 
-            "weight": 1, 
-            "input_amp": 0.99
+            "weight": 1.01, 
+            "input_amp": 0.23
         }, 
         "notes": "Example 11: synaptic properties", 
         "cells": [
             {
-                "testcell": {
-                    "pynn_cell": "IF_cond_alpha", 
-                    "parameters": {
-                        "tau_refrac": 5, 
-                        "i_offset": 0
-                    }
+                "iafCell0": {
+                    "neuroml2_source_file": "test_files/iaf.cell.nml"
                 }
             }
         ], 
         "synapses": [
             {
-                "ampaSyn": {
-                    "pynn_synapse_type": "cond_alpha", 
-                    "pynn_receptor_type": "excitatory", 
-                    "parameters": {
-                        "e_rev": -10, 
-                        "tau_syn": "tau_syn"
-                    }
+                "ampa": {
+                    "neuroml2_source_file": "test_files/ampa.synapse.nml"
+                }
+            }, 
+            {
+                "nmdaSyn": {
+                    "neuroml2_source_file": "test_files/NMDA.synapse.nml"
                 }
             }
         ], 
@@ -58,7 +53,7 @@
             {
                 "pop0": {
                     "size": 1, 
-                    "component": "testcell", 
+                    "component": "iafCell0", 
                     "properties": {
                         "color": "1 0 0"
                     }, 
@@ -70,7 +65,7 @@
             {
                 "pop1": {
                     "size": 1, 
-                    "component": "testcell", 
+                    "component": "iafCell0", 
                     "properties": {
                         "color": "0 1 0"
                     }, 
@@ -85,8 +80,20 @@
                 "proj0": {
                     "presynaptic": "pop0", 
                     "postsynaptic": "pop1", 
-                    "synapse": "ampaSyn", 
-                    "delay": 2, 
+                    "synapse": "ampa", 
+                    "delay": 0, 
+                    "weight": "weight", 
+                    "random_connectivity": {
+                        "probability": 1
+                    }
+                }
+            }, 
+            {
+                "proj1": {
+                    "presynaptic": "pop0", 
+                    "postsynaptic": "pop1", 
+                    "synapse": "nmdaSyn", 
+                    "delay": 0, 
                     "weight": "weight", 
                     "random_connectivity": {
                         "probability": 1
@@ -99,7 +106,7 @@
                 "stim": {
                     "input_source": "i_clamp", 
                     "population": "pop0", 
-                    "percentage": 50.0
+                    "percentage": 100.0
                 }
             }
         ]
