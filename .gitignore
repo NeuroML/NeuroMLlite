@@ -154,3 +154,8 @@ report*.txt
 /examples/LEMS_SimExample10.xml
 *.bids-mdf.json
 /examples/LEMS_SimExample11.xml
+/examples/Example10_Lorenz__lems.xml
+/examples/Example9_HindmarshRose__lems.xml
+/examples/spikeratetest/Spikers__lems.xml
+/neuromllite/gui/Example10_Lorenz__lems.xml
+/neuromllite/gui/Example9_HindmarshRose__lems.xml

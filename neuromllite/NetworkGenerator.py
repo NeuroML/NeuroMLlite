@@ -7,6 +7,8 @@ from neuromllite.utils import save_to_json_file
 import numpy as np
 import os
 import random
+                
+import lems.api as lems  # from pylems
 
 DEFAULT_NET_GENERATION_SEED = 1234
 DEFAULT_SIMULATION_SEED = 5678
@@ -27,7 +29,6 @@ def _get_rng_for_network(nl_model):
     """
     Get a random number generator and the seed used to generate it
     """
-    
     seed = nl_model.seed if nl_model and nl_model.seed is not None else DEFAULT_NET_GENERATION_SEED
     rng = random.Random(seed)
     
@@ -389,10 +390,8 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
             if nml_doc.get_by_id(c.id) == None:
                 import pyNN.neuroml
                 cell_params = copy.deepcopy(c.parameters) if c.parameters else {}
-                #print('------- %s: %s' % (c, cell_params))
                 for p in cell_params:
                     cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
-                #print('====== %s: %s' % (c, cell_params))
                 for proj in nl_model.projections:
 
                     synapse = nl_model.get_child(proj.synapse, 'synapses')
@@ -438,8 +437,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
                     nml_doc.alpha_curr_synapses.append(syn)
     
     for i in nl_model.input_sources:
-        
-        #if nml_doc.get_by_id(i.id) == None:
       
         if i.pynn_input:
             import pyNN.neuroml
@@ -449,8 +446,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
             exec('input__%s = pyNN.neuroml.%s(**input_params)' % (i.id, i.pynn_input))
             exec('temp_input = input__%s' % i.id)
             pg_id = temp_input.add_to_nml_doc(nml_doc, None)
-            #for pp in nml_doc.pulse_generators:
-            #    print('PG: %s: %s'%(pp,pp.id))
             pg = nml_doc.get_by_id(pg_id)
             pg.id = i.id
             
@@ -482,6 +477,9 @@ def generate_neuroml2_from_network(nl_model,
     generate_network(nl_model, neuroml_handler, base_dir=base_dir)
 
     nml_doc = neuroml_handler.get_nml_doc()
+    
+    extra_lems_components = lems.Model()
+    extra_lems_file = '%s__lems.xml'%nl_model.id
     
     if simulation is not None:
         if simulation.dt is not None:
@@ -538,11 +536,32 @@ def generate_neuroml2_from_network(nl_model,
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl) 
                 
-        '''  Needed??? '''
         if c.lems_source_file:      
-            incl = neuroml.IncludeType(_locate_file(c.lems_source_file, base_dir))
+            fname = _locate_file(c.lems_source_file, base_dir)
+            
+            print_v('Need to use parameters: %s in %s from %s (%s); will place in %s'%(c.parameters,c.id,c.lems_source_file,fname, extra_lems_file))
+            model = lems.Model()
+            model.import_from_file(fname)
+            for comp in model.components:
+                if c.id == comp.id:
+                    print_v('Found component: %s in %s'%(comp,fname))
+                    if c.parameters is not None and len(c.parameters)>0:
+                        for p in c.parameters:
+                            comp.set_parameter(p,evaluate(c.parameters[p], nl_model.parameters))
+                    extra_lems_components.add(comp)
+
+            for ct in model.component_types:
+                print_v('Found component type: %s in %s'%(ct,fname))
+                extra_lems_components.add(ct)
+            for inc in model.includes:
+                print_v('Found include: %s in %s'%(inc,fname))
+                extra_lems_components.add(inc)
+
+            incl = neuroml.IncludeType(extra_lems_file)
             if not incl in nml_doc.includes:
                 nml_doc.includes.append(incl)
+                        
+                
                 
         if c.neuroml2_cell: 
             
@@ -569,6 +588,31 @@ def generate_neuroml2_from_network(nl_model,
                 incl = neuroml.IncludeType(_locate_file(s.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl) 
+        
+            if s.lems_source_file:      
+                fname = _locate_file(s.lems_source_file, base_dir)
+
+                print_v('Need to use parameters: %s in %s from %s (%s); will place in %s'%(s.parameters,s.id,s.lems_source_file,fname, extra_lems_file))
+                model = lems.Model()
+                model.import_from_file(fname)
+                for comp in model.components:
+                    if s.id == comp.id:
+                        print_v('Found component: %s in %s'%(comp,fname))
+                        if s.parameters is not None and len(s.parameters)>0:
+                            for p in s.parameters:
+                                comp.set_parameter(p,evaluate(s.parameters[p], nl_model.parameters))
+                        extra_lems_components.add(comp)
+
+                for ct in model.component_types:
+                    print_v('Found component type: %s in %s'%(ct,fname))
+                    extra_lems_components.add(ct)
+                for inc in model.includes:
+                    print_v('Found include: %s in %s'%(inc,fname))
+                    extra_lems_components.add(inc)
+
+                incl = neuroml.IncludeType(extra_lems_file)
+                if not incl in nml_doc.includes:
+                    nml_doc.includes.append(incl)
                     
        
     # Look for and add the PyNN based elements to the NeuroMLDocument 
@@ -594,6 +638,9 @@ def generate_neuroml2_from_network(nl_model,
         NeuroMLHdf5Writer.write(nml_doc, nml_file_name)
 
     print_v("Written NeuroML to %s" % nml_file_name)
+    
+    if len(extra_lems_components.components)>0:
+        extra_lems_components.export_to_file(extra_lems_file)
     
     if validate and format == 'xml':
         
@@ -1213,12 +1260,13 @@ if __name__ == '__main__':
         if network.cells:
             for c in network.cells:
                 included_files.append(c.neuroml2_source_file)
-        '''
+        
         if network.synapses:
             for s in network.synapses:  
                 if s.lems_source_file:
-                    included_files.append(s.lems_source_file)
-                
+                    fname = _locate_file(s.lems_source_file, base_dir)
+                    # more ..?
+        '''        
         print_v("Generating LEMS file prior to running in %s" % simulator)
         
         pops_plot_save = []

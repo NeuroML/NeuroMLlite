@@ -19,6 +19,11 @@ from neuromllite.utils import print_v
 from neuromllite.utils import is_spiking_input_population
 from pyneuroml.pynml import get_next_hex_color
 
+class ParameterSpinBox(QDoubleSpinBox):
+    
+    def textFromValue(self, value):
+        return '%s'%value
+    
 
 class NMLliteUI(QWidget):
     
@@ -31,7 +36,7 @@ class NMLliteUI(QWidget):
         'PyNN_NEURON',
         'PyNN_NEST',
         'PyNN_Brian']
-    
+
     
     def updated_param(self, p):
         """A parameter has been updated"""
@@ -104,13 +109,13 @@ class NMLliteUI(QWidget):
                 
         if options:
             return thisOptionsLayout
-        
+       
         
     def get_value_entry(self, name, value, entry_map):
         """Create a graphical element for displaying/setting values"""
         
         simple = False
-        simple = True
+        #simple = True
         
         if simple:
             entry = QLineEdit()
@@ -122,32 +127,28 @@ class NMLliteUI(QWidget):
         else:
         
             try:
-                entry = QDoubleSpinBox()
+                entry = ParameterSpinBox()
                 entry_map[name] = entry
-                entry.setMaximum(1e6)
-                entry.setMinimum(-1e6)
+                entry.setDecimals(18)
+                entry.setMaximum(1e16)
+                entry.setMinimum(-1e16)
                 entry.setSingleStep(value / 20.0)
                 entry.setValue(float(value))
-                '''
-                print 555
-                print entry.maximum()
-                print entry.minimum()
-                print entry.singleStep()
-                print entry.text()
-                '''
                 
                 entry.valueChanged.connect(self.updated_param)
                 
             except Exception as e:
-                print_(e)
+                print_v('Error: %s'%e)
                 
                 entry = QLineEdit()
                 entry_map[name] = entry
                 entry.setText(str(value))
                 entry.textChanged.connect(self.updated_param)
         
-        '''print('Created value entry widget for %s (= %s): %s (%s)' % \
-              (name, value, entry, entry.text()))'''
+        entry.setToolTip('Parameter: %s (initial value: %s)'%(name,value))  
+        
+        print('Created value entry widget for %s (= %s): %s (%s)' % \
+              (name, value, entry, entry.text()))
         return entry
     
     
@@ -755,7 +756,7 @@ class NMLliteUI(QWidget):
                 ax_2d.set_ylabel(info['y_axis'])
         
                 print('Plotting for %s in %s: %s'%(plot2D, fig, info))
-                print self.current_traces.keys()
+                print(self.current_traces.keys())
                 xs = self.current_traces[info['x_axis']]
                 ys = self.current_traces[info['y_axis']]
                 ax_2d.plot(xs,ys, linewidth=0.5)
