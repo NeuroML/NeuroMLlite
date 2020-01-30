@@ -756,7 +756,6 @@ class NMLliteUI(QWidget):
                 ax_2d.set_ylabel(info['y_axis'])
         
                 print('Plotting for %s in %s: %s'%(plot2D, fig, info))
-                print(self.current_traces.keys())
                 xs = self.current_traces[info['x_axis']]
                 ys = self.current_traces[info['y_axis']]
                 ax_2d.plot(xs,ys, linewidth=0.5)
