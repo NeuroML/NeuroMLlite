@@ -7,7 +7,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtWidgets import *
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvas 
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 import matplotlib
 from matplotlib.figure import Figure
@@ -36,7 +37,7 @@ class NMLliteUI(QWidget):
         'PyNN_NEURON',
         'PyNN_NEST',
         'PyNN_Brian']
-
+    
     
     def updated_param(self, p):
         """A parameter has been updated"""
@@ -79,7 +80,7 @@ class NMLliteUI(QWidget):
     all_canvases = {}
     
     
-    def add_tab(self, name, parent_tab_holder, figure=False, options = False):
+    def add_tab(self, name, parent_tab_holder, figure=False, toolbar=False, options = False):
         
         thisTab = QWidget()
         parent_tab_holder.addTab(thisTab, name)
@@ -97,15 +98,18 @@ class NMLliteUI(QWidget):
         if figure:
             thisFigure = Figure()
             thisCanvas = FigureCanvas(thisFigure)
-            
+            if toolbar: thisToolbar = NavigationToolbar(thisCanvas, self)
+             
             self.all_canvases[name] = thisCanvas
             self.all_figures[name] = thisFigure
             if options:
                 thisFigureLayout = QGridLayout()
                 topLayout.addLayout(thisFigureLayout, 1, 0)
                 thisFigureLayout.addWidget(thisCanvas)
+                if toolbar: thisFigureLayout.addWidget(thisToolbar)
             else:
                 topLayout.addWidget(thisCanvas)
+                if toolbar: topLayout.addWidget(thisToolbar)
                 
         if options:
             return thisOptionsLayout
@@ -187,6 +191,7 @@ class NMLliteUI(QWidget):
         self.nmlliteTab = QWidget()
         self.nml2Tab = QWidget()
         self.graphTab = QWidget()
+        self.lemsViewTab = QWidget()
         self.matrixTab = QWidget()
         self.tabs.resize(300, 200)
         
@@ -216,7 +221,7 @@ class NMLliteUI(QWidget):
         
             for plot2D in self.simulation.plots2D:
                 info = self.simulation.plots2D[plot2D]
-                pLayout = self.add_tab(plot2D, self.plot2DTab, figure=True, options=True)
+                pLayout = self.add_tab(plot2D, self.plot2DTab, figure=True, toolbar=True, options=True)
         
         if self.simulation.plots3D is not None:
             
@@ -228,11 +233,11 @@ class NMLliteUI(QWidget):
         
             for plot3D in self.simulation.plots3D:
                 info = self.simulation.plots3D[plot3D]
-                pLayout = self.add_tab(plot3D, self.plot3DTab, figure=True, options=True)
+                pLayout = self.add_tab(plot3D, self.plot3DTab, figure=True, toolbar=False, options=True)
                 
         
         
-        rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, options=True)
+        rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, toolbar=True, options=True)
         self.rasterLegend = QCheckBox("Show legend")
         self.rasterLegend.setChecked(True)
         rasterOptionsLayout.addWidget(self.rasterLegend, 0, 0)
@@ -242,7 +247,7 @@ class NMLliteUI(QWidget):
         rasterOptionsLayout.addWidget(self.rasterInPops, 0, 1)
         self.rasterInPops.toggled.connect(self.replotSimResults)
         
-        spikeStatOptionsLayout = self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True, options=True)
+        spikeStatOptionsLayout = self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True, toolbar=True, options=True)
         self.spikeStatInPops = QCheckBox("Include input pops")
         self.spikeStatInPops.setChecked(True)
         spikeStatOptionsLayout.addWidget(self.spikeStatInPops, 0, 0)
@@ -268,7 +273,9 @@ class NMLliteUI(QWidget):
         
         self.tracesFigure = Figure()
         self.tracesCanvas = FigureCanvas(self.tracesFigure)
+        self.tracesToolbar = NavigationToolbar(self.tracesCanvas, self)
         self.tracesTabLayout.addWidget(self.tracesCanvas)
+        self.tracesTabLayout.addWidget(self.tracesToolbar)
         
         self.heatmapFigure = Figure()
         self.heatmapCanvas = FigureCanvas(self.heatmapFigure)
@@ -323,6 +330,23 @@ class NMLliteUI(QWidget):
         
         self.graphTabLayout = QGridLayout()
         self.graphTabTopLayout.addLayout(self.graphTabLayout, 1, 0)
+        
+        
+        
+        self.tabs.addTab(self.lemsViewTab, "LEMS View")
+        self.lemsViewTabTopLayout = QGridLayout()
+        self.lemsViewTab.setLayout(self.lemsViewTabTopLayout)
+        
+        self.lemsViewTabOptionsLayout = QGridLayout()
+        self.lemsViewTabTopLayout.addLayout(self.lemsViewTabOptionsLayout, 0, 0)
+        
+        
+        self.lemsViewTabOptionsLayout.addWidget(QLabel("LEMS view options:"), 0, 0)
+     
+        
+        
+        self.lemsViewTabLayout = QGridLayout()
+        self.lemsViewTabTopLayout.addLayout(self.lemsViewTabLayout, 1, 0)
         
         
         self.tabs.addTab(self.matrixTab, "Matrix")
@@ -413,6 +437,13 @@ class NMLliteUI(QWidget):
         
         rows += 1
         paramLayout.addWidget(self.graphButton, rows, 0)
+                
+        self.lemsViewButton = QPushButton("Generate LEMS View")
+        self.lemsViewButton.show()
+        self.lemsViewButton.clicked.connect(self.showLemsView)
+        
+        rows += 1
+        paramLayout.addWidget(self.lemsViewButton, rows, 0)
                 
         self.matrixButton = QPushButton("Generate matrix")
         self.matrixButton.show()
@@ -529,6 +560,38 @@ class NMLliteUI(QWidget):
         
         
     
+    def showLemsView(self):
+        """Generate lemsView button has been pressed"""
+        
+        print_v("lemsView button was clicked.")
+        
+        self.update_net_sim()
+        self.tabs.setCurrentWidget(self.lemsViewTab)
+        self.update_net_sim()
+        from neuromllite.NetworkGenerator import generate_neuroml2_from_network
+        
+        from neuromllite.NetworkGenerator import generate_and_run
+       
+        lems_file_name = generate_and_run(self.simulation,
+                                          simulator='jNeuroML_norun',
+                                          network=self.network,
+                                          return_results=True,
+                                          base_dir=self.sim_base_dir)
+                                          
+        post_args = "-graph"
+
+        from pyneuroml.pynml import run_jneuroml
+        run_jneuroml("", 
+                     lems_file_name, 
+                     post_args, 
+                     verbose = True)
+                     
+        lems_view_file = lems_file_name.replace('.xml','.png')
+                    
+        self.add_image(lems_view_file, self.lemsViewTabLayout, scale=.75)               
+                                   
+        
+    
     def showGraph(self):
         """Generate graph buttom has been pressed"""
         
@@ -563,23 +626,47 @@ class NMLliteUI(QWidget):
         
         if format == 'svg':
             genFile = '%s.gv.svg' % self.network.id
-
+            
+            self.add_image(genFile, self.graphTabLayout)
+            '''
             svgWidget = QSvgWidget(genFile)
             svgWidget.resize(svgWidget.sizeHint())
             svgWidget.show()
-            self.graphTabLayout.addWidget(svgWidget, 0, 0)
+            self.graphTabLayout.addWidget(svgWidget, 0, 0)'''
             
         elif format == 'png':
             genFile = '%s.gv.png' % self.network.id
 
-            label = QLabel()
-            pixmap = QPixmap(genFile)
-            pixmap = pixmap.scaledToWidth(min(pixmap.width(), 800), Qt.SmoothTransformation)
-            label.setPixmap(pixmap)
-            #self.resize(pixmap.width(),pixmap.height())
-            if self.graphTabLayout.count() > 0:
-                self.graphTabLayout.itemAt(0).widget().setParent(None)
-            self.graphTabLayout.addWidget(label, 0, 0)
+            self.add_image(genFile, self.graphTabLayout)
+        
+        
+    def add_image(self, image_file, layout, scale=1):
+        # Inspired by https://gist.github.com/acbetter/32c575803ec361c3e82064e60db4e3e0
+        
+        print_v('Displaying an image: %s'%(image_file))
+        label = QLabel()
+        label.setBackgroundRole(QPalette.Base)
+        label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        label.setScaledContents(True)
+        
+        scrollArea = QScrollArea()
+        scrollArea.setBackgroundRole(QPalette.Light)
+        scrollArea.setWidget(label)
+        scrollArea.setVisible(True)
+        
+        image = QImage(image_file)
+        pixmap = QPixmap.fromImage(image)
+        
+        #pixmap = pixmap.scaledToWidth(min(pixmap.width(), 800), Qt.SmoothTransformation)
+        label.setPixmap(pixmap)
+        
+        if layout.count() > 0:
+            layout.itemAt(0).widget().setParent(None)
+            
+        scaleFactor = scale
+        label.resize(scaleFactor * label.pixmap().size())
+            
+        layout.addWidget(scrollArea, 0, 0)
         
         
     def update_net_sim(self):

@@ -1243,7 +1243,10 @@ if __name__ == '__main__':
         if return_results or True: ###########################################################
             return traces, events
         
-    elif simulator == 'jNeuroML' or  simulator == 'jNeuroML_NEURON' or simulator == 'jNeuroML_NetPyNE':
+    elif simulator == 'jNeuroML' or  \
+         simulator == 'jNeuroML_norun' or  \
+         simulator == 'jNeuroML_NEURON' or \
+         simulator == 'jNeuroML_NetPyNE':
 
         from pyneuroml.lems import generate_lems_file_for_neuroml
         from pyneuroml import pynml
@@ -1356,6 +1359,9 @@ if __name__ == '__main__':
                                        verbose=True)
               
         lems_file_name = _locate_file(lems_file_name, target_dir)
+        
+        if simulator == 'jNeuroML_norun':
+            return lems_file_name
         
         if simulator == 'jNeuroML':
             results = pynml.run_lems_with_jneuroml(lems_file_name, 
