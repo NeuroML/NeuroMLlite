@@ -769,7 +769,7 @@ def generate_and_run(simulation,
         
         from neuromllite.PsyNeuLinkHandler import PsyNeuLinkHandler
         
-        pnl_handler = PsyNeuLinkHandler()
+        pnl_handler = PsyNeuLinkHandler(nl_network=network)
         
         generate_network(network, pnl_handler)
 

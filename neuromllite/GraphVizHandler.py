@@ -363,7 +363,7 @@ class GraphVizHandler(ConnectivityHandler):
         self.pop_nml_component_objs[population_id] = component_obj
         
         if not self.include_input_pops and is_spiking_input_nml_cell(component_obj):
-            print("Ignoring %s as it's a spiking ipout population")
+            print("Ignoring %s as it's a spiking input population")
             return
         
         self.pop_sizes[population_id] = size

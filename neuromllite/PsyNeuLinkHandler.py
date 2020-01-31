@@ -4,33 +4,23 @@
 #
 #
 
-from neuromllite.utils import print_v
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
-
-import h5py
-import numpy as np
+from neuromllite.utils import print_v
 from neuromllite.utils import save_to_json_file
-import os
 
 class PsyNeuLinkHandler(DefaultNetworkHandler):
        
-    '''
-    positions = {}
-    pop_indices = {}
-    
-    DEFAULT_NODE_GROUP_ID = 0
-    pop_type_ids = {}
-    node_type_csv_info = {}
-    
-    input_info = {}'''
         
-    
     bids_mdf_info = {}
     bids_mdf_info["graphs"] = []
     
+    bids_mdf_info_hl = {}
+    bids_mdf_info_hl["graphs"] = []
+    
 
-    def __init__(self):
+    def __init__(self, nl_network):
         print_v("Initiating PsyNeuLink handler")
+        self.nl_network = nl_network
 
 
     def handle_document_start(self, id, notes):
@@ -43,9 +33,8 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
                 
         print_v("Writing file for...: %s"%self.id)
 
-        
         save_to_json_file(self.bids_mdf_info, '%s.bids-mdf.json'%self.id, indent=4)
-        
+        save_to_json_file(self.bids_mdf_info_hl, '%s.bids-mdf.highlevel.json'%self.id, indent=4)
         
         
 
@@ -62,10 +51,22 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         self.bids_mdf_graph = {}
         self.bids_mdf_graph['name'] = network_id
         self.bids_mdf_graph['notes'] = notes
+        self.bids_mdf_graph['controller'] = None
         self.bids_mdf_graph['nodes'] = {}
         self.bids_mdf_graph['edges'] = {}
         self.bids_mdf_graph['parameters'] = {}
+        self.bids_mdf_graph['parameters']['PNL'] = {"required_node_roles": []}
         self.bids_mdf_info["graphs"].append(self.bids_mdf_graph)
+        self.bids_mdf_graph["type"] = {"PNL": "Composition","generic": "graph"}
+            
+        
+        self.bids_mdf_graph_hl = {}
+        self.bids_mdf_graph_hl['name'] = network_id+"_hl"
+        self.bids_mdf_graph_hl['notes'] = notes+" High Level (population/projection based) description"
+        self.bids_mdf_graph_hl['nodes'] = {}
+        self.bids_mdf_graph_hl['edges'] = {}
+        self.bids_mdf_graph_hl['parameters'] = {}
+        self.bids_mdf_info_hl["graphs"].append(self.bids_mdf_graph_hl)
         
 
     def handle_population(self, 
@@ -91,9 +92,23 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
                 node['type'] = {}
                 node['name'] = node_id
                 node['type']['NeuroML'] = component
+                #node['type']['NeuroML_obj'] = 'CT: %s'%component_obj
+                node['type']["PNL"] = "TransferMechanism"
+                #node['type']["generic"] = 'null'
                 node['parameters'] = {}
+                node['parameters']['PNL'] = {}
                 node['functions'] = {}
                 self.bids_mdf_graph['nodes'][node_id] = node
+
+            pop_node_id = '%s'%(population_id)
+            pop_node = {}
+            pop_node['type'] = {}
+            pop_node['name'] = pop_node_id
+            pop_node['type']['NeuroML'] = component
+            pop_node['parameters'] = {}
+            pop_node['parameters']['size'] = size
+            pop_node['functions'] = {}
+            self.bids_mdf_graph_hl['nodes'][pop_node_id] = pop_node
         
  
     def handle_location(self, id, population_id, component, x, y, z):
@@ -135,6 +150,11 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         edge['receiver'] = post_node_id
         edge['weight'] = weight
         
+        edge['type'] =  {
+                        "PNL": "MappingProjection",
+                        "generic": None
+                    }
+        
         self.bids_mdf_graph['edges'][edge_id] = edge
         
     #
@@ -150,8 +170,6 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
         
         print_v("Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,cellId,segId,fract,weight))
-        
-        
         
 
         

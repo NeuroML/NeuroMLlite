@@ -20,6 +20,8 @@ from neuromllite.utils import print_v
 from neuromllite.utils import is_spiking_input_population
 from pyneuroml.pynml import get_next_hex_color
 
+from functools import partial
+
 class ParameterSpinBox(QDoubleSpinBox):
     
     def textFromValue(self, value):
@@ -37,6 +39,10 @@ class NMLliteUI(QWidget):
         'PyNN_NEURON',
         'PyNN_NEST',
         'PyNN_Brian']
+        
+    LEMS_VIEW_TAB = 'Lems View'
+    IMAGE_3D_TAB = "3D image"
+    GRAPH_TAB = 'Graph'
     
     
     def updated_param(self, p):
@@ -78,9 +84,16 @@ class NMLliteUI(QWidget):
     #all_tab_layouts = {}
     all_figures = {}
     all_canvases = {}
+    all_layouts = {}
+    all_options_layouts = {}
+    all_image_qlabels = {}
+    all_image_scales = {}
     
     
-    def add_tab(self, name, parent_tab_holder, figure=False, toolbar=False, options = False):
+    def add_tab(self, name, parent_tab_holder, image=False, figure=False, toolbar=False, options = False):
+        
+        if name in self.all_tabs:
+            raise Exception('The name for a tab: %s is already taken!'%name)
         
         thisTab = QWidget()
         parent_tab_holder.addTab(thisTab, name)
@@ -88,10 +101,13 @@ class NMLliteUI(QWidget):
         
         topLayout = QGridLayout()
         thisTab.setLayout(topLayout)
+        self.all_layouts[name] = topLayout
         
         if options:
             thisOptionsLayout = QGridLayout()
             topLayout.addLayout(thisOptionsLayout, 0, 0)
+            thisOptionsLayout.addWidget(QLabel("Options:"), 0, 0)
+            self.all_options_layouts[name] = thisOptionsLayout
         
         #self.all_tab_layouts[name] = thisLayout
         
@@ -111,9 +127,70 @@ class NMLliteUI(QWidget):
                 topLayout.addWidget(thisCanvas)
                 if toolbar: topLayout.addWidget(thisToolbar)
                 
+        if image:
+            label = QLabel("An image will be generated here. Push the appropriate button on the left")
+            label.setBackgroundRole(QPalette.Base)
+            label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+            label.setScaledContents(True)
+            self.all_image_qlabels[name] = label
+        
+            scrollArea = QScrollArea()
+            scrollArea.setBackgroundRole(QPalette.Light)
+            scrollArea.setWidget(label)
+            scrollArea.setVisible(True)
+
+            scroolLayout = QGridLayout()
+            topLayout.addLayout(scroolLayout, 1, 0)
+            scroolLayout.addWidget(scrollArea, 0, 0)
+            
+            if options:
+                plus_button = QPushButton("+")
+                plus_button.show()
+                plus_button.clicked.connect(partial(self.scale_image,name,'+'))
+                thisOptionsLayout.addWidget(plus_button, 0, 1)
+                orig_button = QPushButton("1")
+                orig_button.show()
+                orig_button.clicked.connect(partial(self.scale_image,name,'1'))
+                thisOptionsLayout.addWidget(orig_button, 0, 2)
+                min_button = QPushButton("-")
+                min_button.show()
+                min_button.clicked.connect(partial(self.scale_image,name,'-'))
+                thisOptionsLayout.addWidget(min_button, 0, 3)
+                
         if options:
             return thisOptionsLayout
-       
+          
+    def scale_image(self, tab_reference, action):
+        scaleFactor = self.all_image_scales[tab_reference]
+        
+        print('Scaling with: %s on %s, was %s'%(action, tab_reference, scaleFactor))
+        if action == '+':
+            self.all_image_scales[tab_reference] *=1.25
+        if action == '-':
+            self.all_image_scales[tab_reference] *=0.8
+        if action == '1':
+            self.all_image_scales[tab_reference] = 1
+            
+        label = self.all_image_qlabels[tab_reference]
+        label.resize(self.all_image_scales[tab_reference] * label.pixmap().size())
+        
+        
+    def add_image(self, image_file, tab_reference):
+        # Inspired by https://gist.github.com/acbetter/32c575803ec361c3e82064e60db4e3e0
+        
+        print_v('Displaying an image: %s'%(image_file))
+        
+        image = QImage(image_file)
+        pixmap = QPixmap.fromImage(image)
+        
+        label = self.all_image_qlabels[tab_reference]
+        #pixmap = pixmap.scaledToWidth(min(pixmap.width(), 800), Qt.SmoothTransformation)
+        label.setPixmap(pixmap)
+        self.all_image_scales[tab_reference] = 1
+        scaleFactor = self.all_image_scales[tab_reference]
+        
+        label.resize(scaleFactor * label.pixmap().size())
+        
         
     def get_value_entry(self, name, value, entry_map):
         """Create a graphical element for displaying/setting values"""
@@ -190,11 +267,9 @@ class NMLliteUI(QWidget):
         self.tabs = QTabWidget()
         self.nmlliteTab = QWidget()
         self.nml2Tab = QWidget()
-        self.graphTab = QWidget()
-        self.lemsViewTab = QWidget()
         self.matrixTab = QWidget()
-        self.tabs.resize(300, 200)
         
+        self.tabs.resize(300, 200)
         
         # Add tabs
         self.simTab = QWidget()
@@ -282,15 +357,12 @@ class NMLliteUI(QWidget):
         self.heatmapLayout.addWidget(self.heatmapCanvas)
         
         
-        self.tabs.addTab(self.graphTab, "Graph")
-        self.graphTabTopLayout = QGridLayout()
-        self.graphTab.setLayout(self.graphTabTopLayout)
+        self.add_tab(self.GRAPH_TAB, self.tabs, image=True, options = True)
         
-        self.graphTabOptionsLayout = QGridLayout()
-        self.graphTabTopLayout.addLayout(self.graphTabOptionsLayout, 0, 0)
+        graphTabOptionsLayout = self.all_options_layouts[self.GRAPH_TAB]
         
-        
-        self.graphTabOptionsLayout.addWidget(QLabel("Graph level:"), 0, 0)
+        offset_opt = 4
+        graphTabOptionsLayout.addWidget(QLabel("Graph level:"), 0, offset_opt+0)
         
         self.graphLevelComboBox = QComboBox(self)
         self.graphLevelComboBox.addItem('-3')
@@ -304,7 +376,7 @@ class NMLliteUI(QWidget):
         self.graphLevelComboBox.addItem('5')
         self.graphLevelComboBox.addItem('6')
         self.graphLevelComboBox.setCurrentIndex(6)
-        self.graphTabOptionsLayout.addWidget(self.graphLevelComboBox, 0, 1)
+        graphTabOptionsLayout.addWidget(self.graphLevelComboBox, 0, offset_opt+1)
         self.graphLevelComboBox.currentIndexChanged.connect(self.showGraph)
         
         self.graphTypeComboBox = QComboBox(self)
@@ -313,40 +385,35 @@ class NMLliteUI(QWidget):
         self.graphTypeComboBox.addItem('n - neato')
         self.graphTypeComboBox.addItem('f - fdp')
         self.graphTypeComboBox.setCurrentIndex(0)
-        self.graphTabOptionsLayout.addWidget(QLabel("GraphViz engine:"), 0, 2)
-        self.graphTabOptionsLayout.addWidget(self.graphTypeComboBox, 0, 3)
+        graphTabOptionsLayout.addWidget(QLabel("GraphViz engine:"), 0, offset_opt+2)
+        graphTabOptionsLayout.addWidget(self.graphTypeComboBox, 0, offset_opt+3)
         self.graphTypeComboBox.currentIndexChanged.connect(self.showGraph)
         
         
         self.graphShowExtInputs = QCheckBox("Show ext inputs")
         self.graphShowExtInputs.setChecked(True)
-        self.graphTabOptionsLayout.addWidget(self.graphShowExtInputs, 0, 4)
+        graphTabOptionsLayout.addWidget(self.graphShowExtInputs, 0, offset_opt+4)
         self.graphShowExtInputs.toggled.connect(self.showGraph)
         
         self.graphShowInputPops = QCheckBox("Show input pops")
         self.graphShowInputPops.setChecked(True)
-        self.graphTabOptionsLayout.addWidget(self.graphShowInputPops, 0, 5)
+        graphTabOptionsLayout.addWidget(self.graphShowInputPops, 0, offset_opt+5)
         self.graphShowInputPops.toggled.connect(self.showGraph)
         
-        self.graphTabLayout = QGridLayout()
-        self.graphTabTopLayout.addLayout(self.graphTabLayout, 1, 0)
         
+        self.add_tab(self.LEMS_VIEW_TAB, self.tabs, image=True, options = True)
         
+        self.add_tab(self.IMAGE_3D_TAB, self.tabs, image=True, options = True)
+        '''
+        self.tabs.addTab(self.image3DTab, "3D image")
+        self.image3DTabTopLayout = QGridLayout()
+        self.image3DTab.setLayout(self.image3DTabTopLayout)
+        self.image3DTabOptionsLayout = QGridLayout()
+        self.image3DTabTopLayout.addLayout(self.image3DTabOptionsLayout, 0, 0)
+        self.image3DTabOptionsLayout.addWidget(QLabel("3D view options:"), 0, 0)
+        self.image3DTabLayout = QGridLayout()
+        self.image3DTabTopLayout.addLayout(self.image3DTabLayout, 1, 0)'''
         
-        self.tabs.addTab(self.lemsViewTab, "LEMS View")
-        self.lemsViewTabTopLayout = QGridLayout()
-        self.lemsViewTab.setLayout(self.lemsViewTabTopLayout)
-        
-        self.lemsViewTabOptionsLayout = QGridLayout()
-        self.lemsViewTabTopLayout.addLayout(self.lemsViewTabOptionsLayout, 0, 0)
-        
-        
-        self.lemsViewTabOptionsLayout.addWidget(QLabel("LEMS view options:"), 0, 0)
-     
-        
-        
-        self.lemsViewTabLayout = QGridLayout()
-        self.lemsViewTabTopLayout.addLayout(self.lemsViewTabLayout, 1, 0)
         
         
         self.tabs.addTab(self.matrixTab, "Matrix")
@@ -444,6 +511,13 @@ class NMLliteUI(QWidget):
         
         rows += 1
         paramLayout.addWidget(self.lemsViewButton, rows, 0)
+                
+        self.image3DButton = QPushButton("Generate 3D image")
+        self.image3DButton.show()
+        self.image3DButton.clicked.connect(self.show3Dimage)
+        
+        rows += 1
+        paramLayout.addWidget(self.image3DButton, rows, 0)
                 
         self.matrixButton = QPushButton("Generate matrix")
         self.matrixButton.show()
@@ -566,7 +640,7 @@ class NMLliteUI(QWidget):
         print_v("lemsView button was clicked.")
         
         self.update_net_sim()
-        self.tabs.setCurrentWidget(self.lemsViewTab)
+        self.tabs.setCurrentWidget(self.all_tabs[self.LEMS_VIEW_TAB])
         self.update_net_sim()
         from neuromllite.NetworkGenerator import generate_neuroml2_from_network
         
@@ -588,7 +662,40 @@ class NMLliteUI(QWidget):
                      
         lems_view_file = lems_file_name.replace('.xml','.png')
                     
-        self.add_image(lems_view_file, self.lemsViewTabLayout, scale=.75)               
+        self.add_image(lems_view_file, self.LEMS_VIEW_TAB)     
+        
+        
+    
+    def show3Dimage(self):
+        """Generate 3D view button has been pressed"""
+        
+        print_v("image3D button was clicked.")
+        
+        self.update_net_sim()
+        self.tabs.setCurrentWidget(self.all_tabs[self.IMAGE_3D_TAB])
+
+        from neuromllite.NetworkGenerator import generate_neuroml2_from_network
+        
+        nml_file_name, nml_doc = generate_neuroml2_from_network(self.network, 
+                                   print_summary=True, 
+                                   format='xml', 
+                                   base_dir=None,
+                                   copy_included_elements=False,
+                                   target_dir=None,
+                                   validate=False,
+                                   simulation=self.simulation)
+                                          
+        post_args = "-png"
+
+        from pyneuroml.pynml import run_jneuroml
+        run_jneuroml("", 
+                     nml_file_name, 
+                     post_args, 
+                     verbose = True)
+                     
+        nml_view_file = nml_file_name.replace('.nml','.png')
+                    
+        self.add_image(nml_view_file, self.IMAGE_3D_TAB)               
                                    
         
     
@@ -598,7 +705,7 @@ class NMLliteUI(QWidget):
         print_v("Graph button was clicked.")
         
         self.update_net_sim()
-        self.tabs.setCurrentWidget(self.graphTab)
+        self.tabs.setCurrentWidget(self.all_tabs[self.GRAPH_TAB])
         
         from neuromllite.GraphVizHandler import GraphVizHandler
         
@@ -627,7 +734,7 @@ class NMLliteUI(QWidget):
         if format == 'svg':
             genFile = '%s.gv.svg' % self.network.id
             
-            self.add_image(genFile, self.graphTabLayout)
+            self.add_image(genFile, self.GRAPH_TAB)
             '''
             svgWidget = QSvgWidget(genFile)
             svgWidget.resize(svgWidget.sizeHint())
@@ -637,36 +744,8 @@ class NMLliteUI(QWidget):
         elif format == 'png':
             genFile = '%s.gv.png' % self.network.id
 
-            self.add_image(genFile, self.graphTabLayout)
-        
-        
-    def add_image(self, image_file, layout, scale=1):
-        # Inspired by https://gist.github.com/acbetter/32c575803ec361c3e82064e60db4e3e0
-        
-        print_v('Displaying an image: %s'%(image_file))
-        label = QLabel()
-        label.setBackgroundRole(QPalette.Base)
-        label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        label.setScaledContents(True)
-        
-        scrollArea = QScrollArea()
-        scrollArea.setBackgroundRole(QPalette.Light)
-        scrollArea.setWidget(label)
-        scrollArea.setVisible(True)
-        
-        image = QImage(image_file)
-        pixmap = QPixmap.fromImage(image)
-        
-        #pixmap = pixmap.scaledToWidth(min(pixmap.width(), 800), Qt.SmoothTransformation)
-        label.setPixmap(pixmap)
-        
-        if layout.count() > 0:
-            layout.itemAt(0).widget().setParent(None)
-            
-        scaleFactor = scale
-        label.resize(scaleFactor * label.pixmap().size())
-            
-        layout.addWidget(scrollArea, 0, 0)
+            self.add_image(genFile, self.GRAPH_TAB)
+    
         
         
     def update_net_sim(self):

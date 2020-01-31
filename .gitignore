@@ -159,3 +159,5 @@ report*.txt
 /examples/spikeratetest/Spikers__lems.xml
 /neuromllite/gui/Example10_Lorenz__lems.xml
 /neuromllite/gui/Example9_HindmarshRose__lems.xml
+/neuromllite/gui/*.net.png
+/neuromllite/gui/LEMS*.png
