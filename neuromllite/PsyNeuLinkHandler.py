@@ -7,6 +7,10 @@
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 from neuromllite.utils import print_v
 from neuromllite.utils import save_to_json_file
+from neuromllite.utils import locate_file
+from neuromllite.utils import evaluate
+                
+import lems.api as lems  # from pylems
 
 class PsyNeuLinkHandler(DefaultNetworkHandler):
        
@@ -91,13 +95,59 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
                 node = {}
                 node['type'] = {}
                 node['name'] = node_id
-                node['type']['NeuroML'] = component
-                #node['type']['NeuroML_obj'] = 'CT: %s'%component_obj
-                node['type']["PNL"] = "TransferMechanism"
-                #node['type']["generic"] = 'null'
+                #node['type']['NeuroML'] = component
+                
+                comp = self.nl_network.get_child(component, 'cells')
+                base_dir = './' # for now...
+                fname = locate_file(comp.lems_source_file, base_dir)
+                model = lems.Model()
+                model.import_from_file(fname)
+                lems_comp = model.components.get(component)
+                print('Cell: [%s] comes from %s and in Lems is: %s'%(comp,fname, lems_comp))
+                comp_type = lems_comp.type
+                
+                type = "The type of %s"%comp_type
+                function = "The function of %s"%comp_type
+                
+                if comp_type == 'pnlLinearFunctionTM':
+                    function = 'Linear'
+                    type = "TransferMechanism" 
+                elif comp_type == 'inputNode':
+                    function = 'Linear'
+                    type = "TransferMechanism"
+                elif comp_type == 'pnlLogisticFunctionTM':
+                    function = 'Logistic'
+                    type = "TransferMechanism"
+                elif comp_type == 'pnlExponentialFunctionTM':
+                    function = 'Exponential'
+                    type = "TransferMechanism"
+                elif comp_type == 'pnlSimpleIntegratorMechanism':
+                    function = 'SimpleIntegrator'
+                    type = "IntegratorMechanism"
+                
+                
+                
+                node['type']["PNL"] = type
+                node['type']["generic"] = None
                 node['parameters'] = {}
                 node['parameters']['PNL'] = {}
-                node['functions'] = {}
+                node['functions'] = []
+                func_info = {}
+                func_info['type']={}
+                func_info['type']['generic']=function
+                func_info['name']='Function_%s'%function
+                func_info['args']={}
+                for p in lems_comp.parameters:
+                    func_info['args'][p] = {}
+                    func_info['args'][p]['type'] = 'float'
+                    func_info['args'][p]['source'] = '%s.input_ports.%s'%(node_id,p)
+                    
+                    if comp.parameters is not None and p in comp.parameters:
+                        func_info['args'][p]['value'] = evaluate(comp.parameters[p], self.nl_network.parameters)
+                    else:
+                        func_info['args'][p]['value'] = evaluate(lems_comp.parameters[p]) # evaluate to ensure strings -> ints/floats etc
+                
+                node['functions'].append(func_info)
                 self.bids_mdf_graph['nodes'][node_id] = node
 
             pop_node_id = '%s'%(population_id)

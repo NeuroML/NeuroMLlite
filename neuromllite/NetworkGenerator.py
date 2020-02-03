@@ -4,6 +4,7 @@ from neuromllite.utils import load_network_json
 from neuromllite.utils import print_v
 from neuromllite.utils import get_pops_vs_cell_indices
 from neuromllite.utils import save_to_json_file
+from neuromllite.utils import locate_file
 import numpy as np
 import os
 import random
@@ -13,16 +14,6 @@ import lems.api as lems  # from pylems
 DEFAULT_NET_GENERATION_SEED = 1234
 DEFAULT_SIMULATION_SEED = 5678
 
-def _locate_file(f, base_dir):
-    """
-    Utility method for finding full path to a filename as string
-    """
-    if base_dir == None:
-        return f
-    file_name = os.path.join(base_dir, f)
-    real = os.path.realpath(file_name)
-    #print_v('- Located %s at %s'%(f,real))
-    return real
 
 
 def _get_rng_for_network(nl_model):
@@ -85,7 +76,7 @@ def generate_network(nl_model,
         
         if c.neuroml2_source_file:
             from pyneuroml import pynml
-            nml2_doc = pynml.read_neuroml2_file(_locate_file(c.neuroml2_source_file, base_dir), 
+            nml2_doc = pynml.read_neuroml2_file(locate_file(c.neuroml2_source_file, base_dir), 
                                                 include_includes=True)
             cell_objects[c.id] = nml2_doc.get_by_id(c.id)
             
@@ -96,7 +87,7 @@ def generate_network(nl_model,
     for s in nl_model.synapses:
         if s.neuroml2_source_file:
             from pyneuroml import pynml
-            nml2_doc = pynml.read_neuroml2_file(_locate_file(s.neuroml2_source_file, base_dir), 
+            nml2_doc = pynml.read_neuroml2_file(locate_file(s.neuroml2_source_file, base_dir), 
                                                 include_includes=True)
             synapse_objects[s.id] = nml2_doc.get_by_id(s.id)
             
@@ -492,7 +483,7 @@ def generate_neuroml2_from_network(nl_model,
         if nml_doc.get_by_id(i.id) == None:
             if i.neuroml2_source_file:
                 
-                incl = neuroml.IncludeType(_locate_file(i.neuroml2_source_file, base_dir))
+                incl = neuroml.IncludeType(locate_file(i.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)
                                         
@@ -519,7 +510,7 @@ def generate_neuroml2_from_network(nl_model,
     for c in nl_model.cells:
         if c.neuroml2_source_file:
             
-            incl = neuroml.IncludeType(_locate_file(c.neuroml2_source_file, base_dir))
+            incl = neuroml.IncludeType(locate_file(c.neuroml2_source_file, base_dir))
             found_cell = False
             for cell in nml_doc.cells:
                 if cell.id == c.id:
@@ -537,7 +528,7 @@ def generate_neuroml2_from_network(nl_model,
                     nml_doc.includes.append(incl) 
                 
         if c.lems_source_file:      
-            fname = _locate_file(c.lems_source_file, base_dir)
+            fname = locate_file(c.lems_source_file, base_dir)
             
             print_v('Need to use parameters: %s in %s from %s (%s); will place in %s'%(c.parameters,c.id,c.lems_source_file,fname, extra_lems_file))
             model = lems.Model()
@@ -585,12 +576,12 @@ def generate_neuroml2_from_network(nl_model,
     for s in nl_model.synapses:
         if nml_doc.get_by_id(s.id) == None:
             if s.neuroml2_source_file:
-                incl = neuroml.IncludeType(_locate_file(s.neuroml2_source_file, base_dir))
+                incl = neuroml.IncludeType(locate_file(s.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl) 
         
             if s.lems_source_file:      
-                fname = _locate_file(s.lems_source_file, base_dir)
+                fname = locate_file(s.lems_source_file, base_dir)
 
                 print_v('Need to use parameters: %s in %s from %s (%s); will place in %s'%(s.parameters,s.id,s.lems_source_file,fname, extra_lems_file))
                 model = lems.Model()
@@ -627,13 +618,13 @@ def generate_neuroml2_from_network(nl_model,
         target_dir = base_dir
     if format == 'xml':
         if not nml_file_name:
-            nml_file_name = _locate_file('%s.net.nml' % nml_doc.id, target_dir)
+            nml_file_name = locate_file('%s.net.nml' % nml_doc.id, target_dir)
         from neuroml.writers import NeuroMLWriter
         NeuroMLWriter.write(nml_doc, nml_file_name)
         
     if format == 'hdf5':
         if not nml_file_name:
-            nml_file_name = _locate_file('%s.net.nml.h5' % nml_doc.id, target_dir)
+            nml_file_name = locate_file('%s.net.nml.h5' % nml_doc.id, target_dir)
         from neuroml.writers import NeuroMLHdf5Writer
         NeuroMLHdf5Writer.write(nml_doc, nml_file_name)
 
@@ -1267,7 +1258,7 @@ if __name__ == '__main__':
         if network.synapses:
             for s in network.synapses:  
                 if s.lems_source_file:
-                    fname = _locate_file(s.lems_source_file, base_dir)
+                    fname = locate_file(s.lems_source_file, base_dir)
                     # more ..?
         '''        
         print_v("Generating LEMS file prior to running in %s" % simulator)
@@ -1358,7 +1349,7 @@ if __name__ == '__main__':
                                        simulation_seed=simulation.seed if simulation.seed else DEFAULT_SIMULATION_SEED,
                                        verbose=True)
               
-        lems_file_name = _locate_file(lems_file_name, target_dir)
+        lems_file_name = locate_file(lems_file_name, target_dir)
         
         if simulator == 'jNeuroML_norun':
             return lems_file_name

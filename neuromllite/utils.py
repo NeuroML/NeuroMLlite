@@ -1,6 +1,7 @@
 from neuromllite import *
 import sys
 import json
+import os
 
 from neuromllite.BaseTypes import print_v, print_
     
@@ -97,6 +98,18 @@ def _parse_attributes(json, to_build):
         
     return to_build
     
+
+def locate_file(f, base_dir):
+    """
+    Utility method for finding full path to a filename as string
+    """
+    if base_dir == None:
+        return f
+    file_name = os.path.join(base_dir, f)
+    real = os.path.realpath(file_name)
+    #print_v('- Located %s at %s'%(f,real))
+    return real
+
 
 def evaluate(expr, parameters={}, rng=None):
     """
