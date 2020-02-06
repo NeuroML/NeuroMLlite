@@ -2,9 +2,7 @@ from os.path import dirname
 from os.path import realpath
 import sys
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
-from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtWidgets import *
 
 from matplotlib.backends.backend_qt5agg import FigureCanvas 
@@ -24,6 +22,7 @@ from functools import partial
 
 class ParameterSpinBox(QDoubleSpinBox):
     
+    #TODO: handle a spinner on values like -60mV etc. 
     def textFromValue(self, value):
         return '%s'%value
     
@@ -108,8 +107,6 @@ class NMLliteUI(QWidget):
             topLayout.addLayout(thisOptionsLayout, 0, 0)
             thisOptionsLayout.addWidget(QLabel("Options:"), 0, 0)
             self.all_options_layouts[name] = thisOptionsLayout
-        
-        #self.all_tab_layouts[name] = thisLayout
         
         if figure:
             thisFigure = Figure()
@@ -202,7 +199,6 @@ class NMLliteUI(QWidget):
             entry = QLineEdit()
             entry_map[name] = entry
             entry.setText(str(value))
-            
             entry.textChanged.connect(self.updated_param)
 
         else:
@@ -215,7 +211,6 @@ class NMLliteUI(QWidget):
                 entry.setMinimum(-1e16)
                 entry.setSingleStep(value / 20.0)
                 entry.setValue(float(value))
-                
                 entry.valueChanged.connect(self.updated_param)
                 
             except Exception as e:
@@ -237,7 +232,6 @@ class NMLliteUI(QWidget):
         """Constructor for the GUI"""
         
         super(NMLliteUI, self).__init__(parent)
-        
         
         self.SPIKES_RASTERPLOT = "Rasterplot"
         self.SPIKES_POP_RATE_AVE = "Pop rate averages"
@@ -285,7 +279,6 @@ class NMLliteUI(QWidget):
         self.heatmapTab = QWidget()
         self.plotTabs.addTab(self.heatmapTab, "Heatmap")
         
-        
         if self.simulation.plots2D is not None:
             
             self.plot2DTab = QTabWidget()
@@ -311,21 +304,21 @@ class NMLliteUI(QWidget):
                 pLayout = self.add_tab(plot3D, self.plot3DTab, figure=True, toolbar=False, options=True)
                 
         
-        
+        offset_opt = 1
         rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, toolbar=True, options=True)
         self.rasterLegend = QCheckBox("Show legend")
         self.rasterLegend.setChecked(True)
-        rasterOptionsLayout.addWidget(self.rasterLegend, 0, 0)
+        rasterOptionsLayout.addWidget(self.rasterLegend, 0, 0+offset_opt)
         self.rasterLegend.toggled.connect(self.replotSimResults)
         self.rasterInPops = QCheckBox("Include input pops")
         self.rasterInPops.setChecked(True)
-        rasterOptionsLayout.addWidget(self.rasterInPops, 0, 1)
+        rasterOptionsLayout.addWidget(self.rasterInPops, 0, 1+offset_opt)
         self.rasterInPops.toggled.connect(self.replotSimResults)
         
         spikeStatOptionsLayout = self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True, toolbar=True, options=True)
         self.spikeStatInPops = QCheckBox("Include input pops")
         self.spikeStatInPops.setChecked(True)
-        spikeStatOptionsLayout.addWidget(self.spikeStatInPops, 0, 0)
+        spikeStatOptionsLayout.addWidget(self.spikeStatInPops, 0, 0+offset_opt)
         self.spikeStatInPops.toggled.connect(self.replotSimResults)
         
         self.simTabLayout.addWidget(self.plotTabs)
@@ -403,18 +396,7 @@ class NMLliteUI(QWidget):
         
         self.add_tab(self.LEMS_VIEW_TAB, self.tabs, image=True, options = True)
         
-        self.add_tab(self.IMAGE_3D_TAB, self.tabs, image=True, options = True)
-        '''
-        self.tabs.addTab(self.image3DTab, "3D image")
-        self.image3DTabTopLayout = QGridLayout()
-        self.image3DTab.setLayout(self.image3DTabTopLayout)
-        self.image3DTabOptionsLayout = QGridLayout()
-        self.image3DTabTopLayout.addLayout(self.image3DTabOptionsLayout, 0, 0)
-        self.image3DTabOptionsLayout.addWidget(QLabel("3D view options:"), 0, 0)
-        self.image3DTabLayout = QGridLayout()
-        self.image3DTabTopLayout.addLayout(self.image3DTabLayout, 1, 0)'''
-        
-        
+        self.add_tab(self.IMAGE_3D_TAB, self.tabs, image=True, options = True)        
         
         self.tabs.addTab(self.matrixTab, "Matrix")
         self.matrixTabLayout = QGridLayout()
@@ -463,7 +445,6 @@ class NMLliteUI(QWidget):
         #topLayout.addWidget(self.nameLine, 0, 1)
         
         rows = 0
-        
         
         l = QLabel("Network parameters")
         l.setFont(header_font)
@@ -1077,7 +1058,6 @@ def main():
     """Main run method"""
 
     app = QApplication(sys.argv)
-    
     nml_sim_file = sys.argv[1]
 
     nmlui = NMLliteUI(nml_sim_file)
