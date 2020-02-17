@@ -854,7 +854,6 @@ class NMLliteUI(QWidget):
                 self.all_cbs[key].stateChanged.connect(partial(self.traceSelectClicked,key))
                 color_button = QPushButton("%s"%self.current_traces_colours[key])
                 style = 'QPushButton {background-color: %s; color: black;}'%self.current_traces_colours[key]
-                print style
                 color_button.setStyleSheet(style)
                 
                 layout.addWidget(color_button,count,0)
@@ -914,7 +913,6 @@ class NMLliteUI(QWidget):
                 if self.current_traces_shown[key]:
                     chosen_color = None
 
-                    print self.current_traces_colours
                     if key in self.current_traces_colours:
                         #print 'using stored for %s'%key
                         chosen_color = self.current_traces_colours[key]
