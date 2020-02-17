@@ -88,7 +88,9 @@ class NMLliteUI(QWidget):
     all_image_qlabels = {}
     all_image_scales = {}
     
-    
+    current_traces_shown = {}
+    current_traces_colours = {}
+     
     def add_tab(self, name, parent_tab_holder, image=False, figure=False, toolbar=False, options = False):
         
         if name in self.all_tabs:
@@ -228,6 +230,14 @@ class NMLliteUI(QWidget):
         return entry
     
     
+    def dialog_popup(self, message):
+        dialog=QMessageBox()
+        dialog.setIcon(QMessageBox.Warning)
+        dialog.setWindowTitle('Message')
+        dialog.setText(message)
+        dialog.exec_()
+    
+    
     def __init__(self, nml_sim_file, parent=None):
         """Constructor for the GUI"""
         
@@ -331,6 +341,13 @@ class NMLliteUI(QWidget):
         
         self.showTracesLegend = QCheckBox("Legend")
         self.tracesTabOptionsLayout.addWidget(self.showTracesLegend, 0, 0)
+        
+        self.traceSelectButton = QPushButton("Select traces...")
+        self.traceSelectButton.show()
+        self.traceSelectButton.setEnabled(False)
+        
+        self.traceSelectButton.clicked.connect(self.traceSelect)
+        self.tracesTabOptionsLayout.addWidget(self.traceSelectButton, 0, 1)
         
         self.tracesTabLayout = QGridLayout()
         self.tracesTabTopLayout.addLayout(self.tracesTabLayout, 1, 0)
@@ -572,6 +589,10 @@ class NMLliteUI(QWidget):
         
         print_v("Matrix button was clicked.")
         
+        if len(self.network.projections) == 0:
+            self.dialog_popup('No projections present in network, and so no matrix to show')
+            return
+        
         self.update_net_sim()
         self.tabs.setCurrentWidget(self.matrixTab)
         
@@ -643,10 +664,9 @@ class NMLliteUI(QWidget):
                      
         lems_view_file = lems_file_name.replace('.xml','.png')
                     
-        self.add_image(lems_view_file, self.LEMS_VIEW_TAB)     
+        self.add_image(lems_view_file, self.LEMS_VIEW_TAB)   
         
         
-    
     def show3Dimage(self):
         """Generate 3D view button has been pressed"""
         
@@ -808,10 +828,55 @@ class NMLliteUI(QWidget):
             
         return pop_id, cell_id
 
+        
+    def traceSelect(self):
+        
+        print_v("traceSelect button was clicked. Traces shown: %s; colours: %s"%(self.current_traces_shown,self.current_traces_colours))
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Select which traces to plot")
+        
+        QBtn = QDialogButtonBox.Ok # | QDialogButtonBox.Cancel
+        
+        buttonBox = QDialogButtonBox(QBtn)
+        buttonBox.accepted.connect(dialog.accept)
+
+        layout = QGridLayout()
+        dialog.setLayout(layout)
+        
+        count = 0
+        self.all_cbs = {}
+        
+        for key in sorted(self.current_traces.keys()):
+            if key != 't':
+                self.all_cbs[key] = QCheckBox(key)
+                self.all_cbs[key].setChecked(self.current_traces_shown[key])
+                self.all_cbs[key].stateChanged.connect(partial(self.traceSelectClicked,key))
+                color_button = QPushButton("%s"%self.current_traces_colours[key])
+                style = 'QPushButton {background-color: %s; color: black;}'%self.current_traces_colours[key]
+                print style
+                color_button.setStyleSheet(style)
+                
+                layout.addWidget(color_button,count,0)
+                layout.addWidget(self.all_cbs[key],count,1)
+                count+=1
+            
+        layout.addWidget(buttonBox,count,1)
+        dialog.exec_()
+        self.replotSimResults()
+            
+            
+    def traceSelectClicked(self, key):
+
+        cb = self.all_cbs[key]
+        #print('Clicked: %s, %s, key: %s'%(cb.text(),cb.isChecked(), key))
+        self.current_traces_shown[key] = cb.isChecked()
+     
 
     def replotSimResults(self):
         
         simulator = str(self.simulatorComboBox.currentText())
+        self.traceSelectButton.setEnabled(True)
 
         info = "Data from sim of %s%s" \
             % (self.simulation.id, ' (%s)' % simulator 
@@ -839,24 +904,39 @@ class NMLliteUI(QWidget):
         
         for key in sorted(self.current_traces.keys()):
 
+            if not key in self.current_traces_shown:
+                self.current_traces_shown[key] = True
+                
             if key != 't':
                 heat_array.append(self.current_traces[key])
                 pop_id = key.split('/')[0]
-                if pop_id in pop_colors and not pop_colors[pop_id] in colors_used:
-                    colors.append(pop_colors[pop_id])
-                    colors_used.append(pop_colors[pop_id])
-                else:
-                    if key in self.backup_colors:
-                        colors.append(self.backup_colors[key])
+                
+                if self.current_traces_shown[key]:
+                    chosen_color = None
+
+                    print self.current_traces_colours
+                    if key in self.current_traces_colours:
+                        #print 'using stored for %s'%key
+                        chosen_color = self.current_traces_colours[key]
+                        colors.append(chosen_color)
                     else:
-                        c = get_next_hex_color()
-                        colors.append(c)
-                        self.backup_colors[key] = c
-                        
+                        #print 'using new for %s'%key
+                        if pop_id in pop_colors and not pop_colors[pop_id] in colors_used:
+                            chosen_color = pop_colors[pop_id]
+                            colors_used.append(pop_colors[pop_id])
+                        else:
+                            if key in self.backup_colors:
+                                chosen_color = self.backup_colors[key]
+                            else:
+                                chosen_color = get_next_hex_color()
+                                self.backup_colors[key] = chosen_color
+
+                        colors.append(chosen_color)
+                        self.current_traces_colours[key] = chosen_color
                     
-                xs.append(self.current_traces['t'])
-                ys.append(self.current_traces[key])
-                labels.append(key)
+                    xs.append(self.current_traces['t'])
+                    ys.append(self.current_traces[key])
+                    labels.append(key)
 
         ax_traces = self.tracesFigure.add_subplot(111)
         ax_traces.clear()
