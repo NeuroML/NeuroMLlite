@@ -161,3 +161,11 @@ report*.txt
 /neuromllite/gui/Example9_HindmarshRose__lems.xml
 /neuromllite/gui/*.net.png
 /neuromllite/gui/LEMS*.png
+/examples/network/Example4_PyNN_node_types.csv
+/examples/network/Example4_PyNN_nodes.sonata.h5
+/examples/network/Example6_PyNN_node_types.csv
+/examples/network/Example6_PyNN_nodes.sonata.h5
+/examples/network/Example7_Brunel2000_node_types.csv
+/examples/network/Example7_Brunel2000_nodes.sonata.h5
+/examples/output/config.json
+/examples/output/log.txt
