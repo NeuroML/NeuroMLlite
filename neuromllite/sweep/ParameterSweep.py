@@ -114,14 +114,14 @@ class ParameterSweep():
                 all_params = dict(f)
                 all_params[keys[0]] = val
 
-                self._sweep(others, all_params, reference='%s-%s%s' % (reference, keys[0], val))
+                self._sweep(others, all_params, reference='%s_%s%s' % (reference, keys[0], (str(val)).replace('-','min')))
 
         else:
             vals = v[keys[0]]
             for val in vals:
                 all_params = dict(f)
                 all_params[keys[0]] = val
-                r = '%s_%s%s' % (reference, keys[0], val)
+                r = '%s_%s%s' % (reference, keys[0], (str(val)).replace('-','min'))
                 ref_here = 'RUN%s_%s_%s' % (self.index, self.sim.id, r)
                 self.index+=1
                 all_params['reference'] = ref_here
@@ -497,7 +497,7 @@ class NeuroMLliteRunner():
         from neuromllite.NetworkGenerator import generate_and_run
         from pyneuroml.pynml import get_value_in_si
         
-        print_v('Running NeuroMLlite simulation...')
+        print_v('Running NeuroMLlite simulation in dir: %s...'%job_dir)
         sim = load_simulation_json(self.nmllite_sim)
         import random
         sim.id = '%s%s'%(sim.id, '_%s'%kwargs['reference'] if 'reference' in kwargs else '')
@@ -536,14 +536,17 @@ if __name__ == '__main__':
         vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,40)],
                 'stim_del':['%sms'%(i) for i in xrange(10,40,10)]}
                 
-        vary = {'stim_amp':['%spA'%(i) for i in [100,200,300]],
-                'stim_del':['%sms'%(i) for i in [10,20,50]]}
+        vary = {'stim_amp':['%spA'%(i) for i in [-50,100]],
+                'stim_del':['%sms'%(i) for i in [10,20]]}
                 
-        #vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,20)]}
+        vary = {'stim_amp':['%spA'%(i) for i in xrange(-40,220,20)],
+                'stim_del':['%sms'%(i) for i in [10,20]]}
         
         simulator='jNeuroML_NEURON'
+        #simulator='jNeuroML'
         
-        nmllr = NeuroMLliteRunner('Sim_HHTest.json')
+        nmllr = NeuroMLliteRunner('Sim_HHTest.json', 
+                                  simulator=simulator)
 
         ps = ParameterSweep(nmllr, 
                             vary, 
@@ -562,10 +565,16 @@ if __name__ == '__main__':
                      value='pop_hhcell[0]/v:mean_spike_frequency',
                      second_param='stim_del',
                      save_figure_to='mean_spike_frequency_hh.png')
+        '''
         ps.plotLines('stim_amp',
                      value='pop_hhcell[0]/v:first_spike_time',
                      second_param='stim_del',
-                     save_figure_to='first_spike_time_hh.png')
+                     save_figure_to='first_spike_time_hh.png')'''
+        ps.plotLines('stim_amp',
+                     value='pop_hhcell[0]/v:maximum',
+                     second_param='stim_del',
+                     save_figure_to='maximum_hh.png')
+                     
 
         import matplotlib.pyplot as plt
 
@@ -646,6 +655,47 @@ if __name__ == '__main__':
                                   simulator=simulator)
         
         traces, events = nmllr.run_once('.', reference='ref0')
+        
+    elif '-hr' in sys.argv:
+        fixed = {'dt':25}
+
+        quick = False
+        #quick=True
+
+        vary = {'c':[-3,-1, 1, 3]}
+        #vary = {'a':[.8,1,1.2]}
+        #vary = {'eta':['100Hz']}
+        #vary = {'stim_amp':['1.5pA']}
+
+
+        simulator = 'jNeuroML'
+        simulator='jNeuroML_NEURON'
+        nmllr = NeuroMLliteRunner('../../examples/SimExample9.json', simulator=simulator)
+
+        if quick:
+            pass
+
+        ps = ParameterSweep(nmllr, 
+                            vary, 
+                            fixed,
+                            num_parallel_runs=16,
+                                  plot_all=True, 
+                                  heatmap_all=False,
+                                  show_plot_already=False)
+
+        report = ps.run()
+        ps.print_report()
+        
+        #for k in vary:
+        #    ps.plotLines(k,'mean_spike_frequency',save_figure_to='mean_spike_frequency_dt_hh.png', logx=True)
+
+        #  ps.plotLines('weightInput','average_last_1percent',save_figure_to='average_last_1percent.png')
+        #ps.plotLines('weightInput','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+        #ps.plotLines('eta','mean_spike_frequency',save_figure_to='mean_spike_frequency.png')
+
+        import matplotlib.pyplot as plt
+
+        plt.show()      
         
     else:
         fixed = {'dt':0.025,'N':10}
