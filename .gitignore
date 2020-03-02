@@ -169,3 +169,5 @@ report*.txt
 /examples/network/Example7_Brunel2000_nodes.sonata.h5
 /examples/output/config.json
 /examples/output/log.txt
+/neuromllite/sweep/clean.sh
+/neuromllite/sweep/*__lems.xml

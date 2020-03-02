@@ -40,10 +40,10 @@ class PsyNeuLinkReader(NetworkReader):
             raise Exception('Can only parse %s files with a single graph'%(FORMAT))
         
         graph = bids_mdf['graphs'][0]
-        net_id = graph['name']
+        net_id = self._generate_id(graph['name'])
         
         if 'id' in self.parameters:
-            id = self.parameters['id']
+            id = self._generate_id(self.parameters['id'])
         else:
             id = net_id
             
@@ -262,51 +262,37 @@ class PsyNeuLinkReader(NetworkReader):
     
 if __name__ == '__main__':
 
-    filename = '../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/model_with_simple_graph.json'
-    #filename = '../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABC.bids-mdf.json'
-    #filename = '../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json'
+    test_files = ['../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/model_with_simple_graph.json']
+    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABC.bids-mdf.json')
+    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json')
+    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/ColorMotionTask_SIMPLE.json')
+    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/StroopModelEVC.json')
+    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/GilzenratModel.json')
 
     
     
+    for filename in test_files:
+        pnl_parser = PsyNeuLinkReader(filename=filename, 
+                                  DEFAULT_CELL_ID='hhcell')
 
-    pnl_parser = PsyNeuLinkReader(filename=filename, 
-                              DEFAULT_CELL_ID='hhcell')
-    
-    from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
-    def_handler = DefaultNetworkHandler()
-    
-    pnl_parser.parse(def_handler)   
-    
-    from neuroml.hdf5.NetworkBuilder import NetworkBuilder
+        from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
+        def_handler = DefaultNetworkHandler()
 
-    neuroml_handler = NetworkBuilder()
-    
-    
-    pnl_parser = PsyNeuLinkReader(filename=filename, 
-                              DEFAULT_CELL_ID='hhcell')
-    pnl_parser.parse(neuroml_handler) 
+        pnl_parser.parse(def_handler)   
 
-    from neuroml.writers import NeuroMLWriter
-    
-    nml_file_name = '%s.net.nml'%neuroml_handler.get_nml_doc().id
-    
-    NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)
-    
-    print('Written NeuroML file to: %s'%nml_file_name)
-    
-    
-    '''
-    from neuroml.hdf5.NetworkBuilder import NetworkBuilder
+        from neuroml.hdf5.NetworkBuilder import NetworkBuilder
 
-    neuroml_handler = NetworkBuilder()
-    
-    bbp = BBPConnectomeReader(filename=filename, 
-                              percentage_cells_per_pop=percentage_cells_per_pop,
-                              DEFAULT_CELL_ID='hhcell')
-    bbp.parse(neuroml_handler)  
-    
-    nml_file_name = 'PsyNeuLink.net.nml'
+        neuroml_handler = NetworkBuilder()
 
-    from neuroml.writers import NeuroMLWriter
-    NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)'''
-    
+
+        pnl_parser = PsyNeuLinkReader(filename=filename, 
+                                  DEFAULT_CELL_ID='hhcell')
+        pnl_parser.parse(neuroml_handler) 
+
+        from neuroml.writers import NeuroMLWriter
+
+        nml_file_name = '%s.net.nml'%neuroml_handler.get_nml_doc().id
+
+        NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)
+
+        print('Written NeuroML file to: %s'%nml_file_name)
