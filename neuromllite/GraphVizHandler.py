@@ -68,7 +68,7 @@ class GraphVizHandler(ConnectivityHandler):
         
         self.rng, seed = _get_rng_for_network(self.nl_network)
         
-        print_v("Initiating GraphViz handler, level %i, engine: %s"%(level, engine))
+        print_v("Initiating GraphViz handler, level %i, engine: %s, seed: %s"%(level, engine, seed))
         
         
     def print_settings(self):

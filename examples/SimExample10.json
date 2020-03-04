@@ -1,6 +1,6 @@
 {
     "SimExample10": {
-        "version": "NeuroMLlite v0.1.9", 
+        "version": "NeuroMLlite v0.2.0", 
         "network": "Example10_Lorenz.json", 
         "duration": 10000.0, 
         "dt": 1.0, 
