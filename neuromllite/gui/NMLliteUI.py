@@ -985,6 +985,20 @@ class NMLliteUI(QWidget):
                 ys = self.current_traces[info['y_axis']]
                 ax_2d.plot(xs,ys, linewidth=0.5)
                 
+                from pyneuroml.analysis.NML2ChannelAnalysis import get_colour_hex
+                num_points = len(xs)
+                tot_dots = 30
+                for i in range(tot_dots):
+                    fract = i/float(tot_dots-1)
+                    
+                    index = int(num_points*fract)
+                    if index>=num_points:
+                        index = -1
+                    c = '%s'%get_colour_hex(fract, (0, 255, 0), (255, 0, 0))
+                    print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
+                    m = 4 if index==0 or index==-1 else 2
+                    ax_2d.plot(xs[index],ys[index], 'o', color=c, markersize=m)
+                
                 self.all_canvases[plot2D].draw()
         
         ## Plot 3D 
@@ -1004,6 +1018,20 @@ class NMLliteUI(QWidget):
                 ys = self.current_traces[info['y_axis']]
                 zs = self.current_traces[info['z_axis']]
                 
+                
+                num_points = len(xs)
+                tot_dots = 300
+                for i in range(tot_dots):
+                    fract = i/float(tot_dots-1)
+                    
+                    index = int(num_points*fract)
+                    if index>=num_points:
+                        index = -1
+                    c = '%s'%get_colour_hex(fract, (0, 255, 0), (255, 0, 0))
+                    print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
+                    m = 4 if index==0 or index==-1 else 1.5
+                    ax_3d.plot([xs[index]],[ys[index]],[zs[index]], 'o', color=c, markersize=m)
+                    
                 ax_3d.plot(xs,ys,zs, linewidth=0.5)
                 ax_3d.set_xlabel(info['x_axis'])
                 ax_3d.set_ylabel(info['y_axis'])

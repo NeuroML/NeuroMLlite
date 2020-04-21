@@ -124,6 +124,9 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
                 elif comp_type == 'pnlSimpleIntegratorMechanism':
                     function = 'SimpleIntegrator'
                     type = "IntegratorMechanism"
+                elif comp_type == 'fnCell':
+                    function = 'FitzHughNagumoIntegrator'
+                    type = "IntegratorMechanism"
                 
                 
                 
