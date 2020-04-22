@@ -784,12 +784,62 @@ with open(py_filename, 'w') as outfi:
     outfi.write(pnl.generate_script_from_json(json))
     
 exec('from %s import {0}'%load_model)
-
-{0}.show_graph()
         
-print('Ready to run network: {0}')
-        '''.format(network.id, nmlliteversion)
+print('Ready to run network: {0} imported using %s'%py_filename)
 
+dt = {2}
+simtime = {3}
+    
+time_step_size=dt
+num_trials=int(simtime/dt)
+
+{0}.run(inputs={{}}, log=True, num_trials=num_trials)
+print('Finished simulation run of %s ms'%simtime)
+
+def generate_time_array(node, context='{0}', param='value'):
+    return [entry.time.trial for entry in getattr(node.parameters, param).log[context]]
+
+def generate_value_array(node, index, context='{0}', param='value'):
+    return [float(entry.value[index]) for entry in getattr(node.parameters, param).log[context]]
+    
+import matplotlib.pyplot as plt
+fig, axes = plt.subplots()
+
+all_data_files = []
+
+for node in {0}.nodes:
+    var_num = 2 if node.function.__class__.__name__=='FitzHughNagumoIntegrator' else 1
+    for i in range(var_num):
+        x_values = generate_time_array(node)
+        y_values = generate_value_array(node, i)
+        
+        dat_file = '{0}_%s_%i.dat'%(node.name,i)
+        all_data_files.append(dat_file)
+        fout = open(dat_file,'w')
+        
+        for index in range(len(x_values)):
+            #                                                       1000 to convert ms to s
+            fout.write('%s\\t%s\\n'%(x_values[index]*time_step_size/1000.0, y_values[index]))
+        fout.close()
+
+        times = [t*time_step_size/1000.0 for t in x_values]
+
+        axes.plot(
+            times,
+            y_values,
+            label=f'Value of {{i}} {{node.name}}, {{node.function.__class__.__name__}}'
+        )
+
+axes.set_xlabel('Time (s)')
+axes.legend()
+
+print('Data from simulation saved to: %s'%all_data_files)
+plt.show()
+
+#{0}.show_graph()
+        '''.format(network.id, nmlliteversion, simulation.dt, simulation.duration)
+        
+        
         run_pnl_file = open('run_pnl_%s.py'%network.id,'w')
         
         run_pnl_file.write(run_pnl_script)
