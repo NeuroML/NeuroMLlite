@@ -5,6 +5,8 @@ from neuron import hoc
 
 ################################################################################
 # 
+#    Not a full implementation of a native Neuron Handler yet!!
+# 
 #    This will probably not evolve into a full Neuron handler, it is useful 
 #    though as a means of loading in and positioning cells for checking 3D
 #    layout

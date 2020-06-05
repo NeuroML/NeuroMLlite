@@ -198,6 +198,7 @@ class ParameterSweep():
                 for tr in traces:
                     if tr.endswith('/v'): volts[tr] = [v*1000. for v in traces[tr]]
                     if tr.endswith('/r'): volts[tr] = [r for r in traces[tr]]
+                    if tr.endswith('/V'): volts[tr] = [V for V in traces[tr]]
                     
                 print_v("Analysing %s..."%traces.keys())
 
@@ -543,7 +544,7 @@ if __name__ == '__main__':
                 'stim_del':['%sms'%(i) for i in [10,20]]}
         
         simulator='jNeuroML_NEURON'
-        #simulator='jNeuroML'
+        simulator='jNeuroML'
         
         nmllr = NeuroMLliteRunner('Sim_HHTest.json', 
                                   simulator=simulator)
@@ -551,7 +552,7 @@ if __name__ == '__main__':
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=16,
+                            num_parallel_runs=6,
                             plot_all=True, 
                             heatmap_all=False,
                             show_plot_already=False)
@@ -589,8 +590,8 @@ if __name__ == '__main__':
         
         simulator='jNeuroML_NetPyNE'
         simulator='NetPyNE'
-        simulator='jNeuroML'
         simulator='jNeuroML_NEURON'
+        simulator='jNeuroML'
         
         nmllr = NeuroMLliteRunner('Sim_HHTest.json',
                                   simulator=simulator)        
@@ -598,7 +599,7 @@ if __name__ == '__main__':
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=16,
+                            num_parallel_runs=6,
                             plot_all=True, 
                             heatmap_all=True,
                             heatmap_lims=[-100,20],
@@ -630,7 +631,7 @@ if __name__ == '__main__':
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=16,
+                            num_parallel_runs=6,
                             save_plot_all_to='dt_traces_hh.png',
                             heatmap_all=True,
                             save_heatmap_to='heatmap_dt_hh.png',
@@ -678,7 +679,7 @@ if __name__ == '__main__':
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=16,
+                            num_parallel_runs=6,
                                   plot_all=True, 
                                   heatmap_all=False,
                                   show_plot_already=False)
@@ -721,7 +722,7 @@ if __name__ == '__main__':
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=16,
+                            num_parallel_runs=6,
                                   plot_all=False, 
                                   heatmap_all=False,
                                   show_plot_already=False)

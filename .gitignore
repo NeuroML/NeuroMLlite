@@ -171,3 +171,5 @@ report*.txt
 /examples/output/log.txt
 /neuromllite/sweep/clean.sh
 /neuromllite/sweep/*__lems.xml
+/examples/*_brian2.py
+/neuromllite/test/layout/LEMS_SimExample_Layout.xml

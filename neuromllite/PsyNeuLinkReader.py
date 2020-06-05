@@ -264,10 +264,13 @@ if __name__ == '__main__':
 
     test_files = ['../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/model_with_simple_graph.json']
     test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABC.bids-mdf.json')
-    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json')
     test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/ColorMotionTask_SIMPLE.json')
     test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/StroopModelEVC.json')
     test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/GilzenratModel.json')
+    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json')
+    
+    test_files = ['../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json']
+    test_files = ['../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/FN.bids-mdf.json']
 
     
     

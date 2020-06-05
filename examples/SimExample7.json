@@ -16,7 +16,22 @@
             ]
         }, 
         "recordSpikes": {
-            "all": "*"
+            "Epop": "*", 
+            "inpoisson": [
+                0, 
+                1, 
+                2, 
+                3, 
+                4
+            ], 
+            "expoisson": [
+                0, 
+                1, 
+                2, 
+                3, 
+                4
+            ], 
+            "Ipop": "*"
         }
     }
 }

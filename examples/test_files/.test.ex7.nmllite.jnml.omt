@@ -12,7 +12,7 @@ experiments:
           path: ../SimExample7.expoisson.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.00020095587841897214
+        tolerance: 0.00635578875715255
         
   spike_rate_inh_in:
     observables:

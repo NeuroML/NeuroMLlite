@@ -1,4 +1,3 @@
-import copy
 from neuromllite.utils import evaluate
 from neuromllite.utils import load_network_json
 from neuromllite.utils import print_v
@@ -325,6 +324,12 @@ def check_to_generate_or_run(argv, sim):
 
     elif '-jnmlnrn' in argv:
         generate_and_run(sim, simulator='jNeuroML_NEURON')
+
+        """
+        work in progress...
+    elif '-jnmlbrian2' in argv:
+        generate_and_run(sim, simulator='jNeuroML_Brian2')
+"""
 
     elif '-netpyne' in argv:
         generate_and_run(sim, simulator='NetPyNE')
@@ -806,6 +811,10 @@ import matplotlib.pyplot as plt
 fig, axes = plt.subplots()
 
 all_data_files = []
+
+################################################################################
+#          Note: this currently just plots/saved (almost) everything...
+################################################################################
 
 for node in {0}.nodes:
     var_num = 2 if node.function.__class__.__name__=='FitzHughNagumoIntegrator' else 1
@@ -1318,7 +1327,8 @@ if __name__ == '__main__':
     elif simulator == 'jNeuroML' or  \
          simulator == 'jNeuroML_norun' or  \
          simulator == 'jNeuroML_NEURON' or \
-         simulator == 'jNeuroML_NetPyNE':
+         simulator == 'jNeuroML_NetPyNE' or \
+         simulator == 'jNeuroML_Brian2':
 
         from pyneuroml.lems import generate_lems_file_for_neuroml
         from pyneuroml import pynml
@@ -1348,6 +1358,7 @@ if __name__ == '__main__':
         pops_spike_save = []
         gen_plots_for_quantities = {}
         gen_saves_for_quantities = {}
+        gen_spike_saves_for_cells = {}
         
         trace_pop_indices = get_pops_vs_cell_indices(simulation.recordTraces, network)
         spike_pop_indices = get_pops_vs_cell_indices(simulation.recordSpikes, network)
@@ -1360,6 +1371,15 @@ if __name__ == '__main__':
             #TODO: just save the particular cells specified...
             if p.id in spike_pop_indices:
                 pops_spike_save.append(p.id)
+                
+                save_ref = '%s.%s.spikes' % (simulation.id,p.id)
+                gen_spike_saves_for_cells[save_ref] = []
+                
+                for i in spike_pop_indices[p.id]:
+                    quantity = '%s/%i/%s' % (p.id, i, p.component)
+                    if not p.has_positions():
+                        quantity = '%s[%i]' % (p.id, i)
+                    gen_spike_saves_for_cells[save_ref].append(quantity)
                 
             if p.id in trace_pop_indices:
                 plot_ref = '%s_v' % (p.id)
@@ -1420,8 +1440,8 @@ if __name__ == '__main__':
                                        gen_saves_for_quantities=gen_saves_for_quantities, # Dict with file names vs lists of quantity paths
                                        
                                        gen_spike_saves_for_all_somas=False,
-                                       gen_spike_saves_for_only_populations=pops_spike_save, # List of populations, all pops if = []
-                                       gen_spike_saves_for_cells={}, # Dict with file names vs lists of quantity paths
+                                       gen_spike_saves_for_only_populations=[], # List of populations, all pops if = []
+                                       gen_spike_saves_for_cells=gen_spike_saves_for_cells, # Dict with file names vs lists of quantity paths
                                        spike_time_format='ID_TIME',
                                        
                                        copy_neuroml=True,
@@ -1452,6 +1472,13 @@ if __name__ == '__main__':
                                                            load_saved_data=return_results, 
                                                            reload_events=return_results,
                                                            num_processors=num_processors)
+                                                           
+        elif simulator == 'jNeuroML_Brian2':
+            '''Work in progress...'''
+            results = pynml.run_lems_with_jneuroml_brian2(lems_file_name, 
+                                                          nogui=True, 
+                                                          load_saved_data=return_results, 
+                                                          reload_events=return_results)
         
         from pyneuroml import __version__, JNEUROML_VERSION
         print_v("Finished running LEMS file %s in %s (pyNeuroML v%s containing jNeuroML v%s; returning results: %s)" % \

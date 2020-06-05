@@ -164,7 +164,7 @@ def generate():
                      dt=dt,
                      seed= 123,
                      recordTraces={pE.id:[0,1],pI.id:[0,1]},
-                     recordSpikes={'all':'*'})
+                     recordSpikes={pE.id:'*', pI.id:'*',pEpoisson.id:[0,1,2,3,4],pIpoisson.id:[0,1,2,3,4]})
 
     sim.to_json_file()
     
@@ -183,13 +183,13 @@ if __name__ == "__main__":
  
         vary = {'eta':[0.5,1,1.5,2,3,4,5,6,7,8,9,10]}
         #vary = {'eta':[1,2,5]}
-        vary['seed'] = [i for i in range(10)]
+        #vary['seed'] = [i for i in range(10)]
         vary['seed'] = [i for i in range(5)]
 
-        simulator = 'jNeuroML'
-        simulator = 'PyNN_NEST'
         simulator = 'jNeuroML_NetPyNE'
         simulator = 'jNeuroML_NEURON'
+        simulator = 'jNeuroML'
+        simulator = 'PyNN_NEST'
         simulator = 'jNeuroML'
 
         nmllr = NeuroMLliteRunner('SimExample7.json',
@@ -198,7 +198,7 @@ if __name__ == "__main__":
         ps = ParameterSweep(nmllr, 
                             vary, 
                             fixed,
-                            num_parallel_runs=16,
+                            num_parallel_runs=4,
                             plot_all=False, 
                             heatmap_all=False,
                             show_plot_already=False,
