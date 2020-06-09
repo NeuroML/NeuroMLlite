@@ -173,3 +173,4 @@ report*.txt
 /neuromllite/sweep/*__lems.xml
 /examples/*_brian2.py
 /neuromllite/test/layout/LEMS_SimExample_Layout.xml
+/examples/*.pkl

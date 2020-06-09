@@ -1107,13 +1107,22 @@ if __name__ == '__main__':
             pynn_pop = pynn_handler.populations[pop_id]
             if pynn_pop.label in trace_pop_indices:
                 if pynn_pop.can_record('v'):
-                    pynn_pop.record('v')
+                    indices = trace_pop_indices[pop_id]
+                    print_v("Recording v in %s in cells %s" % (indices, pop_id))
+                    for index in indices:
+                        pynn_handler.sim.record('v',pynn_pop[index],'PP_%s_%s_%s.pkl'%(pop_id,index,'v'))
             if pynn_pop.label in spike_pop_indices:
                 if pynn_pop.can_record('spikes'):
-                    pynn_pop.record('spikes')
+                    indices = spike_pop_indices[pop_id]
+                    print_v("Recording spikes in %s in cells %s" % (indices, pop_id))
+                    for index in indices:
+                        pynn_handler.sim.record('spikes',pynn_pop[index],'PP_%s_%s.pkl'%(pop_id,'spike'))
+                    
         
         
+        print_v("Starting PyNN simulation of duration %sms (dt: %sms)" % (simulation.duration, simulation.dt))
         pynn_handler.sim.run(simulation.duration)
+        print_v("Finished PyNN simulation")
         pynn_handler.sim.end()
         
         traces = {}
@@ -1179,10 +1188,10 @@ if __name__ == '__main__':
                 for spiketrain in spiketrains:
                     source_id = spiketrain.annotations['source_id']
                     source_index = spiketrain.annotations['source_index']
-                    print("Writing spike data for cell %s[%s] (gid: %i): %i spikes "%(pynn_pop.label,source_index, source_id, len(spiketrain)))
-                    ref = '%s/%i/???'%(pynn_pop.label,source_index)
-                    events[ref] = [t.magnitude/1000. for t in spiketrain]
                     if source_index in indices:
+                        print("Writing spike data for cell %s[%s] (gid: %i): %i spikes "%(pynn_pop.label,source_index, source_id, len(spiketrain)))
+                        ref = '%s/%i/???'%(pynn_pop.label,source_index)
+                        events[ref] = [t.magnitude/1000. for t in spiketrain]
                         for t in spiketrain:
                             #ff.write('%s\t%i\n'%(t.magnitude/1000.,source_index))
                             ff.write('%i\t%s\n'%(source_index,t.magnitude/1000.))
@@ -1368,7 +1377,6 @@ if __name__ == '__main__':
         pops.sort(key=id)
         for p in pops:
             
-            #TODO: just save the particular cells specified...
             if p.id in spike_pop_indices:
                 pops_spike_save.append(p.id)
                 
