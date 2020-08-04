@@ -485,13 +485,38 @@ def generate_neuroml2_from_network(nl_model,
     
     for i in nl_model.input_sources:
         
+        if i.lems_source_file:      
+            fname = locate_file(i.lems_source_file, base_dir)
+
+            print_v('Need to use parameters: %s in %s from %s (%s); will place in %s'%(i.parameters,i.id,i.lems_source_file,fname, extra_lems_file))
+            model = lems.Model()
+            model.import_from_file(fname)
+            for comp in model.components:
+                if i.id == comp.id:
+                    print_v('Found component: %s in %s'%(comp,fname))
+                    if i.parameters is not None and len(i.parameters)>0:
+                        for p in i.parameters:
+                            comp.set_parameter(p,evaluate(i.parameters[p], nl_model.parameters))
+                    extra_lems_components.add(comp)
+
+            for ct in model.component_types:
+                print_v('Found component type: %s in %s'%(ct,fname))
+                extra_lems_components.add(ct)
+            for inc in model.includes:
+                print_v('Found include: %s in %s'%(inc,fname))
+                extra_lems_components.add(inc)
+
+            incl = neuroml.IncludeType(extra_lems_file)
+            if not incl in nml_doc.includes:
+                nml_doc.includes.append(incl)
+                    
         if nml_doc.get_by_id(i.id) == None:
             if i.neuroml2_source_file:
                 
                 incl = neuroml.IncludeType(locate_file(i.neuroml2_source_file, base_dir))
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)
-                                        
+                                 
             if i.neuroml2_input: 
                 input_params = i.parameters if i.parameters else {}
                 

@@ -1,6 +1,6 @@
 import collections
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
@@ -68,6 +68,7 @@ class InputSource(BaseWithId):
     def __init__(self, **kwargs):
         
         self.allowed_fields = collections.OrderedDict([('neuroml2_source_file',('File name of NeuroML2 file',str)),
+                               ('lems_source_file',('File name of LEMS file',str)),
                                ('neuroml2_input',('Name of standard NeuroML2 input',str)),
                                ('pynn_input',('Name of standard PyNN input',str)),
                                ('parameters',('Dict of parameters for the cell',dict))])
