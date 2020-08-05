@@ -439,8 +439,7 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
             input_params = copy.deepcopy(i.parameters) if i.parameters else {}
             for ip in input_params:
                 input_params[ip] = evaluate(input_params[ip], nl_model.parameters)
-            exec('input__%s = pyNN.neuroml.%s(**input_params)' % (i.id, i.pynn_input))
-            exec('temp_input = input__%s' % i.id)
+            temp_input = eval('pyNN.neuroml.%s(**input_params)' % (i.pynn_input))
             pg_id = temp_input.add_to_nml_doc(nml_doc, None)
             pg = nml_doc.get_by_id(pg_id)
             pg.id = i.id
