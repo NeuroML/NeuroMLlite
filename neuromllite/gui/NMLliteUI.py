@@ -38,6 +38,7 @@ class NMLliteUI(QWidget):
         'PyNN_NEURON',
         'PyNN_NEST',
         'PyNN_Brian']
+    '''    'jNeuroML_Brian2','''
         
     LEMS_VIEW_TAB = 'Lems View'
     IMAGE_3D_TAB = "3D image"
@@ -82,6 +83,7 @@ class NMLliteUI(QWidget):
     all_tabs = {}
     #all_tab_layouts = {}
     all_figures = {}
+    all_figures_2dplots = {}
     all_canvases = {}
     all_layouts = {}
     all_options_layouts = {}
@@ -225,7 +227,7 @@ class NMLliteUI(QWidget):
         
         entry.setToolTip('Parameter: %s (initial value: %s)'%(name,value))  
         
-        print('Created value entry widget for %s (= %s): %s (%s)' % \
+        print_v('Created value entry widget for %s (= %s): %s (%s)' % \
               (name, value, entry, entry.text()))
         return entry
     
@@ -782,7 +784,7 @@ class NMLliteUI(QWidget):
         """Run a simulation in the chosen simulator"""
         
         simulator = str(self.simulatorComboBox.currentText())
-        print_v("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
+        print("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
 
         self.tabs.setCurrentWidget(self.simTab)
         
@@ -870,6 +872,29 @@ class NMLliteUI(QWidget):
         cb = self.all_cbs[key]
         #print('Clicked: %s, %s, key: %s'%(cb.text(),cb.isChecked(), key))
         self.current_traces_shown[key] = cb.isChecked()
+        
+        
+    def _eval_at_all(self, expr, parameters, traces):
+        tr_present = []
+        for t in traces:
+            if t !='t' and t in expr:
+                tr_present.append(t)
+                
+        ret_val = []
+        
+        num_vals = len(traces[tr_present[0]])
+        print_v('Evaluating %s with traces: %s (%i values) and params: %s'%(expr, tr_present, num_vals, parameters.keys()))
+            
+        for i in range(num_vals):
+            noo = expr
+            for t in tr_present:
+                noo = noo.replace(t,str(traces[tr_present[0]][i]))
+                #print_v('%i: %s -> %s'%(i, expr, noo))
+            
+            r = evaluate(noo, parameters)
+            ret_val.append(float(r))
+        print_v('Generated: %s->%s (#%s)'%(ret_val[0],ret_val[-1], len(ret_val)))
+        return ret_val
      
 
     def replotSimResults(self):
@@ -976,28 +1001,51 @@ class NMLliteUI(QWidget):
                 
                 ax_2d = fig.add_subplot(111)
                 ax_2d.clear()
-                
-                ax_2d.set_xlabel(info['x_axis'])
-                ax_2d.set_ylabel(info['y_axis'])
-        
-                print('Plotting for %s in %s: %s'%(plot2D, fig, info))
-                xs = self.current_traces[info['x_axis']]
-                ys = self.current_traces[info['y_axis']]
-                ax_2d.plot(xs,ys, linewidth=0.5)
-                
-                from pyneuroml.analysis.NML2ChannelAnalysis import get_colour_hex
-                num_points = len(xs)
-                tot_dots = 30
-                for i in range(tot_dots):
-                    fract = i/float(tot_dots-1)
                     
-                    index = int(num_points*fract)
-                    if index>=num_points:
-                        index = -1
-                    c = '%s'%get_colour_hex(fract, (0, 255, 0), (255, 0, 0))
-                    print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
-                    m = 4 if index==0 or index==-1 else 2
-                    ax_2d.plot(xs[index],ys[index], 'o', color=c, markersize=m)
+                x_axes = info['x_axis']
+                y_axes = info['y_axis']
+                
+                if not type(x_axes) == dict:
+                    x_axes = {plot2D:x_axes}
+                    y_axes = {plot2D:y_axes}
+                    
+                for a in x_axes:
+                    x_axis = x_axes[a]
+                    y_axis = y_axes[a]
+
+                    ax_2d.set_xlabel(x_axis)
+                    ax_2d.set_ylabel(y_axis)
+
+                    print_v('Plotting %s for %s in %s: %s'%(a,plot2D, fig, info))
+
+                    if x_axis in self.current_traces.keys():
+                        xs = self.current_traces[x_axis]
+                    else:
+                        xs = self._eval_at_all(x_axis, self.network.parameters, self.current_traces)
+                    if y_axis in self.current_traces.keys():
+                        ys = self.current_traces[y_axis]
+                    else:
+                        ys = self._eval_at_all(y_axis, self.network.parameters, self.current_traces)
+                        
+                    ax_2d.plot(xs,ys, linewidth=0.5, label=a)
+
+                    from pyneuroml.analysis.NML2ChannelAnalysis import get_colour_hex
+                    
+                    num_points = len(xs)
+                    tot_dots = 2
+                    if a!='a':
+                        tot_dots=2
+                    for i in range(tot_dots):
+                        fract = i/float(tot_dots-1)
+
+                        index = int(num_points*fract)
+                        if index>=num_points:
+                            index = -1
+                        c = '%s'%get_colour_hex(fract, (0, 255, 0), (255, 0, 0))
+                        #print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
+                        m = 4 if index==0 or index==-1 else 2
+                        ax_2d.plot(xs[index],ys[index], 'o', color=c, markersize=m)
+                fig.legend()
                 
                 self.all_canvases[plot2D].draw()
         
@@ -1028,7 +1076,7 @@ class NMLliteUI(QWidget):
                     if index>=num_points:
                         index = -1
                     c = '%s'%get_colour_hex(fract, (0, 255, 0), (255, 0, 0))
-                    print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
+                    #print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
                     m = 4 if index==0 or index==-1 else 1.5
                     ax_3d.plot([xs[index]],[ys[index]],[zs[index]], 'o', color=c, markersize=m)
                     
@@ -1162,6 +1210,10 @@ class NMLliteUI(QWidget):
 
 def main():
     """Main run method"""
+    
+    if len(sys.argv)==1:
+        usage()
+        exit()
 
     app = QApplication(sys.argv)
     nml_sim_file = sys.argv[1]
@@ -1171,6 +1223,18 @@ def main():
 
     sys.exit(app.exec_())
 
+def usage():
+    
+    from neuromllite import __version__ as version
+    MAIN_CLA = 'nmllite-ui'
+    USAGE = '''
+NMLlite-UI v{0}: A GUI for loading NeuroMLlite files    
+
+Usage:
+    {1} Sim_xxx.json  
+         Load a NeuroMLlite file containing a Simulation, which refers to the Network to run
+    '''.format(version, MAIN_CLA)
+    print(USAGE)
 
 if __name__ == '__main__':
     main()

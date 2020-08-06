@@ -62,7 +62,7 @@ script:
     - cd ..
         
     # Only run OMV tests on Python 2 (for now)
-    - if [ ${TRAVIS_PYTHON_VERSION:O:1} == "3" ]; then travis_terminate 0 ; fi
+    # - if [ ${TRAVIS_PYTHON_VERSION:O:1} == "3" ]; then travis_terminate 0 ; fi
     
    
     # Install latest jnml...
@@ -87,7 +87,7 @@ script:
     - ls -alt /home/travis/neuron/
     
     # Standard PyNN install...
-    ####- omv install PyNN
+    - omv install PyNN
     ####- git clone https://github.com/pgleeson/PyNN.git
     ####- cd PyNN
     ####- python setup.py install  # Install from pgleeson, with some recent changes
