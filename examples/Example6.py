@@ -178,7 +178,7 @@ def generate(ref='Example6_PyNN', add_inputs=True):
     from neuromllite.utils import evaluate
     for p in pops:
         forecast_size = evaluate(pop_dict[p].size, net.parameters)
-        recordTraces[p]=range(min(2,forecast_size))
+        recordTraces[p]=list(range(min(2,forecast_size)))
         recordSpikes[p]='*'
     for ip in input_pops:
         recordSpikes[ip]='*'

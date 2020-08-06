@@ -2,6 +2,7 @@ from neuromllite import *
 import sys
 import json
 import os
+import math
 
 from neuromllite.BaseTypes import print_v, print_
     
@@ -147,7 +148,11 @@ def evaluate(expr, parameters={}, rng=None):
                 expr = expr.replace('random()','rng.random()')
                 parameters['rng']=rng
                 
+                
             print_('Trying eval [%s] with Python using %s...'%(expr, parameters),verbose)
+            
+            if 'math.' in expr:
+                parameters['math']=math
             
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)

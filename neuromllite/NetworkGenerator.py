@@ -49,7 +49,7 @@ def generate_network(nl_model,
         
         exec('from neuromllite.%s import %s' % (nl_model.network_reader.type, nl_model.network_reader.type))
         
-        exec('network_reader = %s()' % (nl_model.network_reader.type))
+        network_reader = eval('%s()' % (nl_model.network_reader.type))
         network_reader.parameters = nl_model.network_reader.parameters
         
         network_reader.parse(handler)
