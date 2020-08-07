@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 from neuromllite.utils import load_network_json
 from neuromllite.utils import load_simulation_json
 from neuromllite.utils import evaluate
-from neuromllite.utils import print_v
+from neuromllite.utils import print_v, print_
 from neuromllite.utils import is_spiking_input_population
 from pyneuroml.pynml import get_next_hex_color
 
@@ -44,16 +44,17 @@ class NMLliteUI(QWidget):
     IMAGE_3D_TAB = "3D image"
     GRAPH_TAB = 'Graph'
     
+    verbose=False
     
     def updated_param(self, p):
         """A parameter has been updated"""
         
-        print_v('=====   Param %s changed' % p)
+        print_('=====   Param %s changed' % p, self.verbose)
         
         if self.autoRunCheckBox.isChecked():
             self.runSimulation()
         else:
-            print_v('Nothing changing...')
+            print_('Nothing changing...', self.verbose)
             
         self.update_net_sim()
         if self.tabs.currentWidget() == self.nmlliteTab:
@@ -227,8 +228,8 @@ class NMLliteUI(QWidget):
         
         entry.setToolTip('Parameter: %s (initial value: %s)'%(name,value))  
         
-        print_v('Created value entry widget for %s (= %s): %s (%s)' % \
-              (name, value, entry, entry.text()))
+        print_('Created value entry widget for %s (= %s): %s (%s)' % \
+              (name, value, entry, entry.text()), self.verbose)
         return entry
     
     
@@ -607,7 +608,7 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
     
-        print_v("Done with MatrixHandler...")
+        print_("Done with MatrixHandler...", self.verbose)
     
     
     def generateNeuroML2(self):
@@ -732,7 +733,7 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
     
-        print_v("Done with GraphViz...")
+        print_("Done with GraphViz...", self.verbose)
         
         if format == 'svg':
             genFile = '%s.gv.svg' % self.network.id
@@ -764,7 +765,7 @@ class NMLliteUI(QWidget):
                 except:
                     pass # leave as string...
                 
-            print_v('Setting param %s to %s' % (p, v))
+            print_('Setting param %s to %s' % (p, v), self.verbose)
             if p=='seed':
                 self.network.seed = v
             elif p=='temperature':
@@ -772,11 +773,11 @@ class NMLliteUI(QWidget):
             else:
                 self.network.parameters[p] = v
             
-        print_v('All params: %s' % self.network.parameters)
+        print_('All params: %s' % self.network.parameters, self.verbose)
 
         for s in self.sim_entries:
             v = float(self.sim_entries[s].text())
-            print_v('Setting simulation variable %s to %s' % (s, v))
+            print_('Setting simulation variable %s to %s' % (s, v), self.verbose)
             self.simulation.__setattr__(s, v)
         
          
@@ -793,13 +794,16 @@ class NMLliteUI(QWidget):
 
         from neuromllite.NetworkGenerator import generate_and_run
         #return
-        self.current_traces, self.current_events = generate_and_run(self.simulation,
-                                          simulator=simulator,
-                                          network=self.network,
-                                          return_results=True,
-                                          base_dir=self.sim_base_dir)
-                                          
-        self.replotSimResults()
+        try:
+            self.current_traces, self.current_events = generate_and_run(self.simulation,
+                                              simulator=simulator,
+                                              network=self.network,
+                                              return_results=True,
+                                              base_dir=self.sim_base_dir)
+
+            self.replotSimResults()
+        except Exception as e:
+            self.dialog_popup('Error: %s'%e)
         
         
     def _get_sorted_population_ids(self, include_input_pops = True):
@@ -883,7 +887,7 @@ class NMLliteUI(QWidget):
         ret_val = []
         
         num_vals = len(traces[tr_present[0]])
-        print_v('Evaluating %s with traces: %s (%i values) and params: %s'%(expr, tr_present, num_vals, parameters.keys()))
+        print_('Evaluating %s with traces: %s (%i values) and params: %s'%(expr, tr_present, num_vals, parameters.keys()), self.verbose)
             
         for i in range(num_vals):
             noo = expr
@@ -893,7 +897,7 @@ class NMLliteUI(QWidget):
             
             r = evaluate(noo, parameters)
             ret_val.append(float(r))
-        print_v('Generated: %s->%s (#%s)'%(ret_val[0],ret_val[-1], len(ret_val)))
+        print_('Generated: %s->%s (#%s)'%(ret_val[0],ret_val[-1], len(ret_val)), self.verbose)
         return ret_val
      
 
@@ -1016,7 +1020,7 @@ class NMLliteUI(QWidget):
                     ax_2d.set_xlabel(x_axis)
                     ax_2d.set_ylabel(y_axis)
 
-                    print_v('Plotting %s for %s in %s: %s'%(a,plot2D, fig, info))
+                    print_('Plotting %s for %s in %s: %s'%(a,plot2D, fig, info), self.verbose)
 
                     if x_axis in self.current_traces.keys():
                         xs = self.current_traces[x_axis]
@@ -1134,7 +1138,7 @@ class NMLliteUI(QWidget):
             else:
                 max_id_here = max(ids_for_pop[pop_id]) if len(ids_for_pop[pop_id])>0 else 0
                 
-            print_v('Finished with spikes for %s, go from %i with max %i'%(pop_id, max_id, max_id_here))
+            print_('Finished with spikes for %s, go from %i with max %i'%(pop_id, max_id, max_id_here), self.verbose)
             max_id += max_id_here
             
         ax_spikes.set_xlabel('Time (s)')
@@ -1156,7 +1160,7 @@ class NMLliteUI(QWidget):
         ax_pop_rate.clear()
         
         rates = {}
-        print_v('Generating rates from %s'%self.current_events.keys())
+        print_('Generating rates from %s'%self.current_events.keys(), self.verbose)
         
         xs = []
         labels = []
@@ -1179,7 +1183,7 @@ class NMLliteUI(QWidget):
             pop_id, cell_id = self._get_pop_id_cell_id(k)
             if pop_id in pops_to_use:
                 rate = 1000*len(spikes)/self.simulation.duration
-                print_v('%s: %s[%s] has %s spikes, so %s Hz'%(k, pop_id, cell_id, len(spikes), rate))
+                print_('%s: %s[%s] has %s spikes, so %s Hz'%(k, pop_id, cell_id, len(spikes), rate), self.verbose)
                 rates[pop_id].append(rate)
         
         avg_rates = []
@@ -1190,7 +1194,7 @@ class NMLliteUI(QWidget):
             avg_rates.append(np.mean(rates[pop_id]) if len(rates[pop_id])>0 else 0)
             sd_rates.append(np.std(rates[pop_id]) if len(rates[pop_id])>0 else 0)
         
-        print('Rates: %s; means: %s; stds: %s'%(rates,avg_rates,sd_rates))
+        print_v('Calculated rates: %s; means: %s; stds: %s'%(rates,avg_rates,sd_rates))
         
         bars = ax_pop_rate.bar(xs, avg_rates, yerr=sd_rates)
         
@@ -1205,7 +1209,7 @@ class NMLliteUI(QWidget):
         
         self.all_canvases[self.SPIKES_POP_RATE_AVE].draw()
                 
-        print_v('Done with plotting!')
+        print_v('Finished plotting')
     
 
 def main():
