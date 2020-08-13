@@ -492,15 +492,22 @@ def generate_neuroml2_from_network(nl_model,
             model.import_from_file(fname)
             for comp in model.components:
                 if i.id == comp.id:
-                    print_v('Found component: %s in %s'%(comp,fname))
+                    print_v('Found a component: %s in %s'%(comp,fname))
                     if i.parameters is not None and len(i.parameters)>0:
                         for p in i.parameters:
                             comp.set_parameter(p,evaluate(i.parameters[p], nl_model.parameters))
                     extra_lems_components.add(comp)
 
+            for d in model.dimensions:
+                print_v('Found a dimension: %s in %s'%(d,fname))
+                extra_lems_components.add(d)
+            for u in model.units:
+                print_v('Found a unit: %s in %s'%(u,fname))
+                extra_lems_components.add(u)
             for ct in model.component_types:
                 print_v('Found a component type: %s in %s'%(ct,fname))
                 extra_lems_components.add(ct)
+                
             for inc in model.includes:
                 print_v('Found an include: %s in %s'%(inc,fname))
                 extra_lems_components.add(inc)
@@ -569,7 +576,13 @@ def generate_neuroml2_from_network(nl_model,
                         for p in c.parameters:
                             comp.set_parameter(p,evaluate(c.parameters[p], nl_model.parameters))
                     extra_lems_components.add(comp)
-
+                    
+            for d in model.dimensions:
+                print_v('Found a dimension: %s in %s'%(d,fname))
+                extra_lems_components.add(d)
+            for u in model.units:
+                print_v('Found a unit: %s in %s'%(u,fname))
+                extra_lems_components.add(u)
             for ct in model.component_types:
                 print_v('Found component type: %s in %s'%(ct,fname))
                 extra_lems_components.add(ct)
@@ -628,7 +641,13 @@ def generate_neuroml2_from_network(nl_model,
                             for p in s.parameters:
                                 comp.set_parameter(p,evaluate(s.parameters[p], nl_model.parameters))
                         extra_lems_components.add(comp)
-
+                        
+                for d in model.dimensions:
+                    print_v('Found a dimension: %s in %s'%(d,fname))
+                    extra_lems_components.add(d)
+                for u in model.units:
+                    print_v('Found a unit: %s in %s'%(u,fname))
+                    extra_lems_components.add(u)
                 for ct in model.component_types:
                     print_v('Found component type: %s in %s'%(ct,fname))
                     extra_lems_components.add(ct)
