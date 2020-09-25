@@ -1,12 +1,11 @@
 pyNN
 bmtk
-#Spikers
 matplotlib
 PyQt5
 pyneuroml
 pyelectro
 numpy
-#neuron
+neuron
 h5py
 graphviz
 pylems
