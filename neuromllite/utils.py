@@ -165,7 +165,7 @@ def evaluate(expr, parameters={}, rng=None):
             return expr
         
         
-def get_pops_vs_cell_indices(recordSpec, network):
+def get_pops_vs_cell_indices_seg_ids(recordSpec, network):
     
     pvc = {}
     if recordSpec is not None:
@@ -173,29 +173,67 @@ def get_pops_vs_cell_indices(recordSpec, network):
             indices = recordSpec[p]
             if p=='all':
                 for pop in network.populations:
-                    pvc[pop.id] = _generate_cell_indices(pop.id, indices, network)
+                    cell_indices_seg_ids = _generate_cell_indices_seg_ids(pop.id, indices, network)
+                    pvc[pop.id] = cell_indices_seg_ids
                     
             else:
                 #pop = network.get_child(p, 'populations')
-                pvc[p] = _generate_cell_indices(p, indices, network)
+                cell_indices_seg_ids = _generate_cell_indices_seg_ids(p, indices, network)
+                pvc[p] = cell_indices_seg_ids
             
     return pvc
+   
+'''
+    Translates a string like '3', '[0,2]' to a list 
+'''
+def parse_list_like(list_str):
     
+    if isinstance(list_str, int):
+        return [list_str]
+    elif isinstance(list_str, float): 
+        return [list_str]
+    elif isinstance(list_str, list): 
+        return list_str
+    elif type(list_str)==str:
+        try:
+            expr = int(list_str)
+            return [expr]
+        except:
+            pass
+        try:
+            expr = float(list_str)
+            return [expr]
+        except:
+            pass
+        if '[' in list_str:
+            l = eval(list_str)
+            return l
+        
+        
+def _generate_cell_indices_seg_ids(pop_id, indices_segids, network):
     
-def _generate_cell_indices(pop_id, indices, network):
-    
-    a = []
+    a = {}
     pop = network.get_child(pop_id, 'populations')
     
+    if not isinstance(indices_segids, str) or not ':' in indices_segids:
+        seg_ids = None
+        indices = indices_segids
+    else:
+        indices = indices_segids.split(':')[0]
+        seg_id_info = indices_segids.split(':')[1]
+        l = parse_list_like(seg_id_info)
+        print_v('Parsed %s as %s'%(seg_id_info, l))
+        seg_ids = l
+        
     if indices=='*':
         size = evaluate(pop.size, network.parameters)
-        for i in range(size):
-            a.append(i)
-    if isinstance(indices, int):
-        a.append(indices)
-    if isinstance(indices, list):
-        for i in indices:
-            a.append(i)
+        for index in range(size):
+            a[index] = seg_ids
+    else:
+        l = parse_list_like(indices)
+        print_v('Parsed %s (full: %s) as %s'%(indices,indices_segids, l))
+        for index in l:
+            a[index] = seg_ids
     return a
 
 

@@ -1,61 +1,61 @@
 {
     "SimExample6_PyNN": {
-        "version": "NeuroMLlite v0.2.1", 
-        "network": "Example6_PyNN.json", 
-        "duration": 100.0, 
-        "dt": 0.025, 
-        "seed": 1234, 
+        "version": "NeuroMLlite v0.2.2",
+        "network": "Example6_PyNN.json",
+        "duration": 100.0,
+        "dt": 0.025,
+        "seed": 1234,
         "recordTraces": {
-            "L4_I": [
-                0, 
-                1
-            ], 
             "L23_E": [
-                0, 
+                0,
                 1
-            ], 
-            "L5_E": [
-                0, 
-                1
-            ], 
+            ],
             "L23_I": [
-                0, 
+                0,
                 1
-            ], 
-            "L5_I": [
-                0, 
-                1
-            ], 
+            ],
             "L4_E": [
-                0, 
+                0,
                 1
-            ], 
-            "L6_I": [
-                0, 
+            ],
+            "L4_I": [
+                0,
                 1
-            ], 
+            ],
+            "L5_E": [
+                0,
+                1
+            ],
+            "L5_I": [
+                0,
+                1
+            ],
             "L6_E": [
-                0, 
+                0,
+                1
+            ],
+            "L6_I": [
+                0,
                 1
             ]
-        }, 
+        },
         "recordSpikes": {
-            "L4_I": "*", 
-            "L23_E": "*", 
-            "L5_E": "*", 
-            "L4_E_input": "*", 
-            "L23_I": "*", 
-            "L5_I": "*", 
-            "L4_E": "*", 
-            "L5_I_input": "*", 
-            "L23_I_input": "*", 
-            "L5_E_input": "*", 
-            "L23_E_input": "*", 
-            "L6_E_input": "*", 
-            "L6_I": "*", 
-            "L6_I_input": "*", 
-            "L6_E": "*", 
-            "L4_I_input": "*"
+            "L23_E": "*",
+            "L23_I": "*",
+            "L4_E": "*",
+            "L4_I": "*",
+            "L5_E": "*",
+            "L5_I": "*",
+            "L6_E": "*",
+            "L6_I": "*",
+            "L23_E_input": "*",
+            "L23_I_input": "*",
+            "L4_E_input": "*",
+            "L4_I_input": "*",
+            "L5_E_input": "*",
+            "L5_I_input": "*",
+            "L6_E_input": "*",
+            "L6_I_input": "*"
         }
     }
 }

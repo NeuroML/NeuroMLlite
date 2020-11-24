@@ -1,126 +1,126 @@
 {
     "Spikers": {
-        "version": "NeuroMLlite v0.2.1", 
+        "version": "NeuroMLlite v0.2.2",
         "parameters": {
-            "weightInput": 10, 
-            "input_rate": 40, 
-            "N": 10
-        }, 
-        "notes": "Example with spiking entities..", 
+            "N": 10,
+            "weightInput": 10,
+            "input_rate": 40
+        },
+        "notes": "Example with spiking entities..",
         "cells": [
             {
                 "iafcell": {
-                    "pynn_cell": "IF_cond_alpha", 
+                    "pynn_cell": "IF_cond_alpha",
                     "parameters": {
                         "tau_refrac": 10
                     }
                 }
-            }, 
+            },
             {
                 "InputCell": {
-                    "pynn_cell": "SpikeSourcePoisson", 
+                    "pynn_cell": "SpikeSourcePoisson",
                     "parameters": {
-                        "duration": 10000000000, 
-                        "start": 0, 
+                        "start": 0,
+                        "duration": 10000000000,
                         "rate": "input_rate"
                     }
                 }
-            }, 
+            },
             {
                 "InputCell100": {
-                    "pynn_cell": "SpikeSourcePoisson", 
+                    "pynn_cell": "SpikeSourcePoisson",
                     "parameters": {
-                        "duration": 10000000000, 
-                        "start": 0, 
+                        "start": 0,
+                        "duration": 10000000000,
                         "rate": 100
                     }
                 }
             }
-        ], 
+        ],
         "input_sources": [
             {
                 "poissonFiringSyn": {
                     "neuroml2_source_file": "../test_files/inputs.nml"
                 }
-            }, 
+            },
             {
                 "iclamp1": {
-                    "pynn_input": "DCSource", 
+                    "pynn_input": "DCSource",
                     "parameters": {
-                        "start": 100.0, 
-                        "stop": 900.0, 
-                        "amplitude": 0.8
+                        "amplitude": 0.8,
+                        "start": 100.0,
+                        "stop": 900.0
                     }
                 }
             }
-        ], 
+        ],
         "populations": [
             {
                 "pop0": {
-                    "size": "N", 
-                    "component": "iafcell", 
+                    "size": "N",
+                    "component": "iafcell",
                     "properties": {
                         "color": ".7 0 0"
                     }
                 }
-            }, 
+            },
             {
                 "pop1": {
-                    "size": "N", 
-                    "component": "iafcell", 
+                    "size": "N",
+                    "component": "iafcell",
                     "properties": {
                         "color": "0 .7 0"
                     }
                 }
-            }, 
+            },
             {
                 "pop2": {
-                    "size": "N", 
-                    "component": "iafcell", 
+                    "size": "N",
+                    "component": "iafcell",
                     "properties": {
                         "color": "0 .7 0.7"
                     }
                 }
-            }, 
+            },
             {
                 "input_pop0": {
-                    "size": "N", 
-                    "component": "InputCell", 
+                    "size": "N",
+                    "component": "InputCell",
                     "properties": {
                         "color": ".7 .7 .7"
                     }
                 }
-            }, 
+            },
             {
                 "input_pop1": {
-                    "size": "N", 
-                    "component": "InputCell100", 
+                    "size": "N",
+                    "component": "InputCell100",
                     "properties": {
                         "color": ".7 .1 .7"
                     }
                 }
             }
-        ], 
+        ],
         "inputs": [
             {
                 "stim0": {
-                    "input_source": "poissonFiringSyn", 
-                    "population": "pop0", 
-                    "percentage": 50.0, 
+                    "input_source": "poissonFiringSyn",
+                    "population": "pop0",
+                    "percentage": 50.0,
                     "weight": "weightInput"
                 }
-            }, 
+            },
             {
                 "stim1": {
-                    "input_source": "iclamp1", 
-                    "population": "pop1", 
+                    "input_source": "iclamp1",
+                    "population": "pop1",
                     "percentage": 100.0
                 }
-            }, 
+            },
             {
                 "stim2": {
-                    "input_source": "iclamp1", 
-                    "population": "pop2", 
+                    "input_source": "iclamp1",
+                    "population": "pop2",
                     "percentage": 50.0
                 }
             }

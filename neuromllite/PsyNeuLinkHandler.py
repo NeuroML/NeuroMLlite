@@ -38,7 +38,7 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         print_v("Writing file for...: %s"%self.id)
 
         save_to_json_file(self.bids_mdf_info, '%s.bids-mdf.json'%self.id, indent=4)
-        save_to_json_file(self.bids_mdf_info_hl, '%s.bids-mdf.highlevel.json'%self.id, indent=4)
+        '''save_to_json_file(self.bids_mdf_info_hl, '%s.bids-mdf.highlevel.json'%self.id, indent=4)'''
         
         
 

@@ -1,6 +1,6 @@
 import collections
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 from neuromllite.BaseTypes import Base
 from neuromllite.BaseTypes import BaseWithId
@@ -186,7 +186,8 @@ class Input(BaseWithId):
         self.allowed_fields = collections.OrderedDict([('input_source',('Type of input to use in population',str)),
                                ('population',('Population to target',str)),
                                ('percentage',('Percentage of cells to apply this input to',float)),
-                               ('number_per_cell',('Number of individual inputs per selected cell',EvaluableExpression)),
+                               ('number_per_cell',('Number of individual inputs per selected cell (default: 1)',EvaluableExpression)),
+                               ('segment_ids',('Which segments to target (default: [0])',EvaluableExpression)),
                                ('weight',('Weight to use (default: 1)',EvaluableExpression))])
                                
                       

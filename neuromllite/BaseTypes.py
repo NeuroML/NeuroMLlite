@@ -156,8 +156,12 @@ class Base(object):
             print("=========== pre <%s> ============="%self)
             print('<%s>'%s)
             
-        yy = json.loads(s, object_pairs_hook=OrderedDict)
-        ret = json.dumps(yy,indent=4)
+        try:
+            yy = json.loads(s, object_pairs_hook=OrderedDict)
+            ret = json.dumps(yy,indent=4)
+        except Exception as e:
+            print('Error loading string as JSON: <%s>'%s)
+            raise e
         
         if verbose:
             print("============ json ============")
