@@ -154,4 +154,4 @@ NeuroMLlite is being tested/used in the following repositories on OSB:
 - [PsyNeuLink tests](https://github.com/OpenSourceBrain/PsyNeuLinkShowcase/tree/master/NeuroML2)
 - [OpenWorm - c302](https://github.com/openworm/c302/tree/master/examples/parametersweep)
 
-[![Build Status](https://travis-ci.org/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.org/NeuroML/NeuroMLlite)
+[![Build Status](https://travis-ci.com/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.com/NeuroML/NeuroMLlite)
