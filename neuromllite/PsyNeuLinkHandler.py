@@ -1,6 +1,6 @@
 #
 #
-#   A class to write to the Sonata format...
+#   A class to write to the PsyNeuLink/MDF format...
 #
 #
 

@@ -40,7 +40,7 @@ install:
     - pip install . 
     
     # Check to see if on development/experimental branches
-    - export jnml_branches="experimental"
+    - export jnml_branches="development"
     - export pynml_branch="master"
     - if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
     - echo "Will use jNeuroML from branches $jnml_branches" 
@@ -95,6 +95,7 @@ script:
     ####- pip install neo --upgrade # Ensure test with latest neo...
     
     - omv list -V  # list before testing...
+    - env
     
     #- omv all -V   # Use 'omv all_ -V'  to test all OMV tests...   #############   Neuron is installed correctly from above??
     #- ls -alt
