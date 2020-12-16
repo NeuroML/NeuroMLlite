@@ -174,3 +174,6 @@ report*.txt
 /examples/*_brian2.py
 /neuromllite/test/layout/LEMS_SimExample_Layout.xml
 /examples/*.pkl
+/examples/arbor/ArborExample.net.nml
+/examples/arbor/ArborExample.net.png
+/examples/arbor/LEMS_SimArborExample.xml

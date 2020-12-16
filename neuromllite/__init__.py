@@ -45,6 +45,7 @@ class Cell(BaseWithId):
                                ('lems_source_file',('File name of LEMS file',str)),
                                ('neuroml2_cell',('Name of standard NeuroML2 cell type',str)),
                                ('pynn_cell',('Name of standard PyNN cell type',str)),
+                               ('arbor_cell',('Name of standard Arbor cell type',str)),
                                ('parameters',('Dict of parameters for the cell',dict))])
                       
         super(Cell, self).__init__(**kwargs)

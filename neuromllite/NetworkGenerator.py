@@ -330,6 +330,9 @@ def check_to_generate_or_run(argv, sim):
     elif '-pynnbrian' in argv:
         generate_and_run(sim, simulator='PyNN_Brian')
 
+    elif '-arbor' in argv:
+        generate_and_run(sim, simulator='Arbor')
+
     elif '-jnml' in argv:
         generate_and_run(sim, simulator='jNeuroML')
 
@@ -1091,6 +1094,109 @@ plt.show()
             generate_network(network, handler, always_include_props=True, base_dir=base_dir)
 
             print_v("Done with MatrixHandler...")
+            
+            
+        elif simulator == 'Arbor':
+
+            from neuromllite.ArborHandler import ArborHandler
+            
+            print('\n   ********************************************************')
+            print('   *** Warning: Support for Arbor is very preliminary!! ***')
+            print('   ********************************************************\n')
+
+            arbor_handler = ArborHandler(network)
+            
+            for c in network.cells:
+                if c.arbor_cell:
+                    arbor_handler.add_arbor_cell(c)
+
+            generate_network(network, arbor_handler, always_include_props=True, base_dir=base_dir)
+            
+            arbor_model = arbor_handler.model
+
+            trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(simulation.recordTraces, network)
+            spike_pop_indices = get_pops_vs_cell_indices_seg_ids(simulation.recordSpikes, network)
+
+            for pop_id in arbor_handler.populations:
+                arbor_pop = arbor_handler.populations[pop_id]
+                if arbor_pop.label in trace_pop_indices_seg_ids:
+                    if arbor_pop.can_record('v'):
+                        indices = trace_pop_indices_seg_ids[pop_id].keys()
+                        print_v("Recording v in %s in cells %s" % (indices, pop_id))
+                        for index in indices:
+                            '''
+                            arbor_handler.sim.record('v',arbor_pop[index],'PP_%s_%s_%s.pkl'%(pop_id,index,'v'))'''
+                if arbor_pop.label in spike_pop_indices:
+                    if arbor_pop.can_record('spikes'):
+                        indices = spike_pop_indices[pop_id].keys()
+                        print_v("Recording spikes in %s in cells %s" % (indices, pop_id))
+                        for index in indices:
+                            '''
+                            arbor_handler.sim.record('spikes',arbor_pop[index],'PP_%s_%s.pkl'%(pop_id,'spike'))'''
+
+
+
+            print_v("Starting Arbor simulation of duration %sms (dt: %sms)" % (simulation.duration, simulation.dt))
+            
+            arbor_model.run(tfinal=simulation.duration)
+            
+            print_v("Finished Arbor simulation")
+            #arbor_handler.sim.end()
+
+            traces = {}
+            events = {}
+
+            
+            for pop_id in trace_pop_indices_seg_ids:
+                indices = trace_pop_indices_seg_ids[pop_id].keys()
+
+                filename = "%s.%s.v.dat" % (simulation.id, pop_id)
+                all_columns = []
+
+                print_v("Writing data for %s <%s> to %s" % (pop_id, indices, filename))
+           
+                data = arbor_model.traces[0].value
+                times = arbor_model.traces[0].time
+                f = open(filename,'w')
+                for ti in range(len(times)):
+                    f.write('%s\t%s\n'%(times[ti], data[ti]))
+                    
+                index = 0
+                ref = '%s[%i]'%(pop_id,index)
+                 
+                vm_si = [d/1000. for d in data]
+                traces[ref] = vm_si
+                t_si = [t/1000. for t in times]
+                traces['t'] = t_si
+
+            for pop_id in spike_pop_indices:
+                indices = spike_pop_indices[pop_id]
+
+                filename = "%s.%s.spikes" % (simulation.id, pop_id)
+                all_columns = []
+                print_v("Writing spike data for %s %s to %s" % (pop_id, indices, filename))
+                '''
+                arbor_pop = arbor_handler.populations[pop_id]
+                data =  arbor_pop.get_data('spikes', gather=False)
+                spiketrains = data.segments[0].spiketrains
+
+                ff = open(filename, 'w')
+
+                for spiketrain in spiketrains:
+                    source_id = spiketrain.annotations['source_id']
+                    source_index = spiketrain.annotations['source_index']
+                    if source_index in indices:
+                        #print_v("Writing spike data for cell %s[%s] (gid: %i): %i spikes "%(arbor_pop.label,source_index, source_id, len(spiketrain)), self.verbose)
+                        ref = '%s/%i/???'%(arbor_pop.label,source_index)
+                        events[ref] = [t.magnitude/1000. for t in spiketrain]
+                        for t in spiketrain:
+                            #ff.write('%s\t%i\n'%(t.magnitude/1000.,source_index))
+                            ff.write('%i\t%s\n'%(source_index,t.magnitude/1000.))
+                ff.close()'''
+
+        if return_results:
+            _print_result_info(traces, events)
+            return traces, events
 
 
         elif simulator.startswith('PyNN'):

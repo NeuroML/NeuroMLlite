@@ -37,7 +37,8 @@ class NMLliteUI(QWidget):
         'NetPyNE',
         'PyNN_NEURON',
         'PyNN_NEST',
-        'PyNN_Brian']
+        'PyNN_Brian',
+        'Arbor']
     '''    'jNeuroML_Brian2','''
         
     LEMS_VIEW_TAB = 'Lems View'

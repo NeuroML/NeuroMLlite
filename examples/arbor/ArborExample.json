@@ -1,0 +1,71 @@
+{
+    "ArborExample": {
+        "version": "NeuroMLlite v0.2.2",
+        "parameters": {
+            "v_init": -50,
+            "input_amp": 0.19,
+            "input_del": 100,
+            "input_dur": 800
+        },
+        "notes": "Example for testing Arbor",
+        "cells": [
+            {
+                "test_arbor_cell": {
+                    "arbor_cell": "cable_cell",
+                    "parameters": {
+                        "v_init": "v_init",
+                        "radius": 3,
+                        "mechanism": "hh"
+                    }
+                }
+            }
+        ],
+        "input_sources": [
+            {
+                "i_clamp": {
+                    "pynn_input": "DCSource",
+                    "parameters": {
+                        "amplitude": "input_amp",
+                        "start": "input_del",
+                        "stop": "input_del+input_dur"
+                    }
+                }
+            }
+        ],
+        "regions": [
+            {
+                "region1": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "width": 1000.0,
+                    "height": 100.0,
+                    "depth": 1000.0
+                }
+            }
+        ],
+        "populations": [
+            {
+                "pop0": {
+                    "size": 1,
+                    "component": "test_arbor_cell",
+                    "properties": {
+                        "color": "1 0 0"
+                    },
+                    "random_layout": {
+                        "region": "region1"
+                    }
+                }
+            }
+        ],
+        "inputs": [
+            {
+                "stim": {
+                    "input_source": "i_clamp",
+                    "population": "pop0",
+                    "percentage": 100.0
+                }
+            }
+        ]
+    }
+}
