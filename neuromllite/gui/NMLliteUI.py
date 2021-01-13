@@ -655,7 +655,7 @@ class NMLliteUI(QWidget):
         lems_file_name = generate_and_run(self.simulation,
                                           simulator='jNeuroML_norun',
                                           network=self.network,
-                                          return_results=True,
+                                          return_results=False,
                                           base_dir=self.sim_base_dir)
                                           
         post_args = "-graph"

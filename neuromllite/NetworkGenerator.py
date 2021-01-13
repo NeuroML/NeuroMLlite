@@ -1194,9 +1194,9 @@ plt.show()
                             ff.write('%i\t%s\n'%(source_index,t.magnitude/1000.))
                 ff.close()'''
 
-        if return_results:
-            _print_result_info(traces, events)
-            return traces, events
+            if return_results:
+                _print_result_info(traces, events)
+                return traces, events
 
 
         elif simulator.startswith('PyNN'):
@@ -1521,7 +1521,7 @@ plt.show()
              simulator == 'jNeuroML_NEURON' or \
              simulator == 'jNeuroML_NetPyNE' or \
              simulator == 'jNeuroML_Brian2':
-
+                 
             from pyneuroml.lems import generate_lems_file_for_neuroml
             from pyneuroml import pynml
 

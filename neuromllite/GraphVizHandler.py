@@ -337,7 +337,7 @@ class GraphVizHandler(ConnectivityHandler):
             self.graph.render()
             
         if self.nl_network:
-            print_v("Finished generating graph with params: %s"%[p for p in self.nl_network.parameters] if self.nl_network.parameters is not None else [])
+            print_v("Finished generating graph with params: %s"%[p for p in self.nl_network.parameters] if self.nl_network.parameters is not None else '[]')
 
         
 

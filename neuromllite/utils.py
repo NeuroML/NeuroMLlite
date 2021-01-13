@@ -112,15 +112,13 @@ def locate_file(f, base_dir):
     return real
 
 
-def evaluate(expr, parameters={}, rng=None):
+def evaluate(expr, parameters={}, rng=None, verbose = False):
     """
     Evaluate a general string like expression (e.g. "2 * weight") using a dict
     of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's 
     given in expr
     """
     
-    verbose = False
-    #verbose = True
     print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
     try:
         if expr in parameters:
