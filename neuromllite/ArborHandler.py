@@ -37,7 +37,6 @@ class ArborHandler(DefaultNetworkHandler):
 
             default_tree.append(arbor.mnpos, arbor.mpoint(-1*radius, 0, 0, radius), arbor.mpoint(radius, 0, 0, radius), tag=1)
 
-            # (2) Define the soma and its center
             labels = arbor.label_dict({'soma':   '(tag 1)',
                                        'center': '(location 0 0.5)'})
 
@@ -47,7 +46,7 @@ class ArborHandler(DefaultNetworkHandler):
             decor.set_property(Vm=v_init)
 
             decor.paint('"soma"', cell.parameters['mechanism'])
-            ic = arbor.iclamp( 50, 5, self.nl_network.parameters['input_amp'])
+            ic = arbor.iclamp( self.nl_network.parameters['input_del'], self.nl_network.parameters['input_dur'], self.nl_network.parameters['input_amp'])
             print_v("Stim: %s"%ic)
 
             if len(self.inputs)==0:

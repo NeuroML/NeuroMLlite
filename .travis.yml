@@ -1,70 +1,71 @@
 # Framework for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
 
 dist: xenial   # xenial uses java 11, need to check org.neuroml.*...
-sudo: false  
+sudo: false
 
 addons:
   apt:
     packages:
        # Requirements for Brian & NEST
-    - python-numpy 
-    - python-scipy 
-    - python-matplotlib 
+    - python-numpy
+    - python-scipy
+    - python-matplotlib
     - python-sympy
-    - python-tables 
+    - python-tables
     - python-tornado
     - python-tk
-    - libreadline6-dev 
-    - libncurses5-dev 
+    - libreadline6-dev
+    - libncurses5-dev
     - libgsl0-dev
     - cython
     - python-lxml
-    - python-h5py 
-    
-    
+    - python-h5py
+
+
 language: python
 
 
-python: 
+python:
   - "2.7"
   #- "3.4" # issue on Travis with pytables...
   #- "3.5"
-  - "3.6"
+  - "3.8"
+  - "3.9"
 
 
 
 install:
     - pip install tables==3.5.2
-    - pip install scipy==1.2.2    
+    - pip install scipy==1.2.2
     - pip install matplotlib # This is more because Matplotlib v2.x is required...
-    - pip install . 
-    
+    - pip install .
+
     # Check to see if on development/experimental branches
     - export jnml_branches="development"
     - export pynml_branch="master"
     - if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
-    - echo "Will use jNeuroML from branches $jnml_branches" 
-    - echo "Will use pyNeuroML from branch $pynml_branch" 
-    
+    - echo "Will use jNeuroML from branches $jnml_branches"
+    - echo "Will use pyNeuroML from branch $pynml_branch"
+
     # Install pyNeuroML
     - git clone https://github.com/NeuroML/pyNeuroML.git
     - cd pyNeuroML
     - git checkout $pynml_branch
     - python setup.py install
     - cd -
-    
-    
+
+
 script:
-    
+
     # Basic test
     - cd examples
     - python Example2.py # test one example...
     - cd ..
-        
+
     # Only run OMV tests on Python 2 (for now)
     # - if [ ${TRAVIS_PYTHON_VERSION:O:1} == "3" ]; then travis_terminate 0 ; fi
-    
-   
+
+
     # Install latest jnml...
     - git clone https://github.com/NeuroML/jNeuroML.git
     - cd jNeuroML
@@ -72,20 +73,20 @@ script:
     - python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
     - ls -alt
     - pwd
-    
+
     - export PATH=$PATH:$TRAVIS_BUILD_DIR/jNeuroML
     - export JNML_HOME=$TRAVIS_BUILD_DIR/jNeuroML
     - cd $TRAVIS_BUILD_DIR/examples
     - jnml -v
-    
+
     - pip install git+https://github.com/OpenSourceBrain/osb-model-validation
     - omv list -V  # list before installing...
     - pip install pyelectro
-    
+
     - omv install NEURON
     - export NEURON_HOME=/home/travis/neuron/nrn/x86_64
     - ls -alt /home/travis/neuron/
-    
+
     # Standard PyNN install...
     - omv install PyNN
     ####- git clone https://github.com/pgleeson/PyNN.git
@@ -93,13 +94,13 @@ script:
     ####- python setup.py install  # Install from pgleeson, with some recent changes
     ####- cd ..
     ####- pip install neo --upgrade # Ensure test with latest neo...
-    
+
     - omv list -V  # list before testing...
     - env
-    
+
     #- omv all -V   # Use 'omv all_ -V'  to test all OMV tests...   #############   Neuron is installed correctly from above??
     #- ls -alt
     #- cd ..
     #- ./regenerateAndTest.sh  #############   Nest is installed correctly from above??
-    
-    #- omv list -V 
+
+    #- omv list -V

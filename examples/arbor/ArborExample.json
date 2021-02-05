@@ -3,9 +3,9 @@
         "version": "NeuroMLlite v0.2.2",
         "parameters": {
             "v_init": -50,
-            "input_amp": 0.19,
-            "input_del": 100,
-            "input_dur": 800
+            "input_amp": 0.01,
+            "input_del": 50,
+            "input_dur": 5
         },
         "notes": "Example for testing Arbor",
         "cells": [
