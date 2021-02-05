@@ -27,10 +27,9 @@ language: python
 
 python:
   - "2.7"
-  #- "3.4" # issue on Travis with pytables...
   #- "3.5"
   - "3.8"
-  - "3.9"
+  #- "3.9" # wait until omv uses a py3.9 compatible version of neuron by default...
 
 
 
