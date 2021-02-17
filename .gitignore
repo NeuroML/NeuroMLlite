@@ -177,3 +177,4 @@ report*.txt
 /examples/arbor/ArborExample.net.nml
 /examples/arbor/ArborExample.net.png
 /examples/arbor/LEMS_SimArborExample.xml
+/test.sh
