@@ -1,6 +1,6 @@
 {
     "SimExample7": {
-        "version": "NeuroMLlite v0.2.3",
+        "version": "NeuroMLlite v0.2.4",
         "network": "Example7_Brunel2000.json",
         "duration": 1000.0,
         "dt": 0.025,

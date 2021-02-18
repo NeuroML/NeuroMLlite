@@ -1,6 +1,6 @@
 {
     "BBP_5percent": {
-        "version": "NeuroMLlite v0.2.3",
+        "version": "NeuroMLlite v0.2.4",
         "network_reader": {
             "type": "BBPConnectomeReader",
             "parameters": {
