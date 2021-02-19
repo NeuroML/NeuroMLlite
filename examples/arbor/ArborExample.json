@@ -1,6 +1,6 @@
 {
     "ArborExample": {
-        "version": "NeuroMLlite v0.2.2",
+        "version": "NeuroMLlite v0.2.5",
         "parameters": {
             "v_init": -50,
             "input_amp": 0.01,
@@ -47,7 +47,7 @@
         "populations": [
             {
                 "pop0": {
-                    "size": 1,
+                    "size": 3,
                     "component": "test_arbor_cell",
                     "properties": {
                         "color": "1 0 0"

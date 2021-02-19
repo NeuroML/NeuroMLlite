@@ -42,7 +42,7 @@ net.input_sources.append(input_source)
 r1 = RectangularRegion(id='region1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
 net.regions.append(r1)
 
-p0 = Population(id='pop0', size=1, component=cell.id, properties={'color':'1 0 0'},random_layout = RandomLayout(region=r1.id))
+p0 = Population(id='pop0', size=3, component=cell.id, properties={'color':'1 0 0'},random_layout = RandomLayout(region=r1.id))
 net.populations.append(p0)
 '''
 p1 = Population(id='pop1', size=2, component=cell2.id, properties={'color':'0 1 0'},random_layout = RandomLayout(region=r1.id))

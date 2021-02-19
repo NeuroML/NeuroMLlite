@@ -16,6 +16,7 @@ import arbor
 class ArborHandler(DefaultNetworkHandler):
 
     populations = {}
+    pops_vs_components = {}
     projections = {}
     input_sources = {}
     input_info = {}
@@ -23,85 +24,16 @@ class ArborHandler(DefaultNetworkHandler):
     inputs = []
     cells = {}
 
+    pop_indices_vs_gids = {}
+
     def __init__(self, nl_network):
         print_v("Initiating Arbor...")
         self.nl_network = nl_network
+        self.curr_gid = 0
 
 
-    def add_arbor_cell(self, cell):
-
-        if cell.arbor_cell=='cable_cell':
-
-            default_tree = arbor.segment_tree()
-            radius = evaluate(cell.parameters['radius'], self.nl_network.parameters) if 'radius' in cell.parameters else 3
-
-            default_tree.append(arbor.mnpos, arbor.mpoint(-1*radius, 0, 0, radius), arbor.mpoint(radius, 0, 0, radius), tag=1)
-
-            labels = arbor.label_dict({'soma':   '(tag 1)',
-                                       'center': '(location 0 0.5)'})
-
-            decor = arbor.decor()
-
-            v_init = evaluate(cell.parameters['v_init'], self.nl_network.parameters) if 'v_init' in cell.parameters else -70
-            decor.set_property(Vm=v_init)
-
-            decor.paint('"soma"', cell.parameters['mechanism'])
-            ic = arbor.iclamp( self.nl_network.parameters['input_del'], self.nl_network.parameters['input_dur'], self.nl_network.parameters['input_amp'])
-            print_v("Stim: %s"%ic)
-
-            if len(self.inputs)==0:
-                self.inputs.append(ic)
-            else:
-                self.inputs[0]=ic
-            decor.place('"center"', self.inputs[0])
-            decor.place('"center"', arbor.spike_detector(-10))
-
-
-            default_cell = arbor.cable_cell(default_tree, labels, decor)
-
-            self.cells[cell.id] = default_cell
-
-            print_v("Created a new cell. All cells: %s"%self.cells)
-
-    '''
-    def set_cells(self, cells):
-        self.cells = cells
-
-    def set_receptor_types(self, receptor_types):
-        self.receptor_types = receptor_types
-
-    def add_input_source(self, input_source, network):
-        input_params = input_source.parameters if input_source.parameters else {}
-
-        for ip in input_params:
-            input_params[ip] = evaluate(input_params[ip], network.parameters)
-
-        if input_source.lems_source_file and 'noisyCurrentSource' in input_source.id:
-            pynn_input_params = {}
-            for p in input_params:
-                if p=='delay':
-                    pynn_input_params['start'] = convert_to_units(input_params[p],'ms')
-                elif p=='duration':
-                    pynn_input_params['stop'] = convert_to_units(input_params[p],'ms') + convert_to_units(input_params['delay'],'ms')
-                elif p=='mean':
-                    pynn_input_params['mean'] = convert_to_units(input_params[p],'nA')
-                elif p=='stdev':
-                    pynn_input_params['stdev'] = convert_to_units(input_params[p],'nA')
-                elif p=='noiseDt':
-                    pynn_input_params['dt'] = convert_to_units(input_params[p],'ms')
-                else:
-                    raise Exception('Parameter %s=%s is not appropriate for inout %s'%(p,input_params[p],input_source.id))
-
-            exec('self.input_sources["%s"] = self.sim.NoisyCurrentSource(**pynn_input_params)'%(input_source.id))
-        else:
-            exec('self.input_sources["%s"] = self.sim.%s(**input_params)'%(input_source.id,input_source.pynn_input))
-
-        #print(['%s (%s): %s'%(i, type(self.input_sources[i]),self.input_sources[i].simple_parameters()) for i in self.input_sources])
-'''
     def handle_document_start(self, id, notes):
-
         print_v("Document: %s"%id)
-
 
 
     def handle_network(self, network_id, notes, temperature=None):
@@ -129,13 +61,13 @@ class ArborHandler(DefaultNetworkHandler):
 
         print_v("Population: "+population_id+", component: "+component+compInfo+sizeInfo)
 
-        if size!=1:
-            raise Exception('Can only simulate one cell at the moment...')
-        self.model = arbor.single_cell_model(self.cells[component])
-
-        self.model.probe('voltage', '"center"', frequency=10000)
+        self.pops_vs_components[population_id] = component
+        self.pop_indices_vs_gids[population_id]={}
 
         '''
+        self.model = arbor.single_cell_model(self.cells[component])
+        self.model.probe('voltage', '"center"', frequency=10000)
+
         exec('self.POP_%s = self.sim.Population(%s, self.cells["%s"], label="%s")'%(population_id,size,component,population_id))
         #exec('print_v(self.POP_%s)'%(population_id))
         exec('self.populations["%s"] = self.POP_%s'%(population_id,population_id))'''
@@ -146,6 +78,9 @@ class ArborHandler(DefaultNetworkHandler):
     #
     def handle_location(self, id, population_id, component, x, y, z):
         #self.printLocationInformation(id, population_id, component, x, y, z)
+
+        self.pop_indices_vs_gids[population_id][id] = self.curr_gid
+        self.curr_gid+=1
 
         '''
         exec('self.POP_%s.positions[0][%s] = %s'%(population_id,id,x))
@@ -226,7 +161,6 @@ class ArborHandler(DefaultNetworkHandler):
     #
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
 
-
         population_id, component = self.input_info[inputListId]
 
         print_v("Input: %s[%s] (%s), pop: %s, cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,component,population_id,cellId,segId,fract,weight))
@@ -254,4 +188,129 @@ class ArborHandler(DefaultNetworkHandler):
     #  Should be overridden to to connect each input to the target cell
     #
     def finalise_input_source(self, inputName):
-        print_v("Input : %s completed" % inputName)
+        print_v("Input: %s completed" % inputName)
+
+
+    def finalise_document(self):
+        print_v("Building recipe with: %s" % self.pop_indices_vs_gids)
+
+        self.neuroML_arbor_recipe = NeuroML_Arbor_Recipe(self.nl_network,
+                                                         self.pop_indices_vs_gids,
+                                                         self.pops_vs_components)
+
+def create_arbor_cell(cell, nl_network, gid):
+
+    if cell.arbor_cell=='cable_cell':
+
+        default_tree = arbor.segment_tree()
+        radius = evaluate(cell.parameters['radius'], nl_network.parameters) if 'radius' in cell.parameters else 3
+
+        default_tree.append(arbor.mnpos, arbor.mpoint(-1*radius, 0, 0, radius), arbor.mpoint(radius, 0, 0, radius), tag=1)
+
+        labels = arbor.label_dict({'soma':   '(tag 1)',
+                                   'center': '(location 0 0.5)'})
+
+        labels['root'] = '(root)'
+
+        decor = arbor.decor()
+
+        v_init = evaluate(cell.parameters['v_init'], nl_network.parameters) if 'v_init' in cell.parameters else -70
+        decor.set_property(Vm=v_init)
+
+        decor.paint('"soma"', cell.parameters['mechanism'])
+
+        if gid==0:
+            ic = arbor.iclamp( nl_network.parameters['input_del'], nl_network.parameters['input_dur'], nl_network.parameters['input_amp'])
+            print_v("Stim: %s"%ic)
+            decor.place('"center"', ic)
+
+        decor.place('"center"', arbor.spike_detector(-10))
+
+
+        # (2) Mark location for synapse at the midpoint of branch 1 (the first dendrite).
+        labels['synapse_site'] = '(location 0 0.5)'
+        # (4) Attach a single synapse.
+        decor.place('"synapse_site"', 'expsyn')
+
+        default_cell = arbor.cable_cell(default_tree, labels, decor)
+
+        print_v("Created a new cell for gid %i: %s"%(gid,cell))
+        print_v("%s"%(default_cell))
+
+        return default_cell
+
+
+# Create a NeuroML recipe
+class NeuroML_Arbor_Recipe(arbor.recipe):
+
+    def __init__(self, nl_network, pop_indices_vs_gids, pops_vs_components):
+        # The base C++ class constructor must be called first, to ensure that
+        # all memory in the C++ class is initialized correctly.
+        arbor.recipe.__init__(self)
+        self.props = arbor.neuron_cable_properties()
+        self.cat = arbor.default_catalogue()
+        self.props.register(self.cat)
+        self.pop_indices_vs_gids = pop_indices_vs_gids
+        self.pops_vs_components = pops_vs_components
+        self.nl_network = nl_network
+
+    def get_pop_index(self, gid):
+        #Todo: optimise...
+        for pop_id in self.pop_indices_vs_gids:
+            for index in self.pop_indices_vs_gids[pop_id]:
+                if self.pop_indices_vs_gids[pop_id][index]==gid:
+                    return pop_id, index
+
+    def get_gid(self, pop_id, index):
+        return self.pop_indices_vs_gids[pop_id][index]
+
+    # (6) The num_cells method that returns the total number of cells in the model
+    # must be implemented.
+    def num_cells(self):
+        ncells = sum([len(self.pop_indices_vs_gids[pop_id]) for pop_id in self.pop_indices_vs_gids])
+        print_v('Getting num cells: %s'%(ncells))
+        return ncells
+
+    # (7) The cell_description method returns a cell
+    def cell_description(self, gid):
+        pop_id, index = self.get_pop_index(gid)
+        comp = self.pops_vs_components[pop_id]
+
+        return create_arbor_cell(self.nl_network.get_child(comp,'cells'),self.nl_network, gid)
+
+    # The kind method returns the type of cell with gid.
+    # Note: this must agree with the type returned by cell_description.
+    def cell_kind(self, gid):
+        cell_kind = arbor.cell_kind.cable
+        print_v('Getting cell_kind: %s'%(cell_kind))
+        return cell_kind
+
+    # (8) Make a ring network. For each gid, provide a list of incoming connections.
+    def connections_on(self, gid):
+        src = (gid-1)%self.num_cells()
+        w = 0.01
+        d = 5
+        conns = [arbor.connection((src,0), (gid,0), w, d)]
+        print_v('Making connections for %i: %s'%(gid,conns))
+        return conns
+
+    def num_targets(self, gid):
+        return 1
+
+    def num_sources(self, gid):
+        return 1
+
+    # (9) Attach a generator to the first cell in the ring.
+    def event_generators(self, gid):
+        print_v('Getting event_generators for: %s'%(gid))
+        if gid==0:
+            sched = arbor.explicit_schedule([1])
+            return [arbor.event_generator((0,0), 0.1, sched)]
+        return []
+
+    # (10) Place a probe at the root of each cell.
+    def probes(self, gid):
+        return [arbor.cable_probe_membrane_voltage('"root"')]
+
+    def global_properties(self, kind):
+        return self.props
