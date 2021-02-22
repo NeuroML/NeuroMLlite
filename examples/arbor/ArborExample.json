@@ -3,6 +3,7 @@
         "version": "NeuroMLlite v0.2.5",
         "parameters": {
             "v_init": -50,
+            "scale": 3,
             "input_amp": 0.01,
             "input_del": 50,
             "input_dur": 5
@@ -16,6 +17,18 @@
                         "v_init": "v_init",
                         "radius": 3,
                         "mechanism": "hh"
+                    }
+                }
+            }
+        ],
+        "synapses": [
+            {
+                "ampaSyn": {
+                    "pynn_synapse_type": "cond_alpha",
+                    "pynn_receptor_type": "excitatory",
+                    "parameters": {
+                        "e_rev": -10,
+                        "tau_syn": 2
                     }
                 }
             }
@@ -34,9 +47,19 @@
         ],
         "regions": [
             {
-                "region1": {
+                "region0": {
                     "x": 0.0,
                     "y": 0.0,
+                    "z": 0.0,
+                    "width": 1000.0,
+                    "height": 100.0,
+                    "depth": 1000.0
+                }
+            },
+            {
+                "region1": {
+                    "x": 0.0,
+                    "y": 200.0,
                     "z": 0.0,
                     "width": 1000.0,
                     "height": 100.0,
@@ -47,13 +70,39 @@
         "populations": [
             {
                 "pop0": {
-                    "size": 3,
+                    "size": "scale",
                     "component": "test_arbor_cell",
                     "properties": {
                         "color": "1 0 0"
                     },
                     "random_layout": {
+                        "region": "region0"
+                    }
+                }
+            },
+            {
+                "pop1": {
+                    "size": "scale",
+                    "component": "test_arbor_cell",
+                    "properties": {
+                        "color": "0 1 0"
+                    },
+                    "random_layout": {
                         "region": "region1"
+                    }
+                }
+            }
+        ],
+        "projections": [
+            {
+                "proj0": {
+                    "presynaptic": "pop0",
+                    "postsynaptic": "pop1",
+                    "synapse": "ampaSyn",
+                    "delay": "5",
+                    "weight": "0.0001*random()",
+                    "random_connectivity": {
+                        "probability": 0.5
                     }
                 }
             }

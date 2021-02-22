@@ -10,19 +10,27 @@ from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
 from pyneuroml.pynml import convert_to_units
 
+import numpy as np
+
 
 import arbor
 
 class ArborHandler(DefaultNetworkHandler):
 
-    populations = {}
     pops_vs_components = {}
-    projections = {}
-    input_sources = {}
+
+    proj_weights = {}
+    proj_delays = {}
+
     input_info = {}
 
+    '''
+    populations = {}
+    projections = {}
+    input_sources = {}
+
     inputs = []
-    cells = {}
+    cells = {}'''
 
     pop_indices_vs_gids = {}
 
@@ -98,6 +106,10 @@ class ArborHandler(DefaultNetworkHandler):
             synInfo += " (pre comp: %s)"%pre_synapse_obj.__class__.__name__
 
         print_v("Projection: "+projName+" ("+type+") from "+prePop+" to "+postPop+" with syn: "+synapse+synInfo)
+
+        self.proj_weights[projName] = np.zeros((len(self.pop_indices_vs_gids[prePop]),len(self.pop_indices_vs_gids[postPop])))
+        self.proj_delays[projName] = np.zeros((len(self.pop_indices_vs_gids[prePop]),len(self.pop_indices_vs_gids[postPop])))
+
         '''
         exec('self.projection__%s_conns = []'%(projName))'''
 
@@ -117,8 +129,10 @@ class ArborHandler(DefaultNetworkHandler):
 
         self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
         print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
-        '''
-        exec('self.projection__%s_conns.append((%s,%s,float(%s),float(%s)))'%(projName,preCellId,postCellId,weight,delay))'''
+
+        self.proj_weights[projName][preCellId][postCellId] = weight
+        self.proj_delays[projName][preCellId][postCellId] = delay
+
 
 
     #
@@ -164,7 +178,7 @@ class ArborHandler(DefaultNetworkHandler):
         population_id, component = self.input_info[inputListId]
 
         print_v("Input: %s[%s] (%s), pop: %s, cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,component,population_id,cellId,segId,fract,weight))
-
+        '''
         #Bad in many ways...
         for cell in self.cells:
             stim = self.inputs[0]
@@ -172,7 +186,7 @@ class ArborHandler(DefaultNetworkHandler):
             print_v('Added: %s to %s'%(stim, cell))
 
 
-        '''
+
         #exec('print  self.POP_%s'%(population_id))
         #exec('print  self.POP_%s[%s]'%(population_id,cellId))
 
@@ -193,10 +207,15 @@ class ArborHandler(DefaultNetworkHandler):
 
     def finalise_document(self):
         print_v("Building recipe with: %s" % self.pop_indices_vs_gids)
+        print_v("Weights: %s" % self.proj_weights)
+        print_v("Delays: %s" % self.proj_delays)
+
 
         self.neuroML_arbor_recipe = NeuroML_Arbor_Recipe(self.nl_network,
                                                          self.pop_indices_vs_gids,
-                                                         self.pops_vs_components)
+                                                         self.pops_vs_components,
+                                                         self.proj_weights,
+                                                         self.proj_delays)
 
 def create_arbor_cell(cell, nl_network, gid):
 
@@ -243,7 +262,7 @@ def create_arbor_cell(cell, nl_network, gid):
 # Create a NeuroML recipe
 class NeuroML_Arbor_Recipe(arbor.recipe):
 
-    def __init__(self, nl_network, pop_indices_vs_gids, pops_vs_components):
+    def __init__(self, nl_network, pop_indices_vs_gids, pops_vs_components, proj_weights, proj_delays):
         # The base C++ class constructor must be called first, to ensure that
         # all memory in the C++ class is initialized correctly.
         arbor.recipe.__init__(self)
@@ -253,6 +272,8 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
         self.pop_indices_vs_gids = pop_indices_vs_gids
         self.pops_vs_components = pops_vs_components
         self.nl_network = nl_network
+        self.proj_weights = proj_weights
+        self.proj_delays = proj_delays
 
     def get_pop_index(self, gid):
         #Todo: optimise...
@@ -287,17 +308,44 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
 
     # (8) Make a ring network. For each gid, provide a list of incoming connections.
     def connections_on(self, gid):
-        src = (gid-1)%self.num_cells()
-        w = 0.01
-        d = 5
-        conns = [arbor.connection((src,0), (gid,0), w, d)]
-        print_v('Making connections for %i: %s'%(gid,conns))
+        # Todo: optimise!!
+        pop_id, index = self.get_pop_index(gid)
+        conns = []
+        for proj in self.nl_network.projections:
+            if pop_id==proj.postsynaptic:
+                w = self.proj_weights[proj.id]
+                in_w = w.T[index]
+                d = self.proj_delays[proj.id]
+                in_d = d.T[index]
+                print_v('Incoming connections for gid %i (%s[%s]), w: %s; d: %s'%(gid,pop_id, index, in_w, in_d))
+                for src_index in range(len(in_w)):
+                    if in_w[src_index]>0:
+                        src_gid = self.get_gid(proj.presynaptic, src_index)
+                        conns.append(arbor.connection((src_gid,0), (gid,0), in_w[src_index], in_d[src_index]))
+
+        print_v('Making connections for gid %i (%s[%s]): %s'%(gid,pop_id, index,conns))
         return conns
 
     def num_targets(self, gid):
+        tot_in = len(self.connections_on(gid))
+        print_v('num_targets for %i: %s'%(gid,tot_in))
+
         return 1
 
     def num_sources(self, gid):
+        # Todo: optimise!!
+        pop_id, index = self.get_pop_index(gid)
+        tot_out = 0
+        for proj in self.nl_network.projections:
+            if pop_id==proj.presynaptic:
+                w = self.proj_weights[proj.id]
+                out_w = w[index]
+                print_v('Outgoing connections for gid %i (%s[%s]), w: %s'%(gid,pop_id, index, out_w))
+                for c in out_w:
+                    if c>0: tot_out+=1
+
+
+        print_v('num_sources for %i: %s'%(gid,tot_out))
         return 1
 
     # (9) Attach a generator to the first cell in the ring.

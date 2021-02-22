@@ -1115,7 +1115,7 @@ plt.show()
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(simulation.recordTraces, network)
             spike_pop_indices = get_pops_vs_cell_indices_seg_ids(simulation.recordSpikes, network)
-
+            '''
             for pop_id in arbor_handler.populations:
                 arbor_pop = arbor_handler.populations[pop_id]
                 if arbor_pop.label in trace_pop_indices_seg_ids:
@@ -1123,15 +1123,14 @@ plt.show()
                         indices = trace_pop_indices_seg_ids[pop_id].keys()
                         print_v("Recording v in %s in cells %s" % (indices, pop_id))
                         for index in indices:
-                            '''
-                            arbor_handler.sim.record('v',arbor_pop[index],'PP_%s_%s_%s.pkl'%(pop_id,index,'v'))'''
+                            #arbor_handler.sim.record('v',arbor_pop[index],'PP_%s_%s_%s.pkl'%(pop_id,index,'v'))
                 if arbor_pop.label in spike_pop_indices:
                     if arbor_pop.can_record('spikes'):
                         indices = spike_pop_indices[pop_id].keys()
                         print_v("Recording spikes in %s in cells %s" % (indices, pop_id))
                         for index in indices:
-                            '''
-                            arbor_handler.sim.record('spikes',arbor_pop[index],'PP_%s_%s.pkl'%(pop_id,'spike'))'''
+                            #arbor_handler.sim.record('spikes',arbor_pop[index],'PP_%s_%s.pkl'%(pop_id,'spike'))
+            '''
 
 
             ncells = arbor_recipe.num_cells()

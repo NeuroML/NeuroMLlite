@@ -6,6 +6,9 @@ from neuromllite import Population
 from neuromllite import RandomLayout
 from neuromllite import RectangularRegion
 from neuromllite import Simulation
+from neuromllite import Synapse
+from neuromllite import Projection
+from neuromllite import RandomConnectivity
 
 import sys
 
@@ -16,6 +19,7 @@ net = Network(id='ArborExample')
 net.notes = 'Example for testing Arbor'
 
 net.parameters = { 'v_init':  -50,
+                   'scale':      3,
                    'input_amp':       0.01,
                    'input_del':       50,
                    'input_dur':       5}
@@ -39,11 +43,15 @@ input_source = InputSource(id='i_clamp',
 
 net.input_sources.append(input_source)
 
-r1 = RectangularRegion(id='region1', x=0,y=0,z=0,width=1000,height=100,depth=1000)
+r0 = RectangularRegion(id='region0', x=0,y=0,z=0,width=1000,height=100,depth=1000)
+net.regions.append(r0)
+r1 = RectangularRegion(id='region1', x=0,y=200,z=0,width=1000,height=100,depth=1000)
 net.regions.append(r1)
 
-p0 = Population(id='pop0', size=3, component=cell.id, properties={'color':'1 0 0'},random_layout = RandomLayout(region=r1.id))
+p0 = Population(id='pop0', size='scale', component=cell.id, properties={'color':'1 0 0'},random_layout = RandomLayout(region=r0.id))
 net.populations.append(p0)
+p1 = Population(id='pop1', size='scale', component=cell.id, properties={'color':'0 1 0'},random_layout = RandomLayout(region=r1.id))
+net.populations.append(p1)
 '''
 p1 = Population(id='pop1', size=2, component=cell2.id, properties={'color':'0 1 0'},random_layout = RandomLayout(region=r1.id))
 p2 = Population(id='pop2', size=1, component=cell2.id, properties={'color':'0 0 1'},random_layout = RandomLayout(region=r1.id))
@@ -51,23 +59,28 @@ p2 = Population(id='pop2', size=1, component=cell2.id, properties={'color':'0 0 
 net.populations.append(p1)
 net.populations.append(p2)'''
 
-'''
+
 net.synapses.append(Synapse(id='ampaSyn',
                             pynn_receptor_type='excitatory',
                             pynn_synapse_type='cond_alpha',
                             parameters={'e_rev':-10, 'tau_syn':2}))
-net.synapses.append(Synapse(id='gabaSyn',
-                            pynn_receptor_type='inhibitory',
-                            pynn_synapse_type='cond_alpha',
-                            parameters={'e_rev':-80, 'tau_syn':10}))
+
 
 net.projections.append(Projection(id='proj0',
                                   presynaptic=p0.id,
                                   postsynaptic=p1.id,
                                   synapse='ampaSyn',
-                                  delay=2,
-                                  weight=0.02))
-net.projections[0].random_connectivity=RandomConnectivity(probability=1)
+                                  delay='5',
+                                  weight='0.0001*random()'))
+
+net.projections[0].random_connectivity=RandomConnectivity(probability=0.5)
+
+'''
+net.synapses.append(Synapse(id='gabaSyn',
+                            pynn_receptor_type='inhibitory',
+                            pynn_synapse_type='cond_alpha',
+                            parameters={'e_rev':-80, 'tau_syn':10}))
+
 
 net.projections.append(Projection(id='proj1',
                                   presynaptic=p0.id,
