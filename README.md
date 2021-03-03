@@ -1,5 +1,15 @@
 ## NeuroMLlite: a common framework for reading/writing/generating network specifications
 
+[![Travis CI](https://travis-ci.com/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.com/NeuroML/NeuroMLlite)
+[![PyPI](https://img.shields.io/pypi/v/NeuroMLlite)](https://pypi.org/project/NeuroMLlite/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/NeuroMLlite)](https://pypi.org/project/NeuroMLlite/)
+[![GitHub](https://img.shields.io/github/license/NeuroML/NeuroMLlite)](https://github.com/NeuroML/NeuroMLlite/blob/master/LICENSE.lesser)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/NeuroML/NeuroMLlite)](https://github.com/NeuroML/NeuroMLlite/pulls)
+[![GitHub issues](https://img.shields.io/github/issues/NeuroML/NeuroMLlite)](https://github.com/NeuroML/NeuroMLlite/issues)
+[![GitHub Org's stars](https://img.shields.io/github/stars/NeuroML?style=social)](https://github.com/NeuroML)
+[![Twitter Follow](https://img.shields.io/twitter/follow/NeuroML?style=social)](https://twitter.com/NeuroML)
+
+
 Work in progress. For the background to this see here: https://github.com/NeuroML/NetworkShorthand.
 
 ![Architecture](images/NetworkShorthand.png)
@@ -153,5 +163,3 @@ NeuroMLlite is being tested/used in the following repositories on OSB:
 - [PING networks](https://github.com/OpenSourceBrain/PINGnets/tree/master/NeuroML2) 
 - [PsyNeuLink tests](https://github.com/OpenSourceBrain/PsyNeuLinkShowcase/tree/master/NeuroML2)
 - [OpenWorm - c302](https://github.com/openworm/c302/tree/master/examples/parametersweep)
-
-[![Build Status](https://travis-ci.com/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.com/NeuroML/NeuroMLlite)
