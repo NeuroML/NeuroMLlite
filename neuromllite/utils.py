@@ -5,100 +5,126 @@ import os
 import math
 
 from neuromllite.BaseTypes import print_v, print_
-    
-    
+
+verbose = True
+
 def load_json(filename):
     """
     Load a generic JSON file
     """
 
     with open(filename, 'r') as f:
-        
+
         data = json.load(f, object_hook=ascii_encode_dict)
-        
+
     return data
 
-    
+
 def load_network_json(filename):
     """
     Load a NeuroMLlite network JSON file
     """
-    
+
     data = load_json(filename)
-        
+
     print_v("Loaded network specification from %s"%filename)
-    
+
     net = Network()
     net = _parse_element(data, net)
-    
+
     return net
-    
-    
+
+
 def load_simulation_json(filename):
     """
     Load a NeuroMLlite simulation JSON file
     """
 
     with open(filename, 'r') as f:
-        
+
         data = json.load(f, object_hook=ascii_encode_dict)
-        
-        
+
+
     print_v("Loaded simulation specification from %s"%filename)
-    
+
     sim = Simulation()
     sim = _parse_element(data, sim)
-    
+
     return sim
 
 
 def save_to_json_file(info, filename, indent=4):
 
-    strj = json.dumps(info, indent=indent)    
+    strj = json.dumps(info, indent=indent)
     with open(filename, 'w') as fp:
         fp.write(strj)
 
-    
+
 def ascii_encode_dict(data):
     ascii_encode = lambda x: x.encode('ascii') if (sys.version_info[0]==2 and isinstance(x, unicode)) else x
-    return dict(map(ascii_encode, pair) for pair in data.items()) 
-    
-    
+    return dict(map(ascii_encode, pair) for pair in data.items())
+
+
 def _parse_element(json, to_build):
 
+    if verbose: print('Parse for element: [%s]'%json)
     for k in json.keys():
+        if verbose: print("  Setting id: %s in %s (%s)"%(k, type.__name__, type(to_build)))
         to_build.id = k
         to_build = _parse_attributes(json[k], to_build)
-               
-    return to_build 
-            
-            
-def _parse_attributes(json, to_build):
-            
-    for g in json:
-        value = json[g]
-        
-        #print("  Setting %s=%s (%s) in %s"%(g, value, type(value), to_build))
-        if type(to_build)==dict:
-            to_build[g]=value
-        elif type(value)==str or type(value)==int or type(value)==float:
-            to_build.__setattr__(g, value)
-        elif type(value)==list:
-            type_to_use = to_build.allowed_children[g][1]
 
-            for l in value:
-                ff = type_to_use()
-                ff = _parse_element(l, ff)
-                exec('to_build.%s.append(ff)'%g)
-        else:
-            type_to_use = to_build.allowed_fields[g][1]
-            ff = type_to_use()
-            ff = _parse_attributes(value, ff)
-            exec('to_build.%s = ff'%g)
-                
-        
     return to_build
-    
+
+
+def _parse_attributes(json, to_build):
+
+    for key in json:
+        value = json[key]
+        new_format = True
+        if verbose: print("  Setting %s=%s (%s) in %s"%(key, value, type(value), to_build))
+
+        if new_format:
+            if type(to_build)==dict:
+                to_build[key]=value
+                
+            elif key in to_build.allowed_children:
+                type_to_use = to_build.allowed_children[key][1]
+                for v in value:
+                    ff = type_to_use()
+                    if verbose: print('    Type for %s: %s (%s)'%(key, type_to_use, ff))
+                    ff = _parse_element({v:value[v]}, ff)
+                    exec('to_build.%s.append(ff)'%key)
+                    #for c in
+            else:
+                if type(value)==str or type(value)==int or type(value)==float:
+                    to_build.__setattr__(key, value)
+                else:
+                    type_to_use = to_build.allowed_fields[key][1]
+                    ff = type_to_use()
+                    ff = _parse_attributes(value, ff)
+                    exec('to_build.%s = ff'%key)
+
+        else:
+            if type(to_build)==dict:
+                to_build[key]=value
+            elif type(value)==str or type(value)==int or type(value)==float:
+                to_build.__setattr__(key, value)
+            elif type(value)==list:
+                type_to_use = to_build.allowed_children[key][1]
+
+                for l in value:
+                    ff = type_to_use()
+                    ff = _parse_element(l, ff)
+                    exec('to_build.%s.append(ff)'%key)
+            else:
+                type_to_use = to_build.allowed_fields[key][1]
+                ff = type_to_use()
+                ff = _parse_attributes(value, ff)
+                exec('to_build.%s = ff'%key)
+
+
+    return to_build
+
 
 def locate_file(f, base_dir):
     """
@@ -115,15 +141,15 @@ def locate_file(f, base_dir):
 def evaluate(expr, parameters={}, rng=None, verbose = False):
     """
     Evaluate a general string like expression (e.g. "2 * weight") using a dict
-    of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's 
+    of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's
     given in expr
     """
-    
+
     print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
     try:
         if expr in parameters:
             expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
-        
+
         if type(expr)==str:
             try:
                 expr = int(expr)
@@ -133,7 +159,7 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
                 expr = float(expr)
             except:
                 pass
-            
+
         if int(expr)==expr:
             print_('Returning int: %s'%int(expr),verbose)
             return int(expr)
@@ -145,13 +171,13 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
             if rng:
                 expr = expr.replace('random()','rng.random()')
                 parameters['rng']=rng
-                
-                
+
+
             print_('Trying eval [%s] with Python using %s...'%(expr, parameters),verbose)
-            
+
             if 'math.' in expr:
                 parameters['math']=math
-            
+
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
             if int(v)==v:
@@ -161,10 +187,10 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
         except Exception as e:
             print_('Returning without altering: %s (error: %s)'%(expr,e),verbose)
             return expr
-        
-        
+
+
 def get_pops_vs_cell_indices_seg_ids(recordSpec, network):
-    
+
     pvc = {}
     if recordSpec is not None:
         for p in recordSpec:
@@ -173,24 +199,24 @@ def get_pops_vs_cell_indices_seg_ids(recordSpec, network):
                 for pop in network.populations:
                     cell_indices_seg_ids = _generate_cell_indices_seg_ids(pop.id, indices, network)
                     pvc[pop.id] = cell_indices_seg_ids
-                    
+
             else:
                 #pop = network.get_child(p, 'populations')
                 cell_indices_seg_ids = _generate_cell_indices_seg_ids(p, indices, network)
                 pvc[p] = cell_indices_seg_ids
-            
+
     return pvc
-   
+
 '''
-    Translates a string like '3', '[0,2]' to a list 
+    Translates a string like '3', '[0,2]' to a list
 '''
 def parse_list_like(list_str):
-    
+
     if isinstance(list_str, int):
         return [list_str]
-    elif isinstance(list_str, float): 
+    elif isinstance(list_str, float):
         return [list_str]
-    elif isinstance(list_str, list): 
+    elif isinstance(list_str, list):
         return list_str
     elif type(list_str)==str:
         try:
@@ -206,13 +232,13 @@ def parse_list_like(list_str):
         if '[' in list_str:
             l = eval(list_str)
             return l
-        
-        
+
+
 def _generate_cell_indices_seg_ids(pop_id, indices_segids, network):
-    
+
     a = {}
     pop = network.get_child(pop_id, 'populations')
-    
+
     if not isinstance(indices_segids, str) or not ':' in indices_segids:
         seg_ids = None
         indices = indices_segids
@@ -222,7 +248,7 @@ def _generate_cell_indices_seg_ids(pop_id, indices_segids, network):
         l = parse_list_like(seg_id_info)
         print_v('Parsed %s as %s'%(seg_id_info, l))
         seg_ids = l
-        
+
     if indices=='*':
         size = evaluate(pop.size, network.parameters)
         for index in range(size):
@@ -236,9 +262,9 @@ def _generate_cell_indices_seg_ids(pop_id, indices_segids, network):
 
 
 def is_spiking_input_population(population, network):
-    
+
     cell = network.get_child(population.component, 'cells')
-    
+
     return is_spiking_input_cell(cell)
 
 
@@ -255,10 +281,10 @@ def is_spiking_input_nml_cell(component_obj):
     else:
         return False
 
-        
+
 def create_new_model(reference,
-                     duration, 
-                     dt=0.025, # ms 
+                     duration,
+                     dt=0.025, # ms
                      temperature=6.3, # degC
                      default_region=None,
                      parameters = None,
@@ -269,7 +295,7 @@ def create_new_model(reference,
                      simulation_seed=12345,
                      network_filename=None,
                      simulation_filename=None):
-        
+
     ################################################################################
     ###   Build a new network
 
@@ -278,11 +304,11 @@ def create_new_model(reference,
     net.temperature = temperature # degC
     if parameters:
         net.parameters = parameters
-    
+
 
     ################################################################################
     ###   Add some regions
-    
+
     if default_region:
         if type(default_region)==str:
             r1 = RectangularRegion(id=default_region, x=0,y=0,z=0,width=1000,height=100,depth=1000)
@@ -301,7 +327,7 @@ def create_new_model(reference,
 
     ################################################################################
     ###   Add some synapses
-    
+
     for s in synapses:
         net.synapses.append(s)
 
@@ -311,18 +337,18 @@ def create_new_model(reference,
     ###   Add some populations
 
     if cell_for_default_population:
-        pop = Population(id='pop_%s'%cell_for_default_population.id, 
-                            size=1, 
-                            component=cell_for_default_population.id, 
+        pop = Population(id='pop_%s'%cell_for_default_population.id,
+                            size=1,
+                            component=cell_for_default_population.id,
                             properties={'color':color_for_default_population})
 
         if default_region:
             pop.region = default_region
-            
+
             pop.random_layout = RandomLayout(region=default_region.id)
 
         net.populations.append(pop)
-        
+
 
 
     ################################################################################
@@ -330,26 +356,26 @@ def create_new_model(reference,
 
     '''
     net.projections.append(Projection(id='proj0',
-                                      presynaptic=p0.id, 
+                                      presynaptic=p0.id,
                                       postsynaptic=p1.id,
                                       synapse='ampa'))
 
     net.projections[0].random_connectivity=RandomConnectivity(probability=0.5)'''
-    
- 
+
+
     ################################################################################
     ###   Add some inputs
-    
+
     if input_for_default_population:
 
         net.input_sources.append(input_for_default_population)
 
-        
+
         net.inputs.append(Input(id='Stim_%s'%input_for_default_population.id,
                                 input_source=input_for_default_population.id,
                                 population=pop.id,
                                 percentage=100))
-        
+
 
 
     ################################################################################
@@ -361,7 +387,7 @@ def create_new_model(reference,
     if network_filename==None:
         network_filename='%s.json'%net.id
     new_file = net.to_json_file(network_filename)
-    
+
 
     ################################################################################
     ###   Build Simulation object & save as JSON
@@ -376,5 +402,5 @@ def create_new_model(reference,
     if simulation_filename==None:
         simulation_filename='%s.json'%sim.id
     sim.to_json_file(simulation_filename)
-    
+
     return sim, net

@@ -5,6 +5,9 @@ from collections import OrderedDict
 verbose = False
 
 def print_(text, print_it=False):
+    """
+    Print a message preceded by neuromllite, only if print_it=True
+    """
     prefix = "neuromllite >>> "
     if not isinstance(text, str):
         text = ('%s'%text).decode('ascii')
@@ -13,10 +16,16 @@ def print_(text, print_it=False):
 
 
 def print_v(text):
+    """
+    Print a message preceded by neuromllite always
+    """
     print_(text, True)
 
 
 class Base(object):
+    """
+    Base class of any element (not yet with id)
+    """
 
     def __init__(self, **kwargs):
 
@@ -51,6 +60,9 @@ class Base(object):
     def __getattr__(self, name):
 
         if verbose: print_v(" > Checking the value of attribute %s in %s..."%(name,self.get_id()))
+
+        if name=='id' and not 'id' in self.allowed_fields:
+            return None
 
         if name in self.__dict__:
             return self.__dict__[name]
@@ -125,7 +137,64 @@ class Base(object):
             return str(val)
 
 
+    def to_simple_dict(self):
+
+        d = OrderedDict()
+        if verbose: print(' ====   todict: [%s]'%self)
+        if len(self.fields)>0:
+            for a in self.allowed_fields:
+                if a != 'id':
+                    if a in self.fields:
+                        if verbose: print('  - a: %s = %s (%s)'%(a,self.fields[a],type(self.fields[a])))
+                        if self._is_base_type(type(self.fields[a])):
+                               d[a] = self.fields[a]
+                        elif type(self.fields[a])==dict:
+                            d[a] = OrderedDict()
+                            for b in self.fields[a]:
+                                if verbose: print(' - b: %s to %s (%s)'%(b,self.fields[a][b],type(self.fields[a][b])))
+                                if self._is_base_type(type(self.fields[a][b])):
+                                    d[a][b] = self.fields[a][b]
+                                elif type(self.fields[a][b])==dict:
+                                    d[a][b] = OrderedDict()
+                                    for c in self.fields[a][b]:
+                                        if verbose: print('  - c: %s = [%s] (%s)'%(c,self.fields[a][b][c], type(self.fields[a][b][c])))
+
+                                        if self._is_base_type(type(self.fields[a][b][c])):
+                                            d[a][b][c] = self.fields[a][b][c]
+                                        else:
+                                            d[a][b][c] = self.fields[a][b][c].to_simple_dict()
+                                else:
+                                    d[a][b] = self.fields[a][b].to_simple_dict()
+                        else:
+                            d[a] = self.fields[a].to_simple_dict()
+
+        for c in self.allowed_children:
+            if c in self.children:
+                if len(self.children[c])>0:
+                    d[c] = {}
+                    for cc in self.children[c]:
+                        dd = cc.to_simple_dict()
+                        for e in dd: d[c][e] = dd[e]
+        if self.id:
+            all = OrderedDict({self.id: d})
+        else:
+            all = d
+
+        return all
+
+
     def to_json(self, pre_indent='', indent='    ', wrap=True):
+
+        d = self.to_simple_dict()
+        import pprint
+        pp = pprint.PrettyPrinter(depth=80)
+        if verbose:
+            print('Converted to dict:')
+            pp.pprint(dict(d))
+        ret = pre_indent+json.dumps(d,indent=len(indent))
+        if verbose: print("OD to json: [%s]"%ret)
+
+        '''
 
         if verbose: print_v(' > Converting to JSON: %s, id: %s, fields: %s, children: %s, (wrapping: %s)'%(self.get_type(),self.get_id(), len(self.fields), len(self.children), wrap))
 
@@ -163,21 +232,26 @@ class Base(object):
         if verbose:
             print_v(" > ")
             print_v(" > =========== pre <%s> ============="%self)
-            print_v(" > <%s>"%s)
+            print_v("------\n%s\n------"%s)
 
-        try:
-            yy = json.loads(s, object_pairs_hook=OrderedDict)
-            ret = json.dumps(yy,indent=4)
-        except Exception as e:
-            print_v('Error loading string as JSON: <%s>'%s)
-            raise e
+        if wrap:
+            try:
+                yy = json.loads(s, object_pairs_hook=OrderedDict)
+                ret = json.dumps(yy,indent=4)
+            except Exception as e:
+                print_v('Error loading string as JSON: <%s>'%s)
+                raise e
 
-        if verbose:
-            print_v(" > ============ json ============")
-            print_v(yy)
-            print_v(" > ============ post ============")
-            print_v(ret)
-            print_v(" > ==============================")
+            if verbose:
+                print_v(" > ============ json ============")
+                print_v(" > %s"%yy)
+                print_v(" > ============ post ============")
+                print_v(" > %s"%ret)
+                print_v(" > ==============================")
+        else:
+            ret= s
+
+        '''
 
         return ret
 
@@ -265,7 +339,8 @@ if __name__ == '__main__':
                                      ('synapses',('The synapse definitions...',Synapse))])
 
             self.allowed_fields = collections.OrderedDict([('version',('Information on verson of NeuroMLlite',str)),
-                                                           ('seed',('Seed for random number generator used when building network',int))])
+                                                           ('seed',('Seed for random number generator used when building network',int)),
+                                                           ('random_connectivity',('Use random connectivity',RandomConnectivity))])
 
             super(Network, self).__init__(**kwargs)
 
@@ -287,6 +362,21 @@ if __name__ == '__main__':
 
             super(Cell, self).__init__(**kwargs)
 
+
+
+    class EvaluableExpression(str):
+
+        def __init__(self,expr):
+            self.expr = expr
+
+    class RandomConnectivity(Base):
+
+        def __init__(self, **kwargs):
+
+            self.allowed_fields = collections.OrderedDict([('probability',('Random probability of connection',EvaluableExpression))])
+
+            super(RandomConnectivity, self).__init__(**kwargs)
+
     net = Network(id='netid')
     cell = Cell(id='cellid')
     cell.neuroml2_source_file = 'nnn'
@@ -297,9 +387,14 @@ if __name__ == '__main__':
     print(net)
     print(net.cells)
     print(net)
+    '''
+    net.cells.append(cell)
 
-    #net.cells.append(cell)
-    #net.cells.append(cell2)
+    net.cells.append(cell2)
+    '''
+    rc = RandomConnectivity(probability=0.01)
+    net.random_connectivity = rc
+    print(rc)
     print(net)
 
     #print(net['cells'])
@@ -307,8 +402,14 @@ if __name__ == '__main__':
         print(net.notcells)
     except Exception as e:
         print('  As expected, an exception: [%s]...'%e)
+
+    import pprint
+    pp = pprint.PrettyPrinter(depth=4)
+    d = net.to_simple_dict()
+    print(d)
+    pp.pprint(dict(d))
+
     print(net.to_json())
-    exit()
     filename = '%s.json'%net.id
     net.to_json_file(filename)
 
