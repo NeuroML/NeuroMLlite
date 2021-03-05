@@ -89,10 +89,11 @@ class Base(object):
         return None
 
 
-    def _is_base_type(self, value):
+    def _is_base_type(self, value, can_be_list=False):
         return value==int or \
                value==str or \
-               value==float
+               value==float or \
+               (can_be_list and value==list)
 
     def __setattr__(self, name, value):
 
@@ -146,20 +147,20 @@ class Base(object):
                 if a != 'id':
                     if a in self.fields:
                         if verbose: print('  - a: %s = %s (%s)'%(a,self.fields[a],type(self.fields[a])))
-                        if self._is_base_type(type(self.fields[a])):
+                        if self._is_base_type(type(self.fields[a]), can_be_list=True):
                                d[a] = self.fields[a]
                         elif type(self.fields[a])==dict:
                             d[a] = OrderedDict()
                             for b in self.fields[a]:
                                 if verbose: print(' - b: %s to %s (%s)'%(b,self.fields[a][b],type(self.fields[a][b])))
-                                if self._is_base_type(type(self.fields[a][b])):
+                                if self._is_base_type(type(self.fields[a][b]), can_be_list=True):
                                     d[a][b] = self.fields[a][b]
                                 elif type(self.fields[a][b])==dict:
                                     d[a][b] = OrderedDict()
                                     for c in self.fields[a][b]:
                                         if verbose: print('  - c: %s = [%s] (%s)'%(c,self.fields[a][b][c], type(self.fields[a][b][c])))
 
-                                        if self._is_base_type(type(self.fields[a][b][c])):
+                                        if self._is_base_type(type(self.fields[a][b][c]), can_be_list=True):
                                             d[a][b][c] = self.fields[a][b][c]
                                         else:
                                             d[a][b][c] = self.fields[a][b][c].to_simple_dict()
