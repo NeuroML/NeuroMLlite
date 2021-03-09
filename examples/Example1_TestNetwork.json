@@ -1,38 +1,32 @@
 {
     "TestNetwork": {
-        "version": "NeuroMLlite v0.2.5",
+        "version": "NeuroMLlite v0.3.0",
         "notes": "A simple network with 2 populations & projection between them. No info yet on what the cells are so network can't be simulated.",
-        "populations": [
-            {
-                "pop0": {
-                    "size": 5,
-                    "component": "iaf",
-                    "properties": {
-                        "color": "0 .8 0"
-                    }
+        "populations": {
+            "pop0": {
+                "size": 5,
+                "component": "iaf",
+                "properties": {
+                    "color": "0 .8 0"
                 }
             },
-            {
-                "pop1": {
-                    "size": 10,
-                    "component": "iaf",
-                    "properties": {
-                        "color": "0 0 .8"
-                    }
+            "pop1": {
+                "size": 10,
+                "component": "iaf",
+                "properties": {
+                    "color": "0 0 .8"
                 }
             }
-        ],
-        "projections": [
-            {
-                "proj0": {
-                    "presynaptic": "pop0",
-                    "postsynaptic": "pop1",
-                    "synapse": "ampa",
-                    "random_connectivity": {
-                        "probability": 0.5
-                    }
+        },
+        "projections": {
+            "proj0": {
+                "presynaptic": "pop0",
+                "postsynaptic": "pop1",
+                "synapse": "ampa",
+                "random_connectivity": {
+                    "probability": 0.5
                 }
             }
-        ]
+        }
     }
 }
