@@ -6,7 +6,7 @@ import math
 
 from neuromllite.BaseTypes import print_v, print_
 
-verbose = True
+verbose = False
 
 def load_json(filename):
     """
@@ -16,6 +16,17 @@ def load_json(filename):
     with open(filename, 'r') as f:
 
         data = json.load(f, object_hook=ascii_encode_dict)
+
+    return data
+
+def load_yaml(filename):
+    """
+    Load a generic YAML file
+    """
+    import yaml
+    with open(filename, 'r') as f:
+
+        data = yaml.load(f, Loader=yaml.SafeLoader)
 
     return data
 
@@ -65,28 +76,28 @@ def ascii_encode_dict(data):
     return dict(map(ascii_encode, pair) for pair in data.items())
 
 
-def _parse_element(json, to_build):
+def _parse_element(dict_format, to_build):
 
-    if verbose: print('Parse for element: [%s]'%json)
-    for k in json.keys():
+    if verbose: print('Parse for element: [%s]'%dict_format)
+    for k in dict_format.keys():
         if verbose: print("  Setting id: %s in %s (%s)"%(k, type.__name__, type(to_build)))
         to_build.id = k
-        to_build = _parse_attributes(json[k], to_build)
+        to_build = _parse_attributes(dict_format[k], to_build)
 
     return to_build
 
 
-def _parse_attributes(json, to_build):
+def _parse_attributes(dict_format, to_build):
 
-    for key in json:
-        value = json[key]
+    for key in dict_format:
+        value = dict_format[key]
         new_format = True
         if verbose: print("  Setting %s=%s (%s) in %s"%(key, value, type(value), to_build))
 
         if new_format:
             if type(to_build)==dict:
                 to_build[key]=value
-                
+
             elif key in to_build.allowed_children:
                 type_to_use = to_build.allowed_children[key][1]
                 for v in value:

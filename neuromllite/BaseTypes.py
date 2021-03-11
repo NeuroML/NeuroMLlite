@@ -4,6 +4,7 @@ from collections import OrderedDict
 
 verbose = False
 
+
 def print_(text, print_it=False):
     """
     Print a message preceded by neuromllite, only if print_it=True
@@ -89,7 +90,8 @@ class Base(object):
         return None
 
 
-    def _is_base_type(self, value, can_be_list=False):
+    @classmethod
+    def _is_base_type(cls, value, can_be_list=False):
         return value==int or \
                value==str or \
                value==float or \
@@ -117,142 +119,73 @@ class Base(object):
                 self.fields[name] = value
             return
 
-    def _to_json_element(self, val):
 
-        if isinstance(val,str):
-            return '"%s"'%val
+    @classmethod
+    def to_dict_format(cls, var, ordered = True):
 
-        if isinstance(val,Base):
-            return val.to_json(wrap=False)
-
-        elif isinstance(val,dict):
-            d='{'
-            for k in val:
-                v = val[k]
-                str_v = v.to_json() if isinstance(v,Base) else self._to_json_element(v)
-                d+='"%s": %s, '%(k, str_v)
-            d=d[:-2]+'}'
+        if verbose: print(' ====   to_dict_format: [%s]'%var)
+        if cls._is_base_type(type(var)): # e.g. into float, str
+            return var
+        elif type(var) == list:
+            l = []
+            for v in var:
+                l.append(cls.to_dict_format(v, ordered=ordered))
+            return l
+        elif type(var) == dict:
+            d = OrderedDict() if ordered else {}
+            for k in var:
+                d[k] = cls.to_dict_format(var[k], ordered=ordered)
             return d
 
-        else:
-            return str(val)
+        else:  # assume a type Base
+
+            d = OrderedDict() if ordered else {}
+
+            if len(var.fields)>0:
+                for field_name in var.allowed_fields:
+                    if field_name != 'id':
+                        if field_name in var.fields:
+                            if verbose: print('  - field_name: %s = %s (%s)'%(field_name,var.fields[field_name],type(var.fields[field_name])))
+                            d[field_name] = cls.to_dict_format(var.fields[field_name], ordered=ordered)
+
+            for child_name in var.allowed_children:
+                if child_name in var.children:
+                    if len(var.children[child_name])>0:
+                        d[child_name] = OrderedDict() if ordered else {}
+                        for child in var.children[child_name]:
+                            dchild = cls.to_dict_format(child, ordered=ordered)
+                            for k in dchild:
+                                d[child_name][k] = dchild[k]
+            if var.id:
+                d = OrderedDict({var.id: d}) if ordered else {var.id: d}
+            return d
 
 
-    def to_simple_dict(self):
 
-        d = OrderedDict()
-        if verbose: print(' ====   todict: [%s]'%self)
-        if len(self.fields)>0:
-            for a in self.allowed_fields:
-                if a != 'id':
-                    if a in self.fields:
-                        if verbose: print('  - a: %s = %s (%s)'%(a,self.fields[a],type(self.fields[a])))
-                        if self._is_base_type(type(self.fields[a]), can_be_list=True):
-                               d[a] = self.fields[a]
-                        elif type(self.fields[a])==dict:
-                            d[a] = OrderedDict()
-                            for b in self.fields[a]:
-                                if verbose: print(' - b: %s to %s (%s)'%(b,self.fields[a][b],type(self.fields[a][b])))
-                                if self._is_base_type(type(self.fields[a][b]), can_be_list=True):
-                                    d[a][b] = self.fields[a][b]
-                                elif type(self.fields[a][b])==dict:
-                                    d[a][b] = OrderedDict()
-                                    for c in self.fields[a][b]:
-                                        if verbose: print('  - c: %s = [%s] (%s)'%(c,self.fields[a][b][c], type(self.fields[a][b][c])))
+    def to_json(self, indent='    '):
 
-                                        if self._is_base_type(type(self.fields[a][b][c]), can_be_list=True):
-                                            d[a][b][c] = self.fields[a][b][c]
-                                        else:
-                                            d[a][b][c] = self.fields[a][b][c].to_simple_dict()
-                                else:
-                                    d[a][b] = self.fields[a][b].to_simple_dict()
-                        else:
-                            d[a] = self.fields[a].to_simple_dict()
-
-        for c in self.allowed_children:
-            if c in self.children:
-                if len(self.children[c])>0:
-                    d[c] = {}
-                    for cc in self.children[c]:
-                        dd = cc.to_simple_dict()
-                        for e in dd: d[c][e] = dd[e]
-        if self.id:
-            all = OrderedDict({self.id: d})
-        else:
-            all = d
-
-        return all
-
-
-    def to_json(self, pre_indent='', indent='    ', wrap=True):
-
-        d = self.to_simple_dict()
+        d = Base.to_dict_format(self)
         import pprint
         pp = pprint.PrettyPrinter(depth=80)
         if verbose:
             print('Converted to dict:')
             pp.pprint(dict(d))
-        ret = pre_indent+json.dumps(d,indent=len(indent))
+        ret = json.dumps(d,indent=len(indent))
         if verbose: print("OD to json: [%s]"%ret)
 
-        '''
+        return ret
 
-        if verbose: print_v(' > Converting to JSON: %s, id: %s, fields: %s, children: %s, (wrapping: %s)'%(self.get_type(),self.get_id(), len(self.fields), len(self.children), wrap))
+    def to_yaml(self, indent='    '):
 
-        if len(self.children)==0 and (len(self.fields)==1 and list(self.fields.keys())[0]=='id'):
-            raise Exception('Error! %s (type: %s) has no set fields (besides id) or children, and so cannot (currently) be exported to JSON'%(self.id,self.get_type()))
-
-        s = pre_indent+('{ ' if wrap else '')
-        if self.get_id():
-            s += '"%s": {'%(self.get_id())
-        else:
-            s += '{ '
-        if len(self.fields)>0:
-            for a in self.allowed_fields:
-                if a != 'id':
-                    if a in self.fields:
-                        ss = self._to_json_element(self.fields[a])
-                        s+='\n'+pre_indent+indent +'"%s": '%a+ss+','
-
-        for c in self.allowed_children:
-
-            if c in self.children:
-                if len(self.children[c])>0:
-                    s+='\n'+pre_indent+indent +'"%s": [\n'%(c)
-                    for cc in self.children[c]:
-                        s += cc.to_json(pre_indent+indent+indent,indent, wrap=True)+',\n'
-                    s=s[:-2]
-                    s+='\n'+pre_indent+indent +"],"
-
-        s=s[:-1]
-        s+=' }'
-
-        if wrap:
-            s += "\n"+pre_indent+"}"
-
+        import yaml
+        d = Base.to_dict_format(self, ordered=False)
+        import pprint
+        pp = pprint.PrettyPrinter(depth=80)
         if verbose:
-            print_v(" > ")
-            print_v(" > =========== pre <%s> ============="%self)
-            print_v("------\n%s\n------"%s)
-
-        if wrap:
-            try:
-                yy = json.loads(s, object_pairs_hook=OrderedDict)
-                ret = json.dumps(yy,indent=4)
-            except Exception as e:
-                print_v('Error loading string as JSON: <%s>'%s)
-                raise e
-
-            if verbose:
-                print_v(" > ============ json ============")
-                print_v(" > %s"%yy)
-                print_v(" > ============ post ============")
-                print_v(" > %s"%ret)
-                print_v(" > ==============================")
-        else:
-            ret= s
-
-        '''
+            print('Converted to dict:')
+            pp.pprint(dict(d))
+        ret = yaml.dump(d,indent=len(indent),sort_keys=False)
+        if verbose: print("OD to yaml: [%s]"%ret)
 
         return ret
 
@@ -310,9 +243,16 @@ class BaseWithId(Base):
     def to_json_file(self, file_name=None):
         if not file_name:
             file_name='%s.json'%self.id
-        f = open(file_name,'w')
-        f.write(self.to_json())
-        f.close()
+        with open(file_name,'w') as f:
+            f.write(self.to_json())
+        print_v("Written NeuroMLlite %s to: %s"%(self.__class__.__name__, file_name))
+        return file_name
+
+    def to_yaml_file(self, file_name=None):
+        if not file_name:
+            file_name='%s.yaml'%self.id
+        with open(file_name,'w') as f:
+            f.write(self.to_yaml())
         print_v("Written NeuroMLlite %s to: %s"%(self.__class__.__name__, file_name))
         return file_name
 
@@ -345,7 +285,7 @@ if __name__ == '__main__':
 
             super(Network, self).__init__(**kwargs)
 
-            self.version = 'NeuroMLlite XXX'
+            self.version = 'NeuroMLlite 0.0'
 
     class Cell(BaseWithId):
 
@@ -379,7 +319,7 @@ if __name__ == '__main__':
             super(RandomConnectivity, self).__init__(**kwargs)
 
     net = Network(id='netid')
-    cell = Cell(id='cellid')
+    cell = Cell(id='cellid1')
     cell.neuroml2_source_file = 'nnn'
     cell2 = Cell(id='cellid2')
     cell2.neuroml2_source_file = 'nnn2'
@@ -388,11 +328,10 @@ if __name__ == '__main__':
     print(net)
     print(net.cells)
     print(net)
-    '''
+    '''  '''
     net.cells.append(cell)
-
     net.cells.append(cell2)
-    '''
+
     rc = RandomConnectivity(probability=0.01)
     net.random_connectivity = rc
     print(rc)
@@ -406,22 +345,40 @@ if __name__ == '__main__':
 
     import pprint
     pp = pprint.PrettyPrinter(depth=4)
-    d = net.to_simple_dict()
+    #d0 = net.to_simple_dict()
+    #print(d0)
+    print('--- new format ---')
+    d = Base.to_dict_format(net)
     print(d)
     pp.pprint(dict(d))
-
+    print('  To JSON:')
     print(net.to_json())
-    filename = '%s.json'%net.id
-    net.to_json_file(filename)
+    print('  To YAML:')
+    print(net.to_yaml())
 
-    from neuromllite.utils import load_json, _parse_element
-    data = load_json(filename)
-    print_v("Loaded network specification from %s"%filename)
-    net2 = Network()
-    net2 = _parse_element(data, net2)
+    filenamej = '%s.json'%net.id
+    net.to_json_file(filenamej)
+
+    filenamey = '%s.yaml'%net.id
+    net.id = net.id+'_yaml'
+    net.to_yaml_file(filenamey)
+    from neuromllite.utils import load_json, load_yaml, _parse_element
+
+    dataj = load_json(filenamej)
+    print_v("Loaded network specification from %s"%filenamej)
+    netj = Network()
+    _parse_element(dataj, netj)
+
+    datay = load_yaml(filenamey)
+    print_v("Loaded network specification from %s"%filenamey)
+
+    nety = Network()
+    _parse_element(datay, nety)
 
     verbose = False
     print('----- Before -----')
     print(net)
-    print('----- After -----')
-    print(net2)
+    print('----- After via %s -----'%filenamej)
+    print(netj)
+    print('----- After via %s -----'%filenamey)
+    print(nety)
