@@ -359,6 +359,9 @@ def check_to_generate_or_run(argv, sim):
     elif '-pnl' in argv or '-psyneulink' in argv:
         generate_and_run(sim, simulator='psyneulink')
 
+    elif '-mdf' in argv:
+        generate_and_run(sim, simulator='mdf')
+
     elif '-nml' in argv or '-neuroml' in argv:
 
         network = load_network_json(sim.network)
@@ -829,6 +832,14 @@ def generate_and_run(simulation,
             if return_results:
                 raise NotImplementedError("Reloading results not supported in Neuron yet...")
 
+
+        elif simulator.lower() == 'mdf':
+
+            from neuromllite.MDFHandler import MDFHandler
+
+            mdf_handler = MDFHandler(nl_network=network)
+
+            generate_network(network, mdf_handler)
 
         elif simulator.lower() == 'psyneulink':
 
