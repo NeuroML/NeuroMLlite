@@ -1,6 +1,7 @@
 from neuromllite import *
 import sys
 import json
+import yaml
 import os
 import math
 
@@ -23,7 +24,6 @@ def load_yaml(filename):
     """
     Load a generic YAML file
     """
-    import yaml
     with open(filename, 'r') as f:
 
         data = yaml.load(f, Loader=yaml.SafeLoader)
@@ -64,11 +64,18 @@ def load_simulation_json(filename):
     return sim
 
 
-def save_to_json_file(info, filename, indent=4):
+def save_to_json_file(info_dict, filename, indent=4):
 
-    strj = json.dumps(info, indent=indent)
+    strj = json.dumps(info_dict, indent=indent)
     with open(filename, 'w') as fp:
         fp.write(strj)
+
+
+def save_to_yaml_file(info_dict, filename, indent=4):
+
+    stry = yaml.dump(info_dict,indent=indent ,sort_keys=False)
+    with open(filename, 'w') as fp:
+        fp.write(stry)
 
 
 def ascii_encode_dict(data):

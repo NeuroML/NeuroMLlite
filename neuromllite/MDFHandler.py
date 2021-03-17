@@ -7,6 +7,7 @@
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 from neuromllite.utils import print_v
 from neuromllite.utils import save_to_json_file
+from neuromllite.utils import save_to_yaml_file
 from neuromllite.utils import locate_file
 from neuromllite.utils import evaluate
 
@@ -31,15 +32,13 @@ class MDFHandler(DefaultNetworkHandler):
 
         self.pnl_additions = False
 
-        #mdf_info_hl = {}
-        #mdf_info_hl["graphs"] = []
-
 
     def finalise_document(self):
 
         print_v("Writing file for...: %s"%self.id)
 
         save_to_json_file(self.mdf_info, '%s.mdf.json'%self.id, indent=4)
+        save_to_yaml_file(self.mdf_info, '%s.mdf.yaml'%self.id, indent=4)
         '''save_to_json_file(self.mdf_info_hl, '%s.bids-mdf.highlevel.json'%self.id, indent=4)'''
 
 
@@ -55,15 +54,15 @@ class MDFHandler(DefaultNetworkHandler):
             print_v("  Notes: "+notes)
 
         self.mdf_graph = {}
-        #self.mdf_graph['name'] = network_id
         self.mdf_graph['notes'] = notes
-        if self.pnl_additions:
-            self.mdf_graph['controller'] = None
-            self.mdf_graph["type"] = {"PNL": "Composition","generic": "graph"}
         self.mdf_graph['nodes'] = {}
         self.mdf_graph['edges'] = {}
         self.mdf_graph['parameters'] = {}
-        self.mdf_graph['parameters']['PNL'] = {"required_node_roles": []}
+
+        if self.pnl_additions:
+            self.mdf_graph['controller'] = None
+            self.mdf_graph["type"] = {"PNL": "Composition","generic": "graph"}
+            self.mdf_graph['parameters']['PNL'] = {"required_node_roles": []}
 
         self.mdf_info[self.id]["graphs"][network_id] = self.mdf_graph
 
@@ -99,47 +98,42 @@ class MDFHandler(DefaultNetworkHandler):
                 node_id = '%s_%i'%(population_id, i)
                 node = {}
                 node['type'] = {}
-                node['name'] = node_id
+                #node['name'] = node_id
                 #node['type']['NeuroML'] = component
 
                 comp = self.nl_network.get_child(component, 'cells')
                 base_dir = './' # for now...
-                fname = locate_file(comp.lems_source_file, base_dir)
-                model = lems.Model()
-                model.import_from_file(fname)
-                lems_comp = model.components.get(component)
-                print('Cell: [%s] comes from %s and in Lems is: %s'%(comp,fname, lems_comp))
-                comp_type = lems_comp.type
 
-                type = "The type of %s"%comp_type
-                function = "The function of %s"%comp_type
+                node['parameters'] = {}
+                if comp is not None and comp.lems_source_file:
+                    fname = locate_file(comp.lems_source_file, base_dir)
+                    model = lems.Model()
+                    model.import_from_file(fname)
+                    lems_comp = model.components.get(component)
+                    print(' - Cell: [%s] comes from %s and in Lems is: %s'%(comp,fname, lems_comp))
+                    comp_type_name = lems_comp.type
+                    lems_comp_type = model.component_types.get(comp_type_name)
 
-                if comp_type == 'pnlLinearFunctionTM':
-                    function = 'Linear'
-                    type = "TransferMechanism"
-                elif comp_type == 'inputNode':
-                    function = 'Linear'
-                    type = "TransferMechanism"
-                elif comp_type == 'pnlLogisticFunctionTM':
-                    function = 'Logistic'
-                    type = "TransferMechanism"
-                elif comp_type == 'pnlExponentialFunctionTM':
-                    function = 'Exponential'
-                    type = "TransferMechanism"
-                elif comp_type == 'pnlSimpleIntegratorMechanism':
-                    function = 'SimpleIntegrator'
-                    type = "IntegratorMechanism"
-                elif comp_type == 'fnCell':
-                    function = 'FitzHughNagumoIntegrator'
-                    type = "IntegratorMechanism"
+                    for p in lems_comp.parameters:
+                        node['parameters'][p] = lems_comp.parameters[p]
+                    print(dir(lems_comp))
+                    print(dir(lems_comp_type))
+                    print(lems_comp_type)
+
+                    for e in lems_comp_type.exposures:
+                        print(e)
+                        if e!='INPUT':
+                            output_ports[e] = {'value':e}
+
+                    #for dv in lems_comp_type.
+
 
 
 
                 if self.pnl_additions:
                     node['type']["PNL"] = type
                     node['type']["generic"] = None
-                node['parameters'] = {}
-                node['parameters']['PNL'] = {}
+                #node['parameters']['PNL'] = {}
                 '''
                 node['functions'] = []
                 func_info = {}

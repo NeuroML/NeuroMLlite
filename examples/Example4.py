@@ -82,6 +82,8 @@ sim.to_json_file()
 sim.network=net_yaml_file
 sim.to_yaml_file()
 
+sim.network=net_json_file # reverting, for call below...
+
 
 
 ################################################################################
