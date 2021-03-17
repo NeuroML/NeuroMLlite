@@ -1,4 +1,4 @@
-from neuromllite import Network, Cell, InputSource, Population, Synapse, RectangularRegion, RandomLayout 
+from neuromllite import Network, Cell, InputSource, Population, Synapse, RectangularRegion, RandomLayout
 from neuromllite import Projection, RandomConnectivity, Input, Simulation
 import sys
 
@@ -7,7 +7,7 @@ import sys
 
 net = Network(id='Example4_PyNN')
 net.notes = 'Example 4: a network with PyNN cells & inputs'
-net.parameters = { 'input_amp':       0.99} 
+net.parameters = { 'input_amp':       0.99}
 
 cell = Cell(id='testcell', pynn_cell='IF_cond_alpha')
 cell.parameters = { "tau_refrac":5, "i_offset":.1 }
@@ -17,8 +17,8 @@ cell2 = Cell(id='testcell2', pynn_cell='IF_cond_alpha')
 cell2.parameters = { "tau_refrac":5, "i_offset":-.1 }
 net.cells.append(cell2)
 
-input_source = InputSource(id='i_clamp', 
-                           pynn_input='DCSource', 
+input_source = InputSource(id='i_clamp',
+                           pynn_input='DCSource',
                            parameters={'amplitude':'input_amp', 'start':200., 'stop':800.})
 net.input_sources.append(input_source)
 
@@ -33,17 +33,17 @@ net.populations.append(p0)
 net.populations.append(p1)
 net.populations.append(p2)
 
-net.synapses.append(Synapse(id='ampaSyn', 
-                            pynn_receptor_type='excitatory', 
-                            pynn_synapse_type='cond_alpha', 
+net.synapses.append(Synapse(id='ampaSyn',
+                            pynn_receptor_type='excitatory',
+                            pynn_synapse_type='cond_alpha',
                             parameters={'e_rev':-10, 'tau_syn':2}))
-net.synapses.append(Synapse(id='gabaSyn', 
-                            pynn_receptor_type='inhibitory', 
-                            pynn_synapse_type='cond_alpha', 
+net.synapses.append(Synapse(id='gabaSyn',
+                            pynn_receptor_type='inhibitory',
+                            pynn_synapse_type='cond_alpha',
                             parameters={'e_rev':-80, 'tau_syn':10}))
 
 net.projections.append(Projection(id='proj0',
-                                  presynaptic=p0.id, 
+                                  presynaptic=p0.id,
                                   postsynaptic=p1.id,
                                   synapse='ampaSyn',
                                   delay=2,
@@ -51,7 +51,7 @@ net.projections.append(Projection(id='proj0',
 net.projections[0].random_connectivity=RandomConnectivity(probability=1)
 
 net.projections.append(Projection(id='proj1',
-                                  presynaptic=p0.id, 
+                                  presynaptic=p0.id,
                                   postsynaptic=p2.id,
                                   synapse='gabaSyn',
                                   delay=2,
@@ -64,20 +64,25 @@ net.inputs.append(Input(id='stim',
                         percentage=50))
 
 print(net.to_json())
-new_file = net.to_json_file('%s.json'%net.id)
+net_json_file = net.to_json_file('%s.json'%net.id)
+net_yaml_file = net.to_yaml_file('%s.yaml'%net.id)
 
 
 ################################################################################
 ###   Build Simulation object & save as JSON
 
 sim = Simulation(id='SimExample4',
-                 network=new_file,
+                 network=net_json_file,
                  duration='1000',
                  dt='0.01',
                  recordTraces={'all':'*'},
                  recordSpikes={'pop0':'*'})
-                 
+
 sim.to_json_file()
+sim.network=net_yaml_file
+sim.to_yaml_file()
+
+sim.network=net_json_file # reverting, for call below...
 
 
 
@@ -88,4 +93,3 @@ from neuromllite.NetworkGenerator import check_to_generate_or_run
 import sys
 
 check_to_generate_or_run(sys.argv, sim)
-

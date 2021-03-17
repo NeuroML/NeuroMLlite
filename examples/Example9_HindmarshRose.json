@@ -1,6 +1,6 @@
 {
     "Example9_HindmarshRose": {
-        "version": "NeuroMLlite v0.2.5",
+        "version": "NeuroMLlite v0.3.0",
         "parameters": {
             "N": 1,
             "a": 1,
@@ -16,36 +16,32 @@
             "z0": 1.0
         },
         "notes": "Example 9: HindmarshRose",
-        "cells": [
-            {
-                "hrCell": {
-                    "lems_source_file": "test_files/HindmarshRose3d.xml",
-                    "parameters": {
-                        "a": "a",
-                        "b": "b",
-                        "c": "c",
-                        "d": "d",
-                        "s": "s",
-                        "I": "I",
-                        "x1": "x1",
-                        "r": "r",
-                        "x0": "x0",
-                        "y0": "y0",
-                        "z0": "z0"
-                    }
+        "cells": {
+            "hrCell": {
+                "lems_source_file": "test_files/HindmarshRose3d.xml",
+                "parameters": {
+                    "a": "a",
+                    "b": "b",
+                    "c": "c",
+                    "d": "d",
+                    "s": "s",
+                    "I": "I",
+                    "x1": "x1",
+                    "r": "r",
+                    "x0": "x0",
+                    "y0": "y0",
+                    "z0": "z0"
                 }
             }
-        ],
-        "populations": [
-            {
-                "hrPop": {
-                    "size": "1",
-                    "component": "hrCell",
-                    "properties": {
-                        "color": ".7 0 0"
-                    }
+        },
+        "populations": {
+            "hrPop": {
+                "size": "1",
+                "component": "hrCell",
+                "properties": {
+                    "color": ".7 0 0"
                 }
             }
-        ]
+        }
     }
 }

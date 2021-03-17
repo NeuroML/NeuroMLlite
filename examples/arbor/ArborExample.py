@@ -97,6 +97,7 @@ net.inputs.append(Input(id='stim',
 
 print(net.to_json())
 new_file = net.to_json_file('%s.json'%net.id)
+new_file_yaml = net.to_yaml_file('%s.yaml'%net.id)
 
 
 ################################################################################
@@ -110,6 +111,8 @@ sim = Simulation(id='Sim%s'%net.id,
                  recordSpikes={'pop0':'*'})
 
 sim.to_json_file()
+sim.network=new_file_yaml
+sim.to_yaml_file()
 
 
 

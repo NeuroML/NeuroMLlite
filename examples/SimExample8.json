@@ -1,6 +1,6 @@
 {
     "SimExample8": {
-        "version": "NeuroMLlite v0.2.5",
+        "version": "NeuroMLlite v0.3.0",
         "network": "Example8_Extension.json",
         "duration": 1000.0,
         "dt": 0.025,

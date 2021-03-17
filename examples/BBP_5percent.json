@@ -1,6 +1,6 @@
 {
     "BBP_5percent": {
-        "version": "NeuroMLlite v0.2.5",
+        "version": "NeuroMLlite v0.3.0",
         "network_reader": {
             "type": "BBPConnectomeReader",
             "parameters": {
@@ -18,40 +18,30 @@
             }
         },
         "notes": "A network with the Blue Brain Project connectivity data (%s% of total cells)",
-        "cells": [
-            {
-                "hhcell": {
-                    "neuroml2_source_file": "test_files/hhcell.cell.nml"
-                }
+        "cells": {
+            "hhcell": {
+                "neuroml2_source_file": "test_files/hhcell.cell.nml"
             }
-        ],
-        "synapses": [
-            {
-                "ampa": {
-                    "neuroml2_source_file": "test_files/ampa.synapse.nml"
-                }
+        },
+        "synapses": {
+            "ampa": {
+                "neuroml2_source_file": "test_files/ampa.synapse.nml"
             },
-            {
-                "gaba": {
-                    "neuroml2_source_file": "test_files/gaba.synapse.nml"
-                }
+            "gaba": {
+                "neuroml2_source_file": "test_files/gaba.synapse.nml"
             }
-        ],
-        "input_sources": [
-            {
-                "poissonFiringSyn": {
-                    "neuroml2_source_file": "test_files/inputs.nml"
-                }
+        },
+        "input_sources": {
+            "poissonFiringSyn": {
+                "neuroml2_source_file": "test_files/inputs.nml"
             }
-        ],
-        "inputs": [
-            {
-                "stim_L4_PC": {
-                    "input_source": "poissonFiringSyn",
-                    "population": "L4_PC",
-                    "percentage": 80.0
-                }
+        },
+        "inputs": {
+            "stim_L4_PC": {
+                "input_source": "poissonFiringSyn",
+                "population": "L4_PC",
+                "percentage": 80.0
             }
-        ]
+        }
     }
 }
