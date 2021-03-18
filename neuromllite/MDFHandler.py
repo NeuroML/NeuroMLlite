@@ -27,7 +27,13 @@ class MDFHandler(DefaultNetworkHandler):
         self.id = id
 
         self.mdf_info = {}
+
+
+        from modeci_mdf import MODECI_MDF_VERSION
+
+
         self.mdf_info[self.id] = {}
+        self.mdf_info[self.id]['format'] = 'ModECI MDF v%s'%MODECI_MDF_VERSION
         self.mdf_info[self.id]["graphs"] = {}
 
         self.pnl_additions = False
@@ -97,7 +103,7 @@ class MDFHandler(DefaultNetworkHandler):
             for i in range(size):
                 node_id = '%s_%i'%(population_id, i)
                 node = {}
-                node['type'] = {}
+                #node['type'] = {}
                 #node['name'] = node_id
                 #node['type']['NeuroML'] = component
 
@@ -105,25 +111,29 @@ class MDFHandler(DefaultNetworkHandler):
                 base_dir = './' # for now...
 
                 node['parameters'] = {}
+                node['output_ports'] = {}
                 if comp is not None and comp.lems_source_file:
                     fname = locate_file(comp.lems_source_file, base_dir)
-                    model = lems.Model()
-                    model.import_from_file(fname)
+
+                    model = MDFHandler._load_lems_file_with_neuroml2_types(fname)
+
+                    print('All comp types: %s'%model.component_types.keys())
+                    print('All comps: %s'%model.components.keys())
                     lems_comp = model.components.get(component)
-                    print(' - Cell: [%s] comes from %s and in Lems is: %s'%(comp,fname, lems_comp))
                     comp_type_name = lems_comp.type
                     lems_comp_type = model.component_types.get(comp_type_name)
+                    notes = 'Cell: [%s] is defined in %s and in Lems is: %s'%(comp, fname, lems_comp)
 
+                    print(notes)
+                    node['notes'] = notes
                     for p in lems_comp.parameters:
                         node['parameters'][p] = lems_comp.parameters[p]
-                    print(dir(lems_comp))
-                    print(dir(lems_comp_type))
-                    print(lems_comp_type)
 
-                    for e in lems_comp_type.exposures:
+
+                    for e in self._get_all_children_in_lems(lems_comp_type, model, 'exposure'):
                         print(e)
-                        if e!='INPUT':
-                            output_ports[e] = {'value':e}
+                        if e.name!='INPUT':
+                            node['output_ports'][e.name] = {'value':e.name}
 
                     #for dv in lems_comp_type.
 
@@ -166,6 +176,61 @@ class MDFHandler(DefaultNetworkHandler):
             pop_node['functions'] = {}
             self.mdf_graph['nodes'][pop_node_id] = pop_node'''
 
+
+    # TODO: move to pylems!
+    @classmethod
+    def _get_all_children_in_lems(cls, component_type, model, child_type):
+        c = []
+        if child_type=='exposure':
+            for e in component_type.exposures: c.append(e)
+
+        if component_type.extends:
+            ect = model.component_types[component_type.extends]
+            c.extend(cls._get_all_children_in_lems(ect, model, child_type))
+
+        return c
+
+
+    # TODO: move to pyneuroml!
+    @classmethod
+    def _load_lems_file_with_neuroml2_types(cls, lems_filename):
+
+        from pyneuroml.pynml import get_path_to_jnml_jar
+        from pyneuroml.pynml import read_lems_file
+        from lems.parser.LEMS import LEMSFileParser
+        import zipfile
+
+        lems_model = lems.Model(include_includes=False)
+        parser = LEMSFileParser(lems_model)
+
+        jar_path = get_path_to_jnml_jar()
+        # print_comment_v("Loading standard NeuroML2 dimension/unit definitions from %s"%jar_path)
+        jar = zipfile.ZipFile(jar_path, 'r')
+        new_lems = jar.read('NeuroML2CoreTypes/NeuroMLCoreDimensions.xml')
+        parser.parse(new_lems)
+        new_lems = jar.read('NeuroML2CoreTypes/NeuroMLCoreCompTypes.xml')
+        parser.parse(new_lems)
+        new_lems = jar.read('NeuroML2CoreTypes/Cells.xml')
+        parser.parse(new_lems)
+        new_lems = jar.read('NeuroML2CoreTypes/Networks.xml')
+        parser.parse(new_lems)
+        new_lems = jar.read('NeuroML2CoreTypes/Simulation.xml')
+        parser.parse(new_lems)
+        new_lems = jar.read('NeuroML2CoreTypes/Synapses.xml')
+        parser.parse(new_lems)
+        new_lems = jar.read('NeuroML2CoreTypes/PyNN.xml')
+        parser.parse(new_lems)
+
+        model = read_lems_file(lems_filename,
+                               include_includes=False,
+                               fail_on_missing_includes=True,
+                               debug=True)
+
+        for cid, c in model.components.items(): lems_model.components[cid] = c
+        for ctid, ct in model.component_types.items(): lems_model.component_types[ctid] = ct
+
+
+        return lems_model
 
     def handle_location(self, id, population_id, component, x, y, z):
         pass
@@ -234,3 +299,13 @@ class MDFHandler(DefaultNetworkHandler):
     #
     def finalise_input_source(self, inputName):
         print_v("Input : %s completed" % inputName)
+
+
+if __name__ == "__main__":
+
+    lems_model = MDFHandler._load_lems_file_with_neuroml2_types('../../git/MDFTests/NeuroML/LEMS_SimABCD.xml')
+
+    print('Loaded LEMS with\n > Dims: %s\n > CompTypes: %s\n > Comps: %s'%( \
+                       lems_model.dimensions.keys(),
+                       lems_model.component_types.keys(),
+                       lems_model.components.keys()))
