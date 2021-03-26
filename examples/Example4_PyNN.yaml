@@ -48,6 +48,7 @@ Example4_PyNN:
             component: testcell
             properties:
                 color: 1 0 0
+                radius: 20
             random_layout:
                 region: region1
         pop1:
@@ -55,6 +56,7 @@ Example4_PyNN:
             component: testcell2
             properties:
                 color: 0 1 0
+                radius: 20
             random_layout:
                 region: region1
         pop2:
@@ -62,6 +64,7 @@ Example4_PyNN:
             component: testcell2
             properties:
                 color: 0 0 1
+                radius: 20
             random_layout:
                 region: region1
     projections:

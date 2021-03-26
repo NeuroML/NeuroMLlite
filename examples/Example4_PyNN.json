@@ -64,7 +64,8 @@
                 "size": 2,
                 "component": "testcell",
                 "properties": {
-                    "color": "1 0 0"
+                    "color": "1 0 0",
+                    "radius": 20
                 },
                 "random_layout": {
                     "region": "region1"
@@ -74,7 +75,8 @@
                 "size": 2,
                 "component": "testcell2",
                 "properties": {
-                    "color": "0 1 0"
+                    "color": "0 1 0",
+                    "radius": 20
                 },
                 "random_layout": {
                     "region": "region1"
@@ -84,7 +86,8 @@
                 "size": 1,
                 "component": "testcell2",
                 "properties": {
-                    "color": "0 0 1"
+                    "color": "0 0 1",
+                    "radius": 20
                 },
                 "random_layout": {
                     "region": "region1"
