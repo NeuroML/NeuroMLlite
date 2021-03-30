@@ -4,6 +4,8 @@ from collections import OrderedDict
 
 verbose = False
 
+MARKDOWN_FORMAT = 'markdown'
+DICT_FORMAT = 'dict'
 
 def print_(text, print_it=False):
     """
@@ -91,11 +93,13 @@ class Base(object):
 
 
     @classmethod
-    def _is_base_type(cls, value, can_be_list=False):
+    def _is_base_type(cls, value, can_be_list=False, can_be_dict=False, can_be_eval_expr=False):
         return value==int or \
                value==str or \
                value==float or \
-               (can_be_list and value==list)
+               (can_be_list and value==list) or \
+               (can_be_dict and value==dict) or \
+               (can_be_eval_expr and value.__name__=='EvaluableExpression')
 
     def __setattr__(self, name, value):
 
@@ -225,6 +229,116 @@ class Base(object):
 
 
 
+    def generate_documentation(self, format=MARKDOWN_FORMAT):
+        '''
+        Work in progress...
+        '''
+
+        if format==MARKDOWN_FORMAT:
+            doc_string = ''
+        if format==DICT_FORMAT:
+            doc_dict = {}
+
+        print(' - %s (%s)'%(self.__class__.__name__, self._definition))
+
+        def insert_links(text):
+            if not '_' in text: return text
+            if '"' in text: return text # Assume it's a quoted string containing an underscore...
+            split = text.split('_')
+            text2 = ''
+            for i in range(int(len(split)/2.)):
+                pre=split[i*2]
+                type=split[i*2+1]
+                text2+='%s<a href="#%s">%s</a>'%(pre,type.lower(),type)
+            if int(len(split)/2.)!=len(split)/2.:
+                text2+=split[-1]
+            return text2
+
+        name = self.__class__.__name__
+        if format==MARKDOWN_FORMAT:
+            doc_string+='## %s\n'%name
+            if self._definition is not None:
+                doc_string+='%s\n'%insert_links(self._definition)
+        if format==DICT_FORMAT:
+            doc_dict[name] = {}
+            if self._definition is not None:
+                doc_dict[name]['definition'] = self._definition
+
+        if len(self.allowed_fields)>0:
+            if format==MARKDOWN_FORMAT:
+                doc_string+='#### Allowed parameters\n<table>'
+        if format==DICT_FORMAT:
+            doc_dict[name]['allowed_parameters'] = {}
+
+        referenced = []
+
+        for f in self.allowed_fields:
+            referencable = not Base._is_base_type(self.allowed_fields[f][1],can_be_eval_expr=True,can_be_dict=True)
+            print('    Allowed parameter: %s %s'%(f,self.allowed_fields[f]))
+            type_ = self.allowed_fields[f][1].__name__
+
+            if format==DICT_FORMAT:
+                doc_dict[name]['allowed_parameters'][f] = {}
+                doc_dict[name]['allowed_parameters'][f]['type'] = type_
+                doc_dict[name]['allowed_parameters'][f]['description'] = self.allowed_fields[f][0]
+
+            if format==MARKDOWN_FORMAT:
+                doc_string+='<tr><td><b>%s</b></td><td>%s</td>'%(f,'<a href="#%s">%s</a>'%(type_.lower(),type_) if referencable else type_)
+                doc_string+='<td><i>%s</i></td></tr>\n\n'%(insert_links(self.allowed_fields[f][0]))
+
+            if referencable:
+                inst = self.allowed_fields[f][1]()
+                inst.id=''
+                referenced.append(inst)
+
+        if len(self.allowed_fields)>0:
+            if format==MARKDOWN_FORMAT:
+                doc_string+='\n</table>\n\n'
+
+        if len(self.allowed_children)>0:
+            if format==MARKDOWN_FORMAT:
+                doc_string+='#### Allowed children\n<table>'
+            if format==DICT_FORMAT:
+                doc_dict[name]['allowed_children'] = {}
+
+        for c in self.allowed_children:
+
+            print('    Allowed child: %s %s'%(c,self.allowed_children[c]))
+
+            referencable = not Base._is_base_type(self.allowed_children[c][1],can_be_dict=True)
+            type_ = self.allowed_children[c][1].__name__
+
+            if format==DICT_FORMAT:
+                doc_dict[name]['allowed_children'][c] = {}
+                doc_dict[name]['allowed_children'][c]['type'] = type_
+                doc_dict[name]['allowed_children'][c]['description'] = self.allowed_children[c][0]
+
+            if format==MARKDOWN_FORMAT:
+                doc_string+='<tr><td><b>%s</b></td><td>%s</td>'%(c,'<a href="#%s">%s</a>'%(type_.lower(),type_) if referencable else type_)
+                doc_string+='<td><i>%s</i></td></tr>\n\n'%(insert_links(self.allowed_children[c][0]))
+
+            inst = self.allowed_children[c][1]()
+            inst.id=''
+            referenced.append(inst)
+
+        if len(self.allowed_children)>0:
+            if format==MARKDOWN_FORMAT:
+                doc_string+='\n</table>\n\n'
+
+        for r in referenced:
+            if format==MARKDOWN_FORMAT:
+                doc_string+=r.generate_documentation(format=format)
+            if format==DICT_FORMAT:
+                pass
+                doc_dict.update(r.generate_documentation(format=format))
+
+        if format==MARKDOWN_FORMAT:
+            return doc_string
+        if format==DICT_FORMAT:
+            return doc_dict
+
+
+
 class BaseWithId(Base):
 
     def __init__(self, **kwargs):
@@ -268,11 +382,14 @@ class NetworkReader():
         return self.pop_locations
 
 
+
 if __name__ == '__main__':
 
     # Some tests
 
     class Network(BaseWithId):
+
+        _definition = 'A Network containing multiple _Population_s, connected by _Projection_s and receiving _Input_s'
 
         def __init__(self, **kwargs):
 
@@ -301,7 +418,7 @@ if __name__ == '__main__':
 
             self.allowed_fields = collections.OrderedDict([('neuroml2_source_file',('File name of NeuroML2 file',str))])
 
-            super(Cell, self).__init__(**kwargs)
+            super(Synapse, self).__init__(**kwargs)
 
 
 
@@ -382,3 +499,12 @@ if __name__ == '__main__':
     print(netj)
     print('----- After via %s -----'%filenamey)
     print(nety)
+
+    print('----- Schema -----')
+    doc = net.generate_documentation(format=MARKDOWN_FORMAT)
+    with open('doc.md','w') as d:
+        d.write(doc)
+
+    doc = net.generate_documentation(format=DICT_FORMAT)
+    with open('doc.json','w') as d:
+        d.write(json.dumps(doc,indent=4))
