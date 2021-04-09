@@ -4,6 +4,7 @@ import json
 import yaml
 import os
 import math
+import numpy as np
 
 from neuromllite.BaseTypes import print_v, print_
 
@@ -156,6 +157,20 @@ def locate_file(f, base_dir):
     return real
 
 
+def _params_info(parameters):
+    """
+    Short info on names, values and types in parameter list
+    """
+    pi = "["
+    if parameters is not None:
+        for p in parameters:
+            if not p == "__builtins__":
+                pi += "%s=%s(%s), " % (p, parameters[p], type(parameters[p]))
+        pi = pi[:-2]
+    pi += "]"
+    return pi
+
+
 def evaluate(expr, parameters={}, rng=None, verbose = False):
     """
     Evaluate a general string like expression (e.g. "2 * weight") using a dict
@@ -163,9 +178,9 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
     given in expr
     """
 
-    print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
+    print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr), _params_info(parameters)),verbose)
     try:
-        if expr in parameters:
+        if type(expr)==str and expr in parameters:
             expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
 
         if type(expr)==str:
@@ -177,6 +192,9 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
                 expr = float(expr)
             except:
                 pass
+
+        if type(expr)==list:
+            return np.array(expr)
 
         if int(expr)==expr:
             print_('Returning int: %s'%int(expr),verbose)
@@ -191,14 +209,14 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
                 parameters['rng']=rng
 
 
-            print_('Trying eval [%s] with Python using %s...'%(expr, parameters),verbose)
+            print_('Trying eval [%s] with Python using %s...'%(expr, parameters.keys()),verbose)
 
             if 'math.' in expr:
                 parameters['math']=math
 
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
-            if int(v)==v:
+            if not type(v)==np.ndarray and int(v)==v:
                 print_('Returning int: %s'%int(v),verbose)
                 return int(v)
             return v
