@@ -170,31 +170,50 @@ def _params_info(parameters):
     pi += "]"
     return pi
 
+# Ideas in development...
+FORMAT_NUMPY = 'numpy'
+FORMAT_TENSORFLOW = 'tensorflow'
 
-def evaluate(expr, parameters={}, rng=None, verbose = False):
+def evaluate(expr, parameters={}, rng=None, array_format=FORMAT_NUMPY, verbose = False):
     """
     Evaluate a general string like expression (e.g. "2 * weight") using a dict
     of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's
     given in expr
     """
+    
+    if array_format==FORMAT_TENSORFLOW:
+        import tensorflow as tf
 
-    print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr), _params_info(parameters)),verbose)
+    print_(' > Evaluating: [%s] which is a %s vs parameters: %s (using %s arrays)...'%(expr,type(expr), _params_info(parameters),FORMAT_NUMPY),verbose)
     try:
         if type(expr)==str and expr in parameters:
             expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
 
         if type(expr)==str:
             try:
-                expr = int(expr)
+                if array_format==FORMAT_TENSORFLOW:
+                    expr = tf.constant(int(expr))
+                else:
+                    expr = int(expr)
             except:
                 pass
             try:
-                expr = float(expr)
+                if array_format==FORMAT_TENSORFLOW:
+                    expr = tf.constant(float(expr))
+                else:
+                    expr = float(expr)
             except:
                 pass
 
         if type(expr)==list:
-            return np.array(expr)
+
+            if array_format==FORMAT_TENSORFLOW:
+                return tf.constant(expr, dtype=tf.float64)
+            else:
+                return np.array(expr)
+
+        if type(expr)==np.array:
+            return expr
 
         if int(expr)==expr:
             print_('Returning int: %s'%int(expr),verbose)
@@ -208,7 +227,6 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
                 expr = expr.replace('random()','rng.random()')
                 parameters['rng']=rng
 
-
             print_('Trying eval [%s] with Python using %s...'%(expr, parameters.keys()),verbose)
 
             if 'math.' in expr:
@@ -216,9 +234,13 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
 
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
-            if not type(v)==np.ndarray and int(v)==v:
+            if (type(v)==float or type(v)==str) and int(v)==v:
                 print_('Returning int: %s'%int(v),verbose)
-                return int(v)
+
+                if array_format==FORMAT_TENSORFLOW:
+                    return tf.constant(int(v))
+                else:
+                    return int(v)
             return v
         except Exception as e:
             print_('Returning without altering: %s (error: %s)'%(expr,e),verbose)
