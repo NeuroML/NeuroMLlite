@@ -1,7 +1,6 @@
 import collections
 import json
 from collections import OrderedDict
-import numpy as np
 
 verbose = False
 
@@ -128,6 +127,7 @@ class Base(object):
     @classmethod
     def to_dict_format(cls, var, ordered = True):
 
+        import numpy as np
         if verbose: print(' ====   to_dict_format: [%s]'%var)
         if cls._is_base_type(type(var)): # e.g. into float, str
             return var
