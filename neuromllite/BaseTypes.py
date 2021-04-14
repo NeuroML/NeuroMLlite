@@ -1,6 +1,7 @@
 import collections
 import json
 from collections import OrderedDict
+import numpy as np
 
 verbose = False
 
@@ -140,6 +141,9 @@ class Base(object):
             for k in var:
                 d[k] = cls.to_dict_format(var[k], ordered=ordered)
             return d
+        elif type(var) == np.ndarray:
+            l = var.tolist()
+            return l
 
         else:  # assume a type Base
 
