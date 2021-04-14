@@ -1,6 +1,6 @@
 {
     "Example4_PyNN": {
-        "version": "NeuroMLlite v0.3.0",
+        "version": "NeuroMLlite v0.3.1",
         "parameters": {
             "input_amp": 0.99
         },
