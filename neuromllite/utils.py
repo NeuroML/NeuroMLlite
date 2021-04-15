@@ -238,10 +238,12 @@ def evaluate(expr, parameters={}, rng=None, array_format=FORMAT_NUMPY, verbose =
                 expr = expr.replace('random()','rng.random()')
                 parameters['rng']=rng
 
-            print_('Trying eval [%s] with Python using %s...'%(expr, parameters.keys()),verbose)
-
             if type(expr)==str and 'math.' in expr:
                 parameters['math']=math
+            if type(expr)==str and 'numpy.' in expr:
+                parameters['numpy']=np
+
+            print_('Trying to eval [%s] with Python using %s...'%(expr, parameters.keys()),verbose)
 
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
