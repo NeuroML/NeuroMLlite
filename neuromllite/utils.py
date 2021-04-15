@@ -4,6 +4,7 @@ import json
 import yaml
 import os
 import math
+import numpy as np
 
 from neuromllite.BaseTypes import print_v, print_
 
@@ -156,27 +157,74 @@ def locate_file(f, base_dir):
     return real
 
 
-def evaluate(expr, parameters={}, rng=None, verbose = False):
+def _params_info(parameters):
+    """
+    Short info on names, values and types in parameter list
+    """
+    pi = "["
+    if parameters is not None:
+        for p in parameters:
+            if not p == "__builtins__":
+                param_val = parameters[p]
+                if type(param_val)==np.ndarray:
+                    pp = '%s'%(np.array2string(param_val,threshold=4, edgeitems=1))
+                    pp.replace('\n',' ')
+                    pp+=' (NP %s %s)'%(param_val.shape,param_val.dtype)
+                else:
+                    pp = '%s'%param_val
+                    t = type(param_val)
+                    if not (t==int or t==float):
+                        pp+='(%s)'%(t if type(t)==str else t.__name__)
+
+                pi += "%s=%s, " % (p, pp)
+        pi = pi[:-2]
+    pi += "]"
+    return pi
+
+# Ideas in development...
+FORMAT_NUMPY = 'numpy'
+FORMAT_TENSORFLOW = 'tensorflow'
+
+def evaluate(expr, parameters={}, rng=None, array_format=FORMAT_NUMPY, verbose = False):
     """
     Evaluate a general string like expression (e.g. "2 * weight") using a dict
     of parameters (e.g. {'weight':10}). Returns floats, ints, etc. if that's what's
     given in expr
     """
 
-    print_(' > Evaluating: [%s] which is a %s vs parameters: %s...'%(expr,type(expr),parameters.keys() if parameters else None),verbose)
+    if array_format==FORMAT_TENSORFLOW:
+        import tensorflow as tf
+
+    print_(' > Evaluating: [%s] which is a: %s vs parameters: %s (using %s arrays)...'%(expr,type(expr).__name__, _params_info(parameters),FORMAT_NUMPY),verbose)
     try:
-        if expr in parameters:
+        if type(expr)==str and expr in parameters:
             expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
 
         if type(expr)==str:
             try:
-                expr = int(expr)
+                if array_format==FORMAT_TENSORFLOW:
+                    expr = tf.constant(int(expr))
+                else:
+                    expr = int(expr)
             except:
                 pass
             try:
-                expr = float(expr)
+                if array_format==FORMAT_TENSORFLOW:
+                    expr = tf.constant(float(expr))
+                else:
+                    expr = float(expr)
             except:
                 pass
+
+        if type(expr)==list:
+
+            if array_format==FORMAT_TENSORFLOW:
+                return tf.constant(expr, dtype=tf.float64)
+            else:
+                return np.array(expr)
+
+        if type(expr)==np.array:
+            return expr
 
         if int(expr)==expr:
             print_('Returning int: %s'%int(expr),verbose)
@@ -190,17 +238,22 @@ def evaluate(expr, parameters={}, rng=None, verbose = False):
                 expr = expr.replace('random()','rng.random()')
                 parameters['rng']=rng
 
-
-            print_('Trying eval [%s] with Python using %s...'%(expr, parameters),verbose)
-
-            if 'math.' in expr:
+            if type(expr)==str and 'math.' in expr:
                 parameters['math']=math
+            if type(expr)==str and 'numpy.' in expr:
+                parameters['numpy']=np
+
+            print_('Trying to eval [%s] with Python using %s...'%(expr, parameters.keys()),verbose)
 
             v = eval(expr, parameters)
             print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
-            if int(v)==v:
+            if (type(v)==float or type(v)==str) and int(v)==v:
                 print_('Returning int: %s'%int(v),verbose)
-                return int(v)
+
+                if array_format==FORMAT_TENSORFLOW:
+                    return tf.constant(int(v))
+                else:
+                    return int(v)
             return v
         except Exception as e:
             print_('Returning without altering: %s (error: %s)'%(expr,e),verbose)

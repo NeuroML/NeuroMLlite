@@ -1,6 +1,6 @@
 {
     "Spikers": {
-        "version": "NeuroMLlite v0.3.0",
+        "version": "NeuroMLlite v0.3.1",
         "parameters": {
             "N": 10,
             "weightInput": 10,

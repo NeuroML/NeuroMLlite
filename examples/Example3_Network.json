@@ -1,6 +1,6 @@
 {
     "Example3_Network": {
-        "version": "NeuroMLlite v0.3.0",
+        "version": "NeuroMLlite v0.3.1",
         "notes": "Example 3: simple network with 2 populations of NeuroML2 cells, a projection between them and spiking input.",
         "cells": {
             "hhcell": {

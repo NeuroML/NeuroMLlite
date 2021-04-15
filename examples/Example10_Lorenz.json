@@ -1,6 +1,6 @@
 {
     "Example10_Lorenz": {
-        "version": "NeuroMLlite v0.3.0",
+        "version": "NeuroMLlite v0.3.1",
         "parameters": {
             "N": 1,
             "sigma": 10,

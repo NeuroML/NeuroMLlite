@@ -127,6 +127,7 @@ class Base(object):
     @classmethod
     def to_dict_format(cls, var, ordered = True):
 
+        import numpy as np
         if verbose: print(' ====   to_dict_format: [%s]'%var)
         if cls._is_base_type(type(var)): # e.g. into float, str
             return var
@@ -140,6 +141,9 @@ class Base(object):
             for k in var:
                 d[k] = cls.to_dict_format(var[k], ordered=ordered)
             return d
+        elif type(var) == np.ndarray:
+            l = var.tolist()
+            return l
 
         else:  # assume a type Base
 
