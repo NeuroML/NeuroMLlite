@@ -156,6 +156,21 @@ def locate_file(f, base_dir):
     #print_v('- Located %s at %s'%(f,real))
     return real
 
+def _val_info(param_val):
+    if type(param_val)==np.ndarray:
+        pp = '%s'%(np.array2string(param_val,threshold=4, edgeitems=1))
+        pp=pp.replace('\n','')
+        pp+=' (NP %s %s)'%(param_val.shape,param_val.dtype)
+    elif type(param_val).__name__=='EagerTensor':
+        pp = '%s'%param_val
+        pp=pp.replace('\n','')
+        #pp+=' (TF %s %s)'%(param_val.shape,param_val.dtype)
+    else:
+        pp = '%s'%param_val
+        t = type(param_val)
+        if not (t==int or t==float):
+            pp+='(%s)'%(t if type(t)==str else t.__name__)
+    return pp
 
 def _params_info(parameters):
     """
@@ -166,15 +181,7 @@ def _params_info(parameters):
         for p in parameters:
             if not p == "__builtins__":
                 param_val = parameters[p]
-                if type(param_val)==np.ndarray:
-                    pp = '%s'%(np.array2string(param_val,threshold=4, edgeitems=1))
-                    pp.replace('\n',' ')
-                    pp+=' (NP %s %s)'%(param_val.shape,param_val.dtype)
-                else:
-                    pp = '%s'%param_val
-                    t = type(param_val)
-                    if not (t==int or t==float):
-                        pp+='(%s)'%(t if type(t)==str else t.__name__)
+                pp = _val_info(param_val)
 
                 pi += "%s=%s, " % (p, pp)
         pi = pi[:-2]
@@ -195,10 +202,12 @@ def evaluate(expr, parameters={}, rng=None, array_format=FORMAT_NUMPY, verbose =
     if array_format==FORMAT_TENSORFLOW:
         import tensorflow as tf
 
-    print_(' > Evaluating: [%s] which is a: %s vs parameters: %s (using %s arrays)...'%(expr,type(expr).__name__, _params_info(parameters),FORMAT_NUMPY),verbose)
+    print_(' > Evaluating: [%s] which is a: %s, vs parameters: %s (using %s arrays)...'%(expr,type(expr).__name__, _params_info(parameters),array_format),verbose)
     try:
         if type(expr)==str and expr in parameters:
             expr = parameters[expr]  # replace with the value in parameters & check whether it's float/int...
+            print_('Using for that param: %s'%_val_info(expr),verbose)
+
 
         if type(expr)==str:
             try:
@@ -217,14 +226,25 @@ def evaluate(expr, parameters={}, rng=None, array_format=FORMAT_NUMPY, verbose =
                 pass
 
         if type(expr)==list:
-
+            print_('Returning a list in format: %s'%array_format,verbose)
             if array_format==FORMAT_TENSORFLOW:
                 return tf.constant(expr, dtype=tf.float64)
             else:
                 return np.array(expr)
 
-        if type(expr)==np.array:
-            return expr
+        if type(expr)==np.ndarray:
+            print_('Returning a numpy array in format: %s'%array_format,verbose)
+            if array_format==FORMAT_TENSORFLOW:
+                return tf.convert_to_tensor(expr, dtype=tf.float64)
+            else:
+                return expr
+
+        if 'Tensor' in type(expr).__name__:
+            print_('Returning a tensorflow Tensor in format: %s'%array_format,verbose)
+            if array_format==FORMAT_NUMPY:
+                return expr.numpy()
+            else:
+                return expr
 
         if int(expr)==expr:
             print_('Returning int: %s'%int(expr),verbose)
@@ -246,7 +266,7 @@ def evaluate(expr, parameters={}, rng=None, array_format=FORMAT_NUMPY, verbose =
             print_('Trying to eval [%s] with Python using %s...'%(expr, parameters.keys()),verbose)
 
             v = eval(expr, parameters)
-            print_('Evaluated with Python: %s = %s (%s)'%(expr,v, type(v)),verbose)
+            print_('Evaluated with Python: %s = %s'%(expr,_val_info(v)),verbose)
             if (type(v)==float or type(v)==str) and int(v)==v:
                 print_('Returning int: %s'%int(v),verbose)
 
