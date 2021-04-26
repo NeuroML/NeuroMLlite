@@ -8,6 +8,7 @@ from neuromllite.utils import print_v
 from neuromllite.ConnectivityHandler import ConnectivityHandler
 
 from neuromllite.utils import evaluate
+from neuromllite.NetworkGenerator import _get_rng_for_network
             
 import numpy as np
 
@@ -24,7 +25,10 @@ class MatrixHandler(ConnectivityHandler):
                      
         self.nl_network = nl_network
         self.level = level
-        print_v("Initiating Matrix handler, level %i"%(level))
+        
+        self.rng, seed = _get_rng_for_network(self.nl_network)
+        
+        print_v("Initiating Matrix handler, level %i, seed: %s"%(level, seed))
         self.scale_by_post_pop_cond = True
     
     
@@ -60,8 +64,12 @@ class MatrixHandler(ConnectivityHandler):
     def finalise_document(self):
         
         entries = []
+        #print_v('Finals: %s -> %s'%(self.proj_pre_pops, self.proj_post_pops))
+        all_pops = []
+        for v in self.proj_pre_pops.values(): all_pops.append(v) 
+        for v in self.proj_post_pops.values(): all_pops.append(v) 
         
-        for pop in self.proj_pre_pops.values() + self.proj_post_pops.values():
+        for pop in all_pops:
             if self.is_cell_level():
                 for i in range(self.pop_sizes[pop]):
                     pi = self.get_cell_identifier(pop, i) # '%s_%i'%(pop,i)
@@ -336,7 +344,7 @@ class MatrixHandler(ConnectivityHandler):
             proj = self.nl_network.get_child(projName,'projections')  
             if proj:
                 if proj.weight:
-                    proj_weight = evaluate(proj.weight, self.nl_network.parameters)
+                    proj_weight = evaluate(proj.weight, self.nl_network.parameters, self.rng)
                     if proj_weight<0:
                         proj_type = 'inhibitory'
                     weight = float(abs(proj_weight))

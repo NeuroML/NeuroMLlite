@@ -2,7 +2,7 @@
     
     <!-- 
 
-        This LEMS file has been automatically generated using PyNeuroML v0.3.19 (libNeuroML v0.2.47)
+        This LEMS file has been automatically generated using PyNeuroML v0.5.13 (libNeuroML v0.2.56)
 
      -->
     
@@ -20,17 +20,17 @@
     <Simulation id="SimExample4" length="1000.0ms" step="0.01ms" target="Example4_PyNN" seed="5678">  <!-- Note seed: ensures same random numbers used every run -->
         
         <Display id="pop0_v" title="Plots of pop0_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
-            <Line id="pop0_0_testcell_v" quantity="pop0/0/testcell/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
-            <Line id="pop0_1_testcell_v" quantity="pop0/1/testcell/v" scale="1mV" color="#029a72" timeScale="1ms"/>
+            <Line id="pop0_0_testcell_v" quantity="pop0/0/testcell/v" scale="1mV" color="#d54f33" timeScale="1ms"/>
+            <Line id="pop0_1_testcell_v" quantity="pop0/1/testcell/v" scale="1mV" color="#0534e4" timeScale="1ms"/>
         </Display>
         
         <Display id="pop1_v" title="Plots of pop1_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
-            <Line id="pop1_0_testcell2_v" quantity="pop1/0/testcell2/v" scale="1mV" color="#d340bb" timeScale="1ms"/>
-            <Line id="pop1_1_testcell2_v" quantity="pop1/1/testcell2/v" scale="1mV" color="#4c73a9" timeScale="1ms"/>
+            <Line id="pop1_0_testcell2_v" quantity="pop1/0/testcell2/v" scale="1mV" color="#98e752" timeScale="1ms"/>
+            <Line id="pop1_1_testcell2_v" quantity="pop1/1/testcell2/v" scale="1mV" color="#bca074" timeScale="1ms"/>
         </Display>
         
         <Display id="pop2_v" title="Plots of pop2_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
-            <Line id="pop2_0_testcell2_v" quantity="pop2/0/testcell2/v" scale="1mV" color="#5e503a" timeScale="1ms"/>
+            <Line id="pop2_0_testcell2_v" quantity="pop2/0/testcell2/v" scale="1mV" color="#632794" timeScale="1ms"/>
         </Display>
         
         <OutputFile id="SimExample4_pop0_v_dat" fileName="SimExample4.pop0.v.dat">
@@ -47,7 +47,7 @@
             <OutputColumn id="pop2_0_testcell2_v" quantity="pop2/0/testcell2/v"/> 
         </OutputFile>
         
-        <EventOutputFile id="Spikes_file__pop0" fileName="SimExample4.pop0.spikes" format="ID_TIME">
+        <EventOutputFile id="SimExample4_pop0_spikes" fileName="SimExample4.pop0.spikes" format="ID_TIME">
             <EventSelection id="0" select="pop0/0/testcell" eventPort="spike"/> 
             <EventSelection id="1" select="pop0/1/testcell" eventPort="spike"/> 
         </EventOutputFile>

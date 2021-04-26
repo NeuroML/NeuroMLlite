@@ -10,8 +10,16 @@ net = Network(id='Example10_Lorenz')
 net.notes = 'Example 10: Lorenz'
 net.parameters = { 'N': 1}
 
-cell = Cell(id='lorenzCell', lems_source_file='test_files/Lorenz1963.xml')
+cell = Cell(id='lorenzCell', 
+            lems_source_file='test_files/Lorenz1963.xml',
+            parameters = {})
 net.cells.append(cell)
+    
+params = {'sigma':10, 'b':2.67, 'r':28, 'x0':1.0, 'y0':1.0, 'z0':1.0}
+
+for p in params:
+    cell.parameters[p]=p
+    net.parameters[p]=params[p]
 
 
 pop = Population(id='lorenzPop', size='1', component=cell.id, properties={'color':'.7 0 0'})

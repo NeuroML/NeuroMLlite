@@ -1,0 +1,91 @@
+Example4_PyNN:
+    version: NeuroMLlite v0.3.1
+    parameters:
+        input_amp: 0.99
+    notes: 'Example 4: a network with PyNN cells & inputs'
+    cells:
+        testcell:
+            pynn_cell: IF_cond_alpha
+            parameters:
+                tau_refrac: 5
+                i_offset: 0.1
+        testcell2:
+            pynn_cell: IF_cond_alpha
+            parameters:
+                tau_refrac: 5
+                i_offset: -0.1
+    synapses:
+        ampaSyn:
+            pynn_synapse_type: cond_alpha
+            pynn_receptor_type: excitatory
+            parameters:
+                e_rev: -10
+                tau_syn: 2
+        gabaSyn:
+            pynn_synapse_type: cond_alpha
+            pynn_receptor_type: inhibitory
+            parameters:
+                e_rev: -80
+                tau_syn: 10
+    input_sources:
+        i_clamp:
+            pynn_input: DCSource
+            parameters:
+                amplitude: input_amp
+                start: 200.0
+                stop: 800.0
+    regions:
+        region1:
+            x: 0.0
+            y: 0.0
+            z: 0.0
+            width: 1000.0
+            height: 100.0
+            depth: 1000.0
+    populations:
+        pop0:
+            size: 2
+            component: testcell
+            properties:
+                color: 1 0 0
+                radius: 20
+            random_layout:
+                region: region1
+        pop1:
+            size: 2
+            component: testcell2
+            properties:
+                color: 0 1 0
+                radius: 20
+            random_layout:
+                region: region1
+        pop2:
+            size: 1
+            component: testcell2
+            properties:
+                color: 0 0 1
+                radius: 20
+            random_layout:
+                region: region1
+    projections:
+        proj0:
+            presynaptic: pop0
+            postsynaptic: pop1
+            synapse: ampaSyn
+            delay: 2
+            weight: 0.02
+            random_connectivity:
+                probability: 1
+        proj1:
+            presynaptic: pop0
+            postsynaptic: pop2
+            synapse: gabaSyn
+            delay: 2
+            weight: 0.01
+            random_connectivity:
+                probability: 1
+    inputs:
+        stim:
+            input_source: i_clamp
+            population: pop0
+            percentage: 50.0

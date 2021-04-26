@@ -9,6 +9,9 @@
     <iafCell id="iaf" leakReversal="-50mV" thresh="-55mV"
 	     reset="-70mV" C="0.2nF" leakConductance="0.01uS"/>
 
+    <iafCell id="iafCell0" leakReversal="-70mV" thresh="-50mV"
+	     reset="-70mV" C="0.2nF" leakConductance="0.01uS"/>
+
 
     <izhikevichCell id="izBurst" v0 = "-70mV" thresh = "30mV" a="0.02"
 		    b = "0.2" c = "-50.0" d = "2"/>

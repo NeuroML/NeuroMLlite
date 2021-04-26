@@ -12,7 +12,7 @@ experiments:
           path: ../SimExample7.expoisson.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.0015265156151519478
+        tolerance: 0.0030522052087322664
         
   spike_rate_inh_in:
     observables:
@@ -30,7 +30,7 @@ experiments:
           path: ../SimExample7.Epop.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.03326912965595791
+        tolerance: 0.014409669952861828
 
   spike_rate_i:
     observables:
@@ -39,4 +39,4 @@ experiments:
           path: ../SimExample7.Ipop.spikes
           format: ID_TIME
           ids: '*'
-        tolerance: 0.001851504590666598
+        tolerance: 0.008742241650064736

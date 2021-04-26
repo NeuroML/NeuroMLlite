@@ -57,7 +57,6 @@ sim = Simulation(id='SimExample5',
                  recordTraces=recordTraces,
                  recordSpikes=recordSpikes)
            
-print sim
 sim.to_json_file()           
                                
 

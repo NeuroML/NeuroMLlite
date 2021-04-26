@@ -10,7 +10,16 @@ net = Network(id='Example9_HindmarshRose')
 net.notes = 'Example 9: HindmarshRose'
 net.parameters = { 'N': 1}
 
-cell = Cell(id='hrCell', lems_source_file='test_files/HindmarshRose3d.xml')
+cell = Cell(id='hrCell', 
+            lems_source_file='test_files/HindmarshRose3d.xml')
+cell.parameters = {}
+
+params = {'a':1, 'b':3, 'c':-3.0, 'd':5.0, 's':4.0, 'I':5.0, 'x1':-1.3, 'r':0.002, 'x0':-1.3, 'y0':-1.0, 'z0':1.0}
+
+for p in params:
+    cell.parameters[p]=p
+    net.parameters[p]=params[p]
+    
 net.cells.append(cell)
 
 

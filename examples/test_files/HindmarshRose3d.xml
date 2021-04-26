@@ -6,10 +6,10 @@
 
     LEMS definition of the Hindmarsh Rose neuron model (see below
     for reference).
-    
+
     The Hindmarsh Rose model consists in a fast spiking subsystem,
-    which is a generalization of the Fitzhugh-Nagumo (aka
-    Bonhoeffer-van der Pol) oscillator, coupled to a slower subsystem
+    which is a generalization of the Fitzhugh Nagumo (aka
+    Bonhoeffer van der Pol) oscillator, coupled to a slower subsystem
     which allows the system to fire bursts of spikes.
 
     Hindmarsh J. L., and Rose R. M. (1984) A model of neuronal
@@ -23,12 +23,12 @@
     The Hindmarsh Rose model is a simplified point cell model which
     captures complex firing patterns of single neurons, such as
     periodic and chaotic bursting. It in a fast spiking subsystem,
-    which is a generalization of the Fitzhugh-Nagumo system, coupled
+    which is a generalization of the Fitzhugh Nagumo system, coupled
     to a slower subsystem which allows the model to fire bursts. The
     dynamical variables x,y,z correspond to the membrane potential, a
     recovery variable, and a slower adaptation current, respectively.
     ">
-    
+
     <Parameter name="a" dimension="none" description="cubic term in x
         nullcline"/>
     <Parameter name="b" dimension="none" description="quadratic term in x
@@ -39,8 +39,7 @@
         in y nullcline"/>
     <Parameter name="I" dimension="none" description="plays the role
         of an external injected current"/>
-    <Parameter name="r" dimension="none" description="timescale
-        separation between slow and fast subsystem (0 &lt; r &lt;&lt; 1)"/>
+    <Parameter name="r" dimension="none" description="timescale separation between slow and fast subsystem, r greater than 0, much less than 1"/>
     <Parameter name="s" dimension="none" description="related to
         adaptation"/>
     <Parameter name="x1" dimension="none" description="related to the
@@ -59,9 +58,9 @@
     <Exposure name="phi" dimension="none"/>
     <Exposure name="chi" dimension="none"/>
     <Exposure name="rho" dimension="none"/>
-    
+
     <Dynamics>
-        
+
         <StateVariable name="x" dimension="none" exposure="x"/>
         <StateVariable name="y" dimension="none" exposure="y"/>
         <StateVariable name="z" dimension="none" exposure="z"/>
@@ -72,15 +71,15 @@
         <TimeDerivative variable="x" value="(phi - z) / SEC"/>
         <TimeDerivative variable="y" value="chi / SEC"/>
         <TimeDerivative variable="z" value="r * rho / SEC"/>
-        
+
         <OnStart>
             <StateAssignment variable="x" value="x0"/>
             <StateAssignment variable="y" value="y0"/>
             <StateAssignment variable="z" value="z0"/>
         </OnStart>
-        
+
     </Dynamics>
-    
+
 </ComponentType>
 
 <hindmarshRoseCell id="hrCell" a="1.0" b="3.0" c="-3.0"
@@ -90,4 +89,3 @@
 
 
 </Lems>
-

@@ -2,12 +2,11 @@ from os.path import dirname
 from os.path import realpath
 import sys
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtGui import *
-from PyQt5.QtSvg import QSvgWidget
 from PyQt5.QtWidgets import *
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvas 
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 import matplotlib
 from matplotlib.figure import Figure
@@ -15,10 +14,18 @@ from matplotlib.figure import Figure
 from neuromllite.utils import load_network_json
 from neuromllite.utils import load_simulation_json
 from neuromllite.utils import evaluate
-from neuromllite.utils import print_v
+from neuromllite.utils import print_v, print_
 from neuromllite.utils import is_spiking_input_population
 from pyneuroml.pynml import get_next_hex_color
 
+from functools import partial
+
+class ParameterSpinBox(QDoubleSpinBox):
+    
+    #TODO: handle a spinner on values like -60mV etc. 
+    def textFromValue(self, value):
+        return '%s'%value
+    
 
 class NMLliteUI(QWidget):
     
@@ -30,18 +37,25 @@ class NMLliteUI(QWidget):
         'NetPyNE',
         'PyNN_NEURON',
         'PyNN_NEST',
-        'PyNN_Brian']
+        'PyNN_Brian',
+        'Arbor']
+    '''    'jNeuroML_Brian2','''
+        
+    LEMS_VIEW_TAB = 'Lems View'
+    IMAGE_3D_TAB = "3D image"
+    GRAPH_TAB = 'Graph'
     
+    verbose=False
     
     def updated_param(self, p):
         """A parameter has been updated"""
         
-        print_v('=====   Param %s changed' % p)
+        print_('=====   Param %s changed' % p, self.verbose)
         
         if self.autoRunCheckBox.isChecked():
             self.runSimulation()
         else:
-            print_v('Nothing changing...')
+            print_('Nothing changing...', self.verbose)
             
         self.update_net_sim()
         if self.tabs.currentWidget() == self.nmlliteTab:
@@ -71,10 +85,20 @@ class NMLliteUI(QWidget):
     all_tabs = {}
     #all_tab_layouts = {}
     all_figures = {}
+    all_figures_2dplots = {}
     all_canvases = {}
+    all_layouts = {}
+    all_options_layouts = {}
+    all_image_qlabels = {}
+    all_image_scales = {}
     
-    
-    def add_tab(self, name, parent_tab_holder, figure=False, options = False):
+    current_traces_shown = {}
+    current_traces_colours = {}
+     
+    def add_tab(self, name, parent_tab_holder, image=False, figure=False, toolbar=False, options = False):
+        
+        if name in self.all_tabs:
+            raise Exception('The name for a tab: %s is already taken!'%name)
         
         thisTab = QWidget()
         parent_tab_holder.addTab(thisTab, name)
@@ -82,80 +106,146 @@ class NMLliteUI(QWidget):
         
         topLayout = QGridLayout()
         thisTab.setLayout(topLayout)
+        self.all_layouts[name] = topLayout
         
         if options:
             thisOptionsLayout = QGridLayout()
             topLayout.addLayout(thisOptionsLayout, 0, 0)
-        
-        #self.all_tab_layouts[name] = thisLayout
+            thisOptionsLayout.addWidget(QLabel("Options:"), 0, 0)
+            self.all_options_layouts[name] = thisOptionsLayout
         
         if figure:
             thisFigure = Figure()
             thisCanvas = FigureCanvas(thisFigure)
-            
+            if toolbar: thisToolbar = NavigationToolbar(thisCanvas, self)
+             
             self.all_canvases[name] = thisCanvas
             self.all_figures[name] = thisFigure
             if options:
                 thisFigureLayout = QGridLayout()
                 topLayout.addLayout(thisFigureLayout, 1, 0)
                 thisFigureLayout.addWidget(thisCanvas)
+                if toolbar: thisFigureLayout.addWidget(thisToolbar)
             else:
                 topLayout.addWidget(thisCanvas)
+                if toolbar: topLayout.addWidget(thisToolbar)
+                
+        if image:
+            label = QLabel("An image will be generated here. Push the appropriate button on the left")
+            label.setBackgroundRole(QPalette.Base)
+            label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+            label.setScaledContents(True)
+            self.all_image_qlabels[name] = label
+        
+            scrollArea = QScrollArea()
+            scrollArea.setBackgroundRole(QPalette.Light)
+            scrollArea.setWidget(label)
+            scrollArea.setVisible(True)
+
+            scroolLayout = QGridLayout()
+            topLayout.addLayout(scroolLayout, 1, 0)
+            scroolLayout.addWidget(scrollArea, 0, 0)
+            
+            if options:
+                plus_button = QPushButton("+")
+                plus_button.show()
+                plus_button.clicked.connect(partial(self.scale_image,name,'+'))
+                thisOptionsLayout.addWidget(plus_button, 0, 1)
+                orig_button = QPushButton("1")
+                orig_button.show()
+                orig_button.clicked.connect(partial(self.scale_image,name,'1'))
+                thisOptionsLayout.addWidget(orig_button, 0, 2)
+                min_button = QPushButton("-")
+                min_button.show()
+                min_button.clicked.connect(partial(self.scale_image,name,'-'))
+                thisOptionsLayout.addWidget(min_button, 0, 3)
                 
         if options:
             return thisOptionsLayout
+          
+    def scale_image(self, tab_reference, action):
+        scaleFactor = self.all_image_scales[tab_reference]
+        
+        print('Scaling with: %s on %s, was %s'%(action, tab_reference, scaleFactor))
+        if action == '+':
+            self.all_image_scales[tab_reference] *=1.25
+        if action == '-':
+            self.all_image_scales[tab_reference] *=0.8
+        if action == '1':
+            self.all_image_scales[tab_reference] = 1
+            
+        label = self.all_image_qlabels[tab_reference]
+        label.resize(self.all_image_scales[tab_reference] * label.pixmap().size())
+        
+        
+    def add_image(self, image_file, tab_reference):
+        # Inspired by https://gist.github.com/acbetter/32c575803ec361c3e82064e60db4e3e0
+        
+        print_v('Displaying an image: %s'%(image_file))
+        
+        image = QImage(image_file)
+        pixmap = QPixmap.fromImage(image)
+        
+        label = self.all_image_qlabels[tab_reference]
+        #pixmap = pixmap.scaledToWidth(min(pixmap.width(), 800), Qt.SmoothTransformation)
+        label.setPixmap(pixmap)
+        self.all_image_scales[tab_reference] = 1
+        scaleFactor = self.all_image_scales[tab_reference]
+        
+        label.resize(scaleFactor * label.pixmap().size())
         
         
     def get_value_entry(self, name, value, entry_map):
         """Create a graphical element for displaying/setting values"""
         
         simple = False
-        simple = True
+        #simple = True
         
         if simple:
             entry = QLineEdit()
             entry_map[name] = entry
             entry.setText(str(value))
-            
             entry.textChanged.connect(self.updated_param)
 
         else:
         
             try:
-                entry = QDoubleSpinBox()
+                entry = ParameterSpinBox()
                 entry_map[name] = entry
-                entry.setMaximum(1e6)
-                entry.setMinimum(-1e6)
+                entry.setDecimals(18)
+                entry.setMaximum(1e16)
+                entry.setMinimum(-1e16)
                 entry.setSingleStep(value / 20.0)
                 entry.setValue(float(value))
-                '''
-                print 555
-                print entry.maximum()
-                print entry.minimum()
-                print entry.singleStep()
-                print entry.text()
-                '''
-                
                 entry.valueChanged.connect(self.updated_param)
                 
             except Exception as e:
-                print_(e)
+                print_v('Error: %s'%e)
                 
                 entry = QLineEdit()
                 entry_map[name] = entry
                 entry.setText(str(value))
                 entry.textChanged.connect(self.updated_param)
         
-        '''print('Created value entry widget for %s (= %s): %s (%s)' % \
-              (name, value, entry, entry.text()))'''
+        entry.setToolTip('Parameter: %s (initial value: %s)'%(name,value))  
+        
+        print_('Created value entry widget for %s (= %s): %s (%s)' % \
+              (name, value, entry, entry.text()), self.verbose)
         return entry
+    
+    
+    def dialog_popup(self, message):
+        dialog=QMessageBox()
+        dialog.setIcon(QMessageBox.Warning)
+        dialog.setWindowTitle('Message')
+        dialog.setText(message)
+        dialog.exec_()
     
     
     def __init__(self, nml_sim_file, parent=None):
         """Constructor for the GUI"""
         
         super(NMLliteUI, self).__init__(parent)
-        
         
         self.SPIKES_RASTERPLOT = "Rasterplot"
         self.SPIKES_POP_RATE_AVE = "Pop rate averages"
@@ -185,10 +275,9 @@ class NMLliteUI(QWidget):
         self.tabs = QTabWidget()
         self.nmlliteTab = QWidget()
         self.nml2Tab = QWidget()
-        self.graphTab = QWidget()
         self.matrixTab = QWidget()
-        self.tabs.resize(300, 200)
         
+        self.tabs.resize(300, 200)
         
         # Add tabs
         self.simTab = QWidget()
@@ -204,7 +293,6 @@ class NMLliteUI(QWidget):
         self.heatmapTab = QWidget()
         self.plotTabs.addTab(self.heatmapTab, "Heatmap")
         
-        
         if self.simulation.plots2D is not None:
             
             self.plot2DTab = QTabWidget()
@@ -215,7 +303,7 @@ class NMLliteUI(QWidget):
         
             for plot2D in self.simulation.plots2D:
                 info = self.simulation.plots2D[plot2D]
-                pLayout = self.add_tab(plot2D, self.plot2DTab, figure=True, options=True)
+                pLayout = self.add_tab(plot2D, self.plot2DTab, figure=True, toolbar=True, options=True)
         
         if self.simulation.plots3D is not None:
             
@@ -227,24 +315,24 @@ class NMLliteUI(QWidget):
         
             for plot3D in self.simulation.plots3D:
                 info = self.simulation.plots3D[plot3D]
-                pLayout = self.add_tab(plot3D, self.plot3DTab, figure=True, options=True)
+                pLayout = self.add_tab(plot3D, self.plot3DTab, figure=True, toolbar=False, options=True)
                 
         
-        
-        rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, options=True)
+        offset_opt = 1
+        rasterOptionsLayout = self.add_tab(self.SPIKES_RASTERPLOT,self.plotTabs, figure=True, toolbar=True, options=True)
         self.rasterLegend = QCheckBox("Show legend")
         self.rasterLegend.setChecked(True)
-        rasterOptionsLayout.addWidget(self.rasterLegend, 0, 0)
+        rasterOptionsLayout.addWidget(self.rasterLegend, 0, 0+offset_opt)
         self.rasterLegend.toggled.connect(self.replotSimResults)
         self.rasterInPops = QCheckBox("Include input pops")
         self.rasterInPops.setChecked(True)
-        rasterOptionsLayout.addWidget(self.rasterInPops, 0, 1)
+        rasterOptionsLayout.addWidget(self.rasterInPops, 0, 1+offset_opt)
         self.rasterInPops.toggled.connect(self.replotSimResults)
         
-        spikeStatOptionsLayout = self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True, options=True)
+        spikeStatOptionsLayout = self.add_tab(self.SPIKES_POP_RATE_AVE,self.plotTabs, figure=True, toolbar=True, options=True)
         self.spikeStatInPops = QCheckBox("Include input pops")
         self.spikeStatInPops.setChecked(True)
-        spikeStatOptionsLayout.addWidget(self.spikeStatInPops, 0, 0)
+        spikeStatOptionsLayout.addWidget(self.spikeStatInPops, 0, 0+offset_opt)
         self.spikeStatInPops.toggled.connect(self.replotSimResults)
         
         self.simTabLayout.addWidget(self.plotTabs)
@@ -258,6 +346,13 @@ class NMLliteUI(QWidget):
         self.showTracesLegend = QCheckBox("Legend")
         self.tracesTabOptionsLayout.addWidget(self.showTracesLegend, 0, 0)
         
+        self.traceSelectButton = QPushButton("Select traces...")
+        self.traceSelectButton.show()
+        self.traceSelectButton.setEnabled(False)
+        
+        self.traceSelectButton.clicked.connect(self.traceSelect)
+        self.tracesTabOptionsLayout.addWidget(self.traceSelectButton, 0, 1)
+        
         self.tracesTabLayout = QGridLayout()
         self.tracesTabTopLayout.addLayout(self.tracesTabLayout, 1, 0)
         
@@ -267,22 +362,21 @@ class NMLliteUI(QWidget):
         
         self.tracesFigure = Figure()
         self.tracesCanvas = FigureCanvas(self.tracesFigure)
+        self.tracesToolbar = NavigationToolbar(self.tracesCanvas, self)
         self.tracesTabLayout.addWidget(self.tracesCanvas)
+        self.tracesTabLayout.addWidget(self.tracesToolbar)
         
         self.heatmapFigure = Figure()
         self.heatmapCanvas = FigureCanvas(self.heatmapFigure)
         self.heatmapLayout.addWidget(self.heatmapCanvas)
         
         
-        self.tabs.addTab(self.graphTab, "Graph")
-        self.graphTabTopLayout = QGridLayout()
-        self.graphTab.setLayout(self.graphTabTopLayout)
+        self.add_tab(self.GRAPH_TAB, self.tabs, image=True, options = True)
         
-        self.graphTabOptionsLayout = QGridLayout()
-        self.graphTabTopLayout.addLayout(self.graphTabOptionsLayout, 0, 0)
+        graphTabOptionsLayout = self.all_options_layouts[self.GRAPH_TAB]
         
-        
-        self.graphTabOptionsLayout.addWidget(QLabel("Graph level:"), 0, 0)
+        offset_opt = 4
+        graphTabOptionsLayout.addWidget(QLabel("Graph level:"), 0, offset_opt+0)
         
         self.graphLevelComboBox = QComboBox(self)
         self.graphLevelComboBox.addItem('-3')
@@ -296,7 +390,7 @@ class NMLliteUI(QWidget):
         self.graphLevelComboBox.addItem('5')
         self.graphLevelComboBox.addItem('6')
         self.graphLevelComboBox.setCurrentIndex(6)
-        self.graphTabOptionsLayout.addWidget(self.graphLevelComboBox, 0, 1)
+        graphTabOptionsLayout.addWidget(self.graphLevelComboBox, 0, offset_opt+1)
         self.graphLevelComboBox.currentIndexChanged.connect(self.showGraph)
         
         self.graphTypeComboBox = QComboBox(self)
@@ -305,24 +399,25 @@ class NMLliteUI(QWidget):
         self.graphTypeComboBox.addItem('n - neato')
         self.graphTypeComboBox.addItem('f - fdp')
         self.graphTypeComboBox.setCurrentIndex(0)
-        self.graphTabOptionsLayout.addWidget(QLabel("GraphViz engine:"), 0, 2)
-        self.graphTabOptionsLayout.addWidget(self.graphTypeComboBox, 0, 3)
+        graphTabOptionsLayout.addWidget(QLabel("GraphViz engine:"), 0, offset_opt+2)
+        graphTabOptionsLayout.addWidget(self.graphTypeComboBox, 0, offset_opt+3)
         self.graphTypeComboBox.currentIndexChanged.connect(self.showGraph)
         
         
         self.graphShowExtInputs = QCheckBox("Show ext inputs")
         self.graphShowExtInputs.setChecked(True)
-        self.graphTabOptionsLayout.addWidget(self.graphShowExtInputs, 0, 4)
+        graphTabOptionsLayout.addWidget(self.graphShowExtInputs, 0, offset_opt+4)
         self.graphShowExtInputs.toggled.connect(self.showGraph)
         
         self.graphShowInputPops = QCheckBox("Show input pops")
         self.graphShowInputPops.setChecked(True)
-        self.graphTabOptionsLayout.addWidget(self.graphShowInputPops, 0, 5)
+        graphTabOptionsLayout.addWidget(self.graphShowInputPops, 0, offset_opt+5)
         self.graphShowInputPops.toggled.connect(self.showGraph)
         
-        self.graphTabLayout = QGridLayout()
-        self.graphTabTopLayout.addLayout(self.graphTabLayout, 1, 0)
         
+        self.add_tab(self.LEMS_VIEW_TAB, self.tabs, image=True, options = True)
+        
+        self.add_tab(self.IMAGE_3D_TAB, self.tabs, image=True, options = True)        
         
         self.tabs.addTab(self.matrixTab, "Matrix")
         self.matrixTabLayout = QGridLayout()
@@ -372,7 +467,6 @@ class NMLliteUI(QWidget):
         
         rows = 0
         
-        
         l = QLabel("Network parameters")
         l.setFont(header_font)
         paramLayout.addWidget(l, rows, 0)
@@ -412,6 +506,20 @@ class NMLliteUI(QWidget):
         
         rows += 1
         paramLayout.addWidget(self.graphButton, rows, 0)
+                
+        self.lemsViewButton = QPushButton("Generate LEMS View")
+        self.lemsViewButton.show()
+        self.lemsViewButton.clicked.connect(self.showLemsView)
+        
+        rows += 1
+        paramLayout.addWidget(self.lemsViewButton, rows, 0)
+                
+        self.image3DButton = QPushButton("Generate 3D image")
+        self.image3DButton.show()
+        self.image3DButton.clicked.connect(self.show3Dimage)
+        
+        rows += 1
+        paramLayout.addWidget(self.image3DButton, rows, 0)
                 
         self.matrixButton = QPushButton("Generate matrix")
         self.matrixButton.show()
@@ -485,6 +593,10 @@ class NMLliteUI(QWidget):
         
         print_v("Matrix button was clicked.")
         
+        if len(self.network.projections) == 0:
+            self.dialog_popup('No projections present in network, and so no matrix to show')
+            return
+        
         self.update_net_sim()
         self.tabs.setCurrentWidget(self.matrixTab)
         
@@ -497,7 +609,7 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
     
-        print_v("Done with MatrixHandler...")
+        print_("Done with MatrixHandler...", self.verbose)
     
     
     def generateNeuroML2(self):
@@ -528,13 +640,77 @@ class NMLliteUI(QWidget):
         
         
     
+    def showLemsView(self):
+        """Generate lemsView button has been pressed"""
+        
+        print_v("lemsView button was clicked.")
+        
+        self.update_net_sim()
+        self.tabs.setCurrentWidget(self.all_tabs[self.LEMS_VIEW_TAB])
+        self.update_net_sim()
+        from neuromllite.NetworkGenerator import generate_neuroml2_from_network
+        
+        from neuromllite.NetworkGenerator import generate_and_run
+       
+        lems_file_name = generate_and_run(self.simulation,
+                                          simulator='jNeuroML_norun',
+                                          network=self.network,
+                                          return_results=False,
+                                          base_dir=self.sim_base_dir)
+                                          
+        post_args = "-graph"
+
+        from pyneuroml.pynml import run_jneuroml
+        run_jneuroml("", 
+                     lems_file_name, 
+                     post_args, 
+                     verbose = True)
+                     
+        lems_view_file = lems_file_name.replace('.xml','.png')
+                    
+        self.add_image(lems_view_file, self.LEMS_VIEW_TAB)   
+        
+        
+    def show3Dimage(self):
+        """Generate 3D view button has been pressed"""
+        
+        print_v("image3D button was clicked.")
+        
+        self.update_net_sim()
+        self.tabs.setCurrentWidget(self.all_tabs[self.IMAGE_3D_TAB])
+
+        from neuromllite.NetworkGenerator import generate_neuroml2_from_network
+        
+        nml_file_name, nml_doc = generate_neuroml2_from_network(self.network, 
+                                   print_summary=True, 
+                                   format='xml', 
+                                   base_dir=None,
+                                   copy_included_elements=False,
+                                   target_dir=None,
+                                   validate=False,
+                                   simulation=self.simulation)
+                                          
+        post_args = "-png"
+
+        from pyneuroml.pynml import run_jneuroml
+        run_jneuroml("", 
+                     nml_file_name, 
+                     post_args, 
+                     verbose = True)
+                     
+        nml_view_file = nml_file_name.replace('.nml','.png')
+                    
+        self.add_image(nml_view_file, self.IMAGE_3D_TAB)               
+                                   
+        
+    
     def showGraph(self):
         """Generate graph buttom has been pressed"""
         
         print_v("Graph button was clicked.")
         
         self.update_net_sim()
-        self.tabs.setCurrentWidget(self.graphTab)
+        self.tabs.setCurrentWidget(self.all_tabs[self.GRAPH_TAB])
         
         from neuromllite.GraphVizHandler import GraphVizHandler
         
@@ -558,27 +734,23 @@ class NMLliteUI(QWidget):
         from neuromllite.NetworkGenerator import generate_network
         generate_network(self.network, handler, always_include_props=True, base_dir='.')
     
-        print_v("Done with GraphViz...")
+        print_("Done with GraphViz...", self.verbose)
         
         if format == 'svg':
             genFile = '%s.gv.svg' % self.network.id
-
+            
+            self.add_image(genFile, self.GRAPH_TAB)
+            '''
             svgWidget = QSvgWidget(genFile)
             svgWidget.resize(svgWidget.sizeHint())
             svgWidget.show()
-            self.graphTabLayout.addWidget(svgWidget, 0, 0)
+            self.graphTabLayout.addWidget(svgWidget, 0, 0)'''
             
         elif format == 'png':
             genFile = '%s.gv.png' % self.network.id
 
-            label = QLabel()
-            pixmap = QPixmap(genFile)
-            pixmap = pixmap.scaledToWidth(min(pixmap.width(), 800), Qt.SmoothTransformation)
-            label.setPixmap(pixmap)
-            #self.resize(pixmap.width(),pixmap.height())
-            if self.graphTabLayout.count() > 0:
-                self.graphTabLayout.itemAt(0).widget().setParent(None)
-            self.graphTabLayout.addWidget(label, 0, 0)
+            self.add_image(genFile, self.GRAPH_TAB)
+    
         
         
     def update_net_sim(self):
@@ -594,7 +766,7 @@ class NMLliteUI(QWidget):
                 except:
                     pass # leave as string...
                 
-            print_v('Setting param %s to %s' % (p, v))
+            print_('Setting param %s to %s' % (p, v), self.verbose)
             if p=='seed':
                 self.network.seed = v
             elif p=='temperature':
@@ -602,11 +774,11 @@ class NMLliteUI(QWidget):
             else:
                 self.network.parameters[p] = v
             
-        print_v('All params: %s' % self.network.parameters)
+        print_('All params: %s' % self.network.parameters, self.verbose)
 
         for s in self.sim_entries:
             v = float(self.sim_entries[s].text())
-            print_v('Setting simulation variable %s to %s' % (s, v))
+            print_('Setting simulation variable %s to %s' % (s, v), self.verbose)
             self.simulation.__setattr__(s, v)
         
          
@@ -614,7 +786,7 @@ class NMLliteUI(QWidget):
         """Run a simulation in the chosen simulator"""
         
         simulator = str(self.simulatorComboBox.currentText())
-        print_v("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
+        print("Run button was clicked. Running simulation %s in %s with %s" % (self.simulation.id, self.sim_base_dir, simulator))
 
         self.tabs.setCurrentWidget(self.simTab)
         
@@ -623,13 +795,16 @@ class NMLliteUI(QWidget):
 
         from neuromllite.NetworkGenerator import generate_and_run
         #return
-        self.current_traces, self.current_events = generate_and_run(self.simulation,
-                                          simulator=simulator,
-                                          network=self.network,
-                                          return_results=True,
-                                          base_dir=self.sim_base_dir)
-                                          
-        self.replotSimResults()
+        try:
+            self.current_traces, self.current_events = generate_and_run(self.simulation,
+                                              simulator=simulator,
+                                              network=self.network,
+                                              return_results=True,
+                                              base_dir=self.sim_base_dir)
+
+            self.replotSimResults()
+        except Exception as e:
+            self.dialog_popup('Error: %s'%e)
         
         
     def _get_sorted_population_ids(self, include_input_pops = True):
@@ -660,10 +835,77 @@ class NMLliteUI(QWidget):
             
         return pop_id, cell_id
 
+        
+    def traceSelect(self):
+        
+        print_v("traceSelect button was clicked. Traces shown: %s; colours: %s"%(self.current_traces_shown,self.current_traces_colours))
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Select which traces to plot")
+        
+        QBtn = QDialogButtonBox.Ok # | QDialogButtonBox.Cancel
+        
+        buttonBox = QDialogButtonBox(QBtn)
+        buttonBox.accepted.connect(dialog.accept)
+
+        layout = QGridLayout()
+        dialog.setLayout(layout)
+        
+        count = 0
+        self.all_cbs = {}
+        
+        for key in sorted(self.current_traces.keys()):
+            if key != 't':
+                self.all_cbs[key] = QCheckBox(key)
+                self.all_cbs[key].setChecked(self.current_traces_shown[key])
+                self.all_cbs[key].stateChanged.connect(partial(self.traceSelectClicked,key))
+                color_button = QPushButton("%s"%self.current_traces_colours[key])
+                style = 'QPushButton {background-color: %s; color: black;}'%self.current_traces_colours[key]
+                color_button.setStyleSheet(style)
+                
+                layout.addWidget(color_button,count,0)
+                layout.addWidget(self.all_cbs[key],count,1)
+                count+=1
+            
+        layout.addWidget(buttonBox,count,1)
+        dialog.exec_()
+        self.replotSimResults()
+            
+            
+    def traceSelectClicked(self, key):
+
+        cb = self.all_cbs[key]
+        #print('Clicked: %s, %s, key: %s'%(cb.text(),cb.isChecked(), key))
+        self.current_traces_shown[key] = cb.isChecked()
+        
+        
+    def _eval_at_all(self, expr, parameters, traces):
+        tr_present = []
+        for t in traces:
+            if t !='t' and t in expr:
+                tr_present.append(t)
+                
+        ret_val = []
+        
+        num_vals = len(traces[tr_present[0]])
+        print_('Evaluating %s with traces: %s (%i values) and params: %s'%(expr, tr_present, num_vals, parameters.keys()), self.verbose)
+            
+        for i in range(num_vals):
+            noo = expr
+            for t in tr_present:
+                noo = noo.replace(t,str(traces[tr_present[0]][i]))
+                #print_v('%i: %s -> %s'%(i, expr, noo))
+            
+            r = evaluate(noo, parameters)
+            ret_val.append(float(r))
+        print_('Generated: %s->%s (#%s)'%(ret_val[0],ret_val[-1], len(ret_val)), self.verbose)
+        return ret_val
+     
 
     def replotSimResults(self):
         
         simulator = str(self.simulatorComboBox.currentText())
+        self.traceSelectButton.setEnabled(True)
 
         info = "Data from sim of %s%s" \
             % (self.simulation.id, ' (%s)' % simulator 
@@ -691,24 +933,38 @@ class NMLliteUI(QWidget):
         
         for key in sorted(self.current_traces.keys()):
 
+            if not key in self.current_traces_shown:
+                self.current_traces_shown[key] = True
+                
             if key != 't':
                 heat_array.append(self.current_traces[key])
                 pop_id = key.split('/')[0]
-                if pop_id in pop_colors and not pop_colors[pop_id] in colors_used:
-                    colors.append(pop_colors[pop_id])
-                    colors_used.append(pop_colors[pop_id])
-                else:
-                    if key in self.backup_colors:
-                        colors.append(self.backup_colors[key])
+                
+                if self.current_traces_shown[key]:
+                    chosen_color = None
+
+                    if key in self.current_traces_colours:
+                        #print 'using stored for %s'%key
+                        chosen_color = self.current_traces_colours[key]
+                        colors.append(chosen_color)
                     else:
-                        c = get_next_hex_color()
-                        colors.append(c)
-                        self.backup_colors[key] = c
-                        
+                        #print 'using new for %s'%key
+                        if pop_id in pop_colors and not pop_colors[pop_id] in colors_used:
+                            chosen_color = pop_colors[pop_id]
+                            colors_used.append(pop_colors[pop_id])
+                        else:
+                            if key in self.backup_colors:
+                                chosen_color = self.backup_colors[key]
+                            else:
+                                chosen_color = get_next_hex_color()
+                                self.backup_colors[key] = chosen_color
+
+                        colors.append(chosen_color)
+                        self.current_traces_colours[key] = chosen_color
                     
-                xs.append(self.current_traces['t'])
-                ys.append(self.current_traces[key])
-                labels.append(key)
+                    xs.append(self.current_traces['t'])
+                    ys.append(self.current_traces[key])
+                    labels.append(key)
 
         ax_traces = self.tracesFigure.add_subplot(111)
         ax_traces.clear()
@@ -728,15 +984,16 @@ class NMLliteUI(QWidget):
         ax_heatmap = self.heatmapFigure.add_subplot(111)
         ax_heatmap.clear()
         
-        cm = matplotlib.cm.get_cmap('jet')
-        hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
-        #cbar = ax_heatmap.colorbar(im)
-        
-        if self.heatmapColorbar == None:
-            self.heatmapColorbar = self.heatmapFigure.colorbar(hm)
-            self.heatmapColorbar.set_label('Firing rate')
-        
-        self.heatmapCanvas.draw()
+        if len(heat_array)>0:
+            cm = matplotlib.cm.get_cmap('jet')
+            hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
+            #cbar = ax_heatmap.colorbar(im)
+
+            if self.heatmapColorbar == None:
+                self.heatmapColorbar = self.heatmapFigure.colorbar(hm)
+                self.heatmapColorbar.set_label('Firing rate')
+
+            self.heatmapCanvas.draw()
         
         
         ## Plot 2D 
@@ -749,15 +1006,51 @@ class NMLliteUI(QWidget):
                 
                 ax_2d = fig.add_subplot(111)
                 ax_2d.clear()
+                    
+                x_axes = info['x_axis']
+                y_axes = info['y_axis']
                 
-                ax_2d.set_xlabel(info['x_axis'])
-                ax_2d.set_ylabel(info['y_axis'])
-        
-                print('Plotting for %s in %s: %s'%(plot2D, fig, info))
-                print self.current_traces.keys()
-                xs = self.current_traces[info['x_axis']]
-                ys = self.current_traces[info['y_axis']]
-                ax_2d.plot(xs,ys, linewidth=0.5)
+                if not type(x_axes) == dict:
+                    x_axes = {plot2D:x_axes}
+                    y_axes = {plot2D:y_axes}
+                    
+                for a in x_axes:
+                    x_axis = x_axes[a]
+                    y_axis = y_axes[a]
+
+                    ax_2d.set_xlabel(x_axis)
+                    ax_2d.set_ylabel(y_axis)
+
+                    print_('Plotting %s for %s in %s: %s'%(a,plot2D, fig, info), self.verbose)
+
+                    if x_axis in self.current_traces.keys():
+                        xs = self.current_traces[x_axis]
+                    else:
+                        xs = self._eval_at_all(x_axis, self.network.parameters, self.current_traces)
+                    if y_axis in self.current_traces.keys():
+                        ys = self.current_traces[y_axis]
+                    else:
+                        ys = self._eval_at_all(y_axis, self.network.parameters, self.current_traces)
+                        
+                    ax_2d.plot(xs,ys, linewidth=0.5, label=a)
+
+                    from pyneuroml.analysis.NML2ChannelAnalysis import get_colour_hex
+                    
+                    num_points = len(xs)
+                    tot_dots = 2
+                    if a!='a':
+                        tot_dots=2
+                    for i in range(tot_dots):
+                        fract = i/float(tot_dots-1)
+
+                        index = int(num_points*fract)
+                        if index>=num_points:
+                            index = -1
+                        c = '%s'%get_colour_hex(fract, (0, 255, 0), (255, 0, 0))
+                        #print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
+                        m = 4 if index==0 or index==-1 else 2
+                        ax_2d.plot(xs[index],ys[index], 'o', color=c, markersize=m)
+                fig.legend()
                 
                 self.all_canvases[plot2D].draw()
         
@@ -778,6 +1071,20 @@ class NMLliteUI(QWidget):
                 ys = self.current_traces[info['y_axis']]
                 zs = self.current_traces[info['z_axis']]
                 
+                
+                num_points = len(xs)
+                tot_dots = 300
+                for i in range(tot_dots):
+                    fract = i/float(tot_dots-1)
+                    
+                    index = int(num_points*fract)
+                    if index>=num_points:
+                        index = -1
+                    c = '%s'%get_colour_hex(fract, (0, 255, 0), (255, 0, 0))
+                    #print('Point %s/%s, fract %s, index %i, %s'%(i,tot_dots, fract,index, c))
+                    m = 4 if index==0 or index==-1 else 1.5
+                    ax_3d.plot([xs[index]],[ys[index]],[zs[index]], 'o', color=c, markersize=m)
+                    
                 ax_3d.plot(xs,ys,zs, linewidth=0.5)
                 ax_3d.set_xlabel(info['x_axis'])
                 ax_3d.set_ylabel(info['y_axis'])
@@ -832,7 +1139,7 @@ class NMLliteUI(QWidget):
             else:
                 max_id_here = max(ids_for_pop[pop_id]) if len(ids_for_pop[pop_id])>0 else 0
                 
-            print_v('Finished with spikes for %s, go from %i with max %i'%(pop_id, max_id, max_id_here))
+            print_('Finished with spikes for %s, go from %i with max %i'%(pop_id, max_id, max_id_here), self.verbose)
             max_id += max_id_here
             
         ax_spikes.set_xlabel('Time (s)')
@@ -854,7 +1161,7 @@ class NMLliteUI(QWidget):
         ax_pop_rate.clear()
         
         rates = {}
-        print_v('Generating rates from %s'%self.current_events.keys())
+        print_('Generating rates from %s'%self.current_events.keys(), self.verbose)
         
         xs = []
         labels = []
@@ -877,7 +1184,7 @@ class NMLliteUI(QWidget):
             pop_id, cell_id = self._get_pop_id_cell_id(k)
             if pop_id in pops_to_use:
                 rate = 1000*len(spikes)/self.simulation.duration
-                print_v('%s: %s[%s] has %s spikes, so %s Hz'%(k, pop_id, cell_id, len(spikes), rate))
+                print_('%s: %s[%s] has %s spikes, so %s Hz'%(k, pop_id, cell_id, len(spikes), rate), self.verbose)
                 rates[pop_id].append(rate)
         
         avg_rates = []
@@ -888,7 +1195,7 @@ class NMLliteUI(QWidget):
             avg_rates.append(np.mean(rates[pop_id]) if len(rates[pop_id])>0 else 0)
             sd_rates.append(np.std(rates[pop_id]) if len(rates[pop_id])>0 else 0)
         
-        print('Rates: %s; means: %s; stds: %s'%(rates,avg_rates,sd_rates))
+        print_v('Calculated rates: %s; means: %s; stds: %s'%(rates,avg_rates,sd_rates))
         
         bars = ax_pop_rate.bar(xs, avg_rates, yerr=sd_rates)
         
@@ -903,14 +1210,17 @@ class NMLliteUI(QWidget):
         
         self.all_canvases[self.SPIKES_POP_RATE_AVE].draw()
                 
-        print_v('Done with plotting!')
+        print_v('Finished plotting')
     
 
 def main():
     """Main run method"""
+    
+    if len(sys.argv)==1:
+        usage()
+        exit()
 
     app = QApplication(sys.argv)
-    
     nml_sim_file = sys.argv[1]
 
     nmlui = NMLliteUI(nml_sim_file)
@@ -918,6 +1228,18 @@ def main():
 
     sys.exit(app.exec_())
 
+def usage():
+    
+    from neuromllite import __version__ as version
+    MAIN_CLA = 'nmllite-ui'
+    USAGE = '''
+NMLlite-UI v{0}: A GUI for loading NeuroMLlite files    
+
+Usage:
+    {1} Sim_xxx.json  
+         Load a NeuroMLlite file containing a Simulation, which refers to the Network to run
+    '''.format(version, MAIN_CLA)
+    print(USAGE)
 
 if __name__ == '__main__':
     main()

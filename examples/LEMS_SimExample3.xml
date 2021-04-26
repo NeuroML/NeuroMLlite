@@ -2,7 +2,7 @@
     
     <!-- 
 
-        This LEMS file has been automatically generated using PyNeuroML v0.3.19 (libNeuroML v0.2.47)
+        This LEMS file has been automatically generated using PyNeuroML v0.5.13 (libNeuroML v0.2.56)
 
      -->
     
@@ -22,24 +22,24 @@
     <Simulation id="SimExample3" length="1000.0ms" step="0.025ms" target="Example3_Network" seed="5678">  <!-- Note seed: ensures same random numbers used every run -->
         
         <Display id="pop0_v" title="Plots of pop0_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
-            <Line id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
-            <Line id="pop0_1_hhcell_v" quantity="pop0/1/hhcell/v" scale="1mV" color="#029a72" timeScale="1ms"/>
-            <Line id="pop0_2_hhcell_v" quantity="pop0/2/hhcell/v" scale="1mV" color="#d340bb" timeScale="1ms"/>
-            <Line id="pop0_3_hhcell_v" quantity="pop0/3/hhcell/v" scale="1mV" color="#4c73a9" timeScale="1ms"/>
-            <Line id="pop0_4_hhcell_v" quantity="pop0/4/hhcell/v" scale="1mV" color="#5e503a" timeScale="1ms"/>
+            <Line id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v" scale="1mV" color="#d54f33" timeScale="1ms"/>
+            <Line id="pop0_1_hhcell_v" quantity="pop0/1/hhcell/v" scale="1mV" color="#0534e4" timeScale="1ms"/>
+            <Line id="pop0_2_hhcell_v" quantity="pop0/2/hhcell/v" scale="1mV" color="#98e752" timeScale="1ms"/>
+            <Line id="pop0_3_hhcell_v" quantity="pop0/3/hhcell/v" scale="1mV" color="#bca074" timeScale="1ms"/>
+            <Line id="pop0_4_hhcell_v" quantity="pop0/4/hhcell/v" scale="1mV" color="#632794" timeScale="1ms"/>
         </Display>
         
         <Display id="pop1_v" title="Plots of pop1_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
-            <Line id="pop1_0_hhcell_v" quantity="pop1/0/hhcell/v" scale="1mV" color="#3193ca" timeScale="1ms"/>
-            <Line id="pop1_1_hhcell_v" quantity="pop1/1/hhcell/v" scale="1mV" color="#90e5e9" timeScale="1ms"/>
-            <Line id="pop1_2_hhcell_v" quantity="pop1/2/hhcell/v" scale="1mV" color="#29645f" timeScale="1ms"/>
-            <Line id="pop1_3_hhcell_v" quantity="pop1/3/hhcell/v" scale="1mV" color="#1fcff4" timeScale="1ms"/>
-            <Line id="pop1_4_hhcell_v" quantity="pop1/4/hhcell/v" scale="1mV" color="#6ed4e9" timeScale="1ms"/>
-            <Line id="pop1_5_hhcell_v" quantity="pop1/5/hhcell/v" scale="1mV" color="#8fe460" timeScale="1ms"/>
-            <Line id="pop1_6_hhcell_v" quantity="pop1/6/hhcell/v" scale="1mV" color="#2ca1c7" timeScale="1ms"/>
-            <Line id="pop1_7_hhcell_v" quantity="pop1/7/hhcell/v" scale="1mV" color="#8d9fe5" timeScale="1ms"/>
-            <Line id="pop1_8_hhcell_v" quantity="pop1/8/hhcell/v" scale="1mV" color="#5adad1" timeScale="1ms"/>
-            <Line id="pop1_9_hhcell_v" quantity="pop1/9/hhcell/v" scale="1mV" color="#f543bb" timeScale="1ms"/>
+            <Line id="pop1_0_hhcell_v" quantity="pop1/0/hhcell/v" scale="1mV" color="#8a5d88" timeScale="1ms"/>
+            <Line id="pop1_1_hhcell_v" quantity="pop1/1/hhcell/v" scale="1mV" color="#df5954" timeScale="1ms"/>
+            <Line id="pop1_2_hhcell_v" quantity="pop1/2/hhcell/v" scale="1mV" color="#52c8bf" timeScale="1ms"/>
+            <Line id="pop1_3_hhcell_v" quantity="pop1/3/hhcell/v" scale="1mV" color="#bf0239" timeScale="1ms"/>
+            <Line id="pop1_4_hhcell_v" quantity="pop1/4/hhcell/v" scale="1mV" color="#3f9fe8" timeScale="1ms"/>
+            <Line id="pop1_5_hhcell_v" quantity="pop1/5/hhcell/v" scale="1mV" color="#dda9d2" timeScale="1ms"/>
+            <Line id="pop1_6_hhcell_v" quantity="pop1/6/hhcell/v" scale="1mV" color="#85ad96" timeScale="1ms"/>
+            <Line id="pop1_7_hhcell_v" quantity="pop1/7/hhcell/v" scale="1mV" color="#59438f" timeScale="1ms"/>
+            <Line id="pop1_8_hhcell_v" quantity="pop1/8/hhcell/v" scale="1mV" color="#5fa56f" timeScale="1ms"/>
+            <Line id="pop1_9_hhcell_v" quantity="pop1/9/hhcell/v" scale="1mV" color="#b5b5a2" timeScale="1ms"/>
         </Display>
         
         <OutputFile id="SimExample3_pop0_v_dat" fileName="SimExample3.pop0.v.dat">

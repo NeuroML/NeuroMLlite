@@ -57,16 +57,24 @@ python Example8.py
 #python Example8.py -jnmlnrn
 #python Example8.py -jnml
 
+jnml -validate *nml  # All until now should be valid...
 
 echo
 echo "**** Running Example 9 ****"
 python Example9.py
+python Example9.py -jnml
+
 
 echo
 echo "**** Running Example 10 ****"
 python Example10.py
+python Example10.py -jnml
 
-jnml -validate *nml
+echo
+echo "**** Running Example 11 ****"
+python Example11.py
+python Example11.py -jnml
+
 
 cd ../neuromllite/test
 
