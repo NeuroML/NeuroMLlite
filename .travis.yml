@@ -13,6 +13,7 @@ addons:
     - python-sympy
     - python-tables
     - python-tornado
+    - python-nose
     - python-tk
     - libreadline6-dev
     - libncurses5-dev
@@ -55,6 +56,11 @@ install:
 
 
 script:
+
+    # Nosetests
+    - cd neuromllite/test/
+    - nosetests -vs
+    - cd -
 
     # Basic test
     - cd examples

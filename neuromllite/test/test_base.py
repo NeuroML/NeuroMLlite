@@ -107,6 +107,7 @@ class TestCustomSaveLoad(unittest.TestCase):
 
         rc = NewRandomConnectivity(probability=0.01)
         net.random_connectivity = rc
+        net.stable = False
         print(rc)
         print(net)
 
@@ -115,12 +116,13 @@ class TestCustomSaveLoad(unittest.TestCase):
         except Exception as e:
             print('  As expected, an exception: [%s]...'%e)
 
+        str_orig = str(net)
 
         filenamej = '%s.json'%net.id
         net.to_json_file(filenamej)
 
         filenamey = '%s.yaml'%net.id
-        net.id = net.id+'_yaml'
+        #net.id = net.id+'_yaml'
         net.to_yaml_file(filenamey)
         from neuromllite.utils import load_json, load_yaml, _parse_element
 
@@ -128,20 +130,26 @@ class TestCustomSaveLoad(unittest.TestCase):
         print_v("Loaded network specification from %s"%filenamej)
         netj = NewNetwork()
         _parse_element(dataj, netj)
+        str_netj = str(netj)
 
         datay = load_yaml(filenamey)
         print_v("Loaded network specification from %s"%filenamey)
 
         nety = NewNetwork()
         _parse_element(datay, nety)
+        str_nety = str(nety)
+
 
         verbose = False
         print('----- Before -----')
-        print(net)
+        print(str_orig)
         print('----- After via %s -----'%filenamej)
-        print(netj)
+        print(str_netj)
         print('----- After via %s -----'%filenamey)
-        print(nety)
+        print(str_nety)
+
+        assert(str_orig==str_netj)
+        assert(str_orig==str_nety)
 
 
 class TestBaseSaveLoad(unittest.TestCase):

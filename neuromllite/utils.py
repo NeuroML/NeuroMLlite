@@ -8,7 +8,7 @@ import numpy as np
 
 from neuromllite.BaseTypes import print_v, print_
 
-verbose = False
+verbose = True
 
 def load_json(filename):
     """
@@ -115,7 +115,7 @@ def _parse_attributes(dict_format, to_build):
                     exec('to_build.%s.append(ff)'%key)
                     #for c in
             else:
-                if type(value)==str or type(value)==int or type(value)==float:
+                if type(value)==str or type(value)==int or type(value)==float or type(value)==bool:
                     to_build.__setattr__(key, value)
                 else:
                     type_to_use = to_build.allowed_fields[key][1]

@@ -96,6 +96,7 @@ class Base(object):
     def _is_base_type(cls, value, can_be_list=False, can_be_dict=False, can_be_eval_expr=False):
         return value==int or \
                value==str or \
+               value==bool or \
                value==float or \
                (can_be_list and value==list) or \
                (can_be_dict and value==dict) or \
