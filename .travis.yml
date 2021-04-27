@@ -13,6 +13,7 @@ addons:
     - python-sympy
     - python-tables
     - python-tornado
+    - python-nose
     - python-tk
     - libreadline6-dev
     - libncurses5-dev
@@ -42,7 +43,7 @@ install:
     # Check to see if on development/experimental branches
     - export jnml_branches="development"
     - export pynml_branch="master"
-    - if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
+    #- if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
     - echo "Will use jNeuroML from branches $jnml_branches"
     - echo "Will use pyNeuroML from branch $pynml_branch"
 
@@ -55,6 +56,7 @@ install:
 
 
 script:
+
 
     # Basic test
     - cd examples
@@ -98,3 +100,9 @@ script:
     #- ./regenerateAndTest.sh  #############   Nest is installed correctly from above??
 
     #- omv list -V
+
+
+    # Nosetests
+    - cd $TRAVIS_BUILD_DIR/neuromllite/test/
+    - nosetests -vs
+    - cd -

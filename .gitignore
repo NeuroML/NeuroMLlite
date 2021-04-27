@@ -179,3 +179,5 @@ report*.txt
 /examples/arbor/LEMS_SimArborExample.xml
 /test.sh
 /neuromllite/netid.json
+/neuromllite/test/netid.json
+/neuromllite/test/netid.yaml
