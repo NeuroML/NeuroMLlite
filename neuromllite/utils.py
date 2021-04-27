@@ -8,7 +8,7 @@ import numpy as np
 
 from neuromllite.BaseTypes import print_v, print_
 
-verbose = True
+verbose = False
 
 def load_json(filename):
     """
