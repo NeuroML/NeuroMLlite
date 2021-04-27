@@ -57,10 +57,6 @@ install:
 
 script:
 
-    # Nosetests
-    - cd neuromllite/test/
-    - nosetests -vs
-    - cd -
 
     # Basic test
     - cd examples
@@ -104,3 +100,9 @@ script:
     #- ./regenerateAndTest.sh  #############   Nest is installed correctly from above??
 
     #- omv list -V
+
+
+    # Nosetests
+    - cd neuromllite/test/
+    - nosetests -vs
+    - cd -
