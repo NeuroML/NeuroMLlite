@@ -39,6 +39,7 @@ install:
     - pip install scipy
     - pip install matplotlib # This is more because Matplotlib v2.x is required...
     - pip install .
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; pip install cachetools==4.2.1 ; fi
 
     # Check to see if on development/experimental branches
     - export jnml_branches="development"
