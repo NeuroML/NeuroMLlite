@@ -71,7 +71,8 @@ class TestCustomSaveLoad(unittest.TestCase):
 
             def __init__(self, **kwargs):
 
-                self.allowed_fields = collections.OrderedDict([('neuroml2_source_file',('File name of NeuroML2 file',str))])
+                self.allowed_fields = collections.OrderedDict([('neuroml2_source_file',('File name of NeuroML2 file',str)),
+                                                               ('tested',('Is it tested?',bool))])
 
                 super(NewSynapse, self).__init__(**kwargs)
 
@@ -104,6 +105,12 @@ class TestCustomSaveLoad(unittest.TestCase):
         '''  '''
         net.cells.append(cell)
         net.cells.append(cell2)
+
+        syn0 = NewSynapse(id='syn0',neuroml2_source_file=None, tested=True)
+        net.synapses.append(syn0)
+        syn1 = NewSynapse(id='syn1',neuroml2_source_file='xx', tested=None)
+        net.synapses.append(syn1)
+
 
         rc = NewRandomConnectivity(probability=0.01)
         net.random_connectivity = rc
@@ -212,3 +219,12 @@ class TestBaseSaveLoad(unittest.TestCase):
 
             self.assertEqual(str0, str1)
             self.assertEqual(json0, json1)
+
+
+
+if __name__ == '__main__':
+
+    # Some tests
+    tc = TestCustomSaveLoad()
+
+    tc.test_save_load_json()
