@@ -74,7 +74,10 @@ def save_to_json_file(info_dict, filename, indent=4):
 
 def save_to_yaml_file(info_dict, filename, indent=4):
 
-    stry = yaml.dump(info_dict,indent=indent ,sort_keys=False)
+    if sys.version_info[0]==2:
+        stry = yaml.dump(info_dict,indent=indent, default_flow_style=False)
+    else:
+        stry = yaml.dump(info_dict,indent=indent, sort_keys=False)
     with open(filename, 'w') as fp:
         fp.write(stry)
 

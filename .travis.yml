@@ -38,6 +38,7 @@ install:
     - pip install tables
     - pip install scipy
     - pip install matplotlib # This is more because Matplotlib v2.x is required...
+    - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install cachetools==3.1.1 ; fi
     - pip install .
 
     # Check to see if on development/experimental branches
@@ -61,6 +62,7 @@ script:
     # Basic test
     - cd examples
     - python Example2.py # test one example...
+    - python Example4.py # test another example...
     - cd ..
 
     # Only run OMV tests on Python 2 (for now)

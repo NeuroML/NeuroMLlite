@@ -1,5 +1,6 @@
 import collections
 import json
+import sys
 from collections import OrderedDict
 
 verbose = False
@@ -193,7 +194,11 @@ class Base(object):
         if verbose:
             print('Converted to dict:')
             pp.pprint(dict(d))
-        ret = yaml.dump(d,indent=len(indent),sort_keys=False)
+
+        if sys.version_info[0]==2:
+            ret = yaml.dump(d,indent=len(indent), default_flow_style=False)
+        else:
+            ret = yaml.dump(d,indent=len(indent),sort_keys=False)
         if verbose: print("OD to yaml: [%s]"%ret)
 
         return ret
