@@ -61,6 +61,7 @@ script:
     # Basic test
     - cd examples
     - python Example2.py # test one example...
+    - python Example4.py # test another example...
     - cd ..
 
     # Only run OMV tests on Python 2 (for now)
