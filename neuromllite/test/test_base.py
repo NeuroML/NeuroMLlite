@@ -53,6 +53,7 @@ class TestCustomSaveLoad(unittest.TestCase):
                 self.allowed_fields = collections.OrderedDict([('version',('Information on verson of NeuroMLlite',str)),
                                                                ('seed',('Seed for random number generator used when building network',int)),
                                                                ('stable',('Testing...',bool)),
+                                                               ('parameters',('Dictionary of global parameters for the network',dict)),
                                                                ('random_connectivity',('Use random connectivity',NewRandomConnectivity))])
 
                 super(NewNetwork, self).__init__(**kwargs)
@@ -92,7 +93,7 @@ class TestCustomSaveLoad(unittest.TestCase):
 
 
 
-        net = NewNetwork(id='netid')
+        net = NewNetwork(id='netid', parameters={'size':3,'name':None})
         cell = NewCell(id='cellid1')
         cell.neuroml2_source_file = 'nnn'
         cell2 = NewCell(id='cellid2')

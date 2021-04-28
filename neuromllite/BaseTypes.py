@@ -133,6 +133,8 @@ class Base(object):
         if verbose: print(' ====   to_dict_format: [%s]'%var)
         if cls._is_base_type(type(var)): # e.g. into float, str
             return var
+        elif var is None:
+            return var
         elif type(var) == list:
             l = []
             for v in var:
