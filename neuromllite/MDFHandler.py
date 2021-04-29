@@ -10,6 +10,7 @@ from neuromllite.utils import save_to_json_file
 from neuromllite.utils import save_to_yaml_file
 from neuromllite.utils import locate_file
 from neuromllite.utils import evaluate
+from pyneuroml.pynml import get_value_in_si
 
 import lems.api as lems  # from pylems
 
@@ -111,6 +112,7 @@ class MDFHandler(DefaultNetworkHandler):
                 base_dir = './' # for now...
 
                 node['parameters'] = {}
+                node['input_ports'] = {}
                 node['output_ports'] = {}
                 if comp is not None and comp.lems_source_file:
                     fname = locate_file(comp.lems_source_file, base_dir)
@@ -124,18 +126,40 @@ class MDFHandler(DefaultNetworkHandler):
                     lems_comp_type = model.component_types.get(comp_type_name)
                     notes = 'Cell: [%s] is defined in %s and in Lems is: %s'%(comp, fname, lems_comp)
 
-                    print(notes)
                     node['notes'] = notes
+
                     for p in lems_comp.parameters:
-                        node['parameters'][p] = lems_comp.parameters[p]
+                        node['parameters'][p] = evaluate(lems_comp.parameters[p])
+
+                    for c in lems_comp_type.constants:
+                        node['parameters'][c.name] = get_value_in_si(c.value)
 
 
-                    for e in self._get_all_children_in_lems(lems_comp_type, model, 'exposure'):
-                        print(e)
-                        if e.name!='INPUT':
-                            node['output_ports'][e.name] = {'value':e.name}
+                    for dv in lems_comp_type.dynamics.derived_variables:
 
-                    #for dv in lems_comp_type.
+                        if dv.name=='INPUT':
+                            node['input_ports'][dv.name] = {}
+                        else:
+                            if dv.exposure:
+                                #<DerivedVariable name="OUTPUT" dimension="none" exposure="OUTPUT" value="variable"/>
+                                node['output_ports'][dv.exposure] = {'value':evaluate(dv.value)}
+
+                    if len(lems_comp_type.dynamics.state_variables)>0:
+                        node['states'] = {}
+
+                    for sv in lems_comp_type.dynamics.state_variables:
+                        node['states'][sv.name] = {}
+
+                    print(dir(lems_comp_type.dynamics))
+
+                    for os in lems_comp_type.dynamics.event_handlers:
+                        if type(os)==lems.OnStart:
+                            for a in os.actions:
+                                if type(a)==lems.StateAssignment:
+                                    node['states'][a.variable]['default_initial_value'] = a.value
+
+                    for td in lems_comp_type.dynamics.time_derivatives:
+                        node['states'][td.variable]['time_derivative'] = td.value
 
 
 
@@ -265,8 +289,8 @@ class MDFHandler(DefaultNetworkHandler):
         #edge['type']['NeuroML'] = synapseType
         #edge['parameters'] = {}
         #edge['functions'] = {}
-        edge['sender_port'] = 'OutputPort'
-        edge['receiver_port'] = 'InputPort'
+        edge['sender_port'] = 'OUTPUT'
+        edge['receiver_port'] = 'INPUT'
         edge['sender'] = pre_node_id
         edge['receiver'] = post_node_id
         edge['weight'] = weight
