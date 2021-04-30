@@ -83,6 +83,16 @@ class MDFHandler(DefaultNetworkHandler):
         self.mdf_graph_hl['parameters'] = {}
         self.mdf_info_hl["graphs"].append(self.mdf_graph_hl)'''
 
+    def _convert_value(self, val):
+
+        funcs = ['exp']
+        for f in funcs:
+            if '%s('%f in val:
+                val = val.replace('%s('%f, 'math.%s('%f)
+
+        val = evaluate(val) # catch if it's an int etc.
+        return val
+
 
     def handle_population(self,
                           population_id,
@@ -142,7 +152,7 @@ class MDFHandler(DefaultNetworkHandler):
                         else:
                             if dv.exposure:
                                 #<DerivedVariable name="OUTPUT" dimension="none" exposure="OUTPUT" value="variable"/>
-                                node['output_ports'][dv.exposure] = {'value':evaluate(dv.value)}
+                                node['output_ports'][dv.exposure] = {'value':self._convert_value(dv.value)}
 
                     if len(lems_comp_type.dynamics.state_variables)>0:
                         node['states'] = {}
@@ -159,7 +169,7 @@ class MDFHandler(DefaultNetworkHandler):
                                     node['states'][a.variable]['default_initial_value'] = a.value
 
                     for td in lems_comp_type.dynamics.time_derivatives:
-                        node['states'][td.variable]['time_derivative'] = td.value
+                        node['states'][td.variable]['time_derivative'] = self._convert_value(td.value)
 
 
 
