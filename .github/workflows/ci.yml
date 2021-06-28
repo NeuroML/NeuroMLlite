@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.7, 3.8, 3.9]
+        python-version: [2.7, 3.7]
 
     steps:
     - uses: actions/checkout@v2
@@ -20,6 +20,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version:  ${{ matrix.python-version }}
+        
     - name: Install package
       run: |
         python -m pip install --upgrade pip
@@ -27,16 +28,17 @@ jobs:
         pip install matplotlib==2.2.5 cachetools==3.1.1 # for testing python 2.7...
         pip install pyelectro
         pip install .
+
     - name: Lint with flake8
       run: |
         flake8 . --count --exit-zero --show-source --max-line-length=127 --statistics
+
     - name: Install correct branch of pyneuroml etc.
       run: |
         env
         # Check to see if on development/experimental branches
         export jnml_branches="development"
         export pynml_branch="master"
-        #- if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
         echo "Will use jNeuroML from branches $jnml_branches"
         echo "Will use pyNeuroML from branch $pynml_branch"
         # Install pyNeuroML
@@ -63,9 +65,9 @@ jobs:
 
     - name: Install some simulators for testing
       run: |
+        if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv install NetPyNE  # includes NEURON
         omv install PyNN
-        omv install PyNEST
 
     - name: Run tests
       run: |
@@ -74,6 +76,7 @@ jobs:
         python Example2.py # test one example...
         python Example4.py # test another example...
         cd ..
+
     - name: OMV final version info
       run: |
         omv list -V # list installed engines
