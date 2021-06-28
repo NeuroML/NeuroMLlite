@@ -20,7 +20,7 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version:  ${{ matrix.python-version }}
-        
+
     - name: Install package
       run: |
         python -m pip install --upgrade pip
@@ -65,6 +65,7 @@ jobs:
 
     - name: Install some simulators for testing
       run: |
+        pip install cython
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv install NetPyNE  # includes NEURON
         omv install PyNN
