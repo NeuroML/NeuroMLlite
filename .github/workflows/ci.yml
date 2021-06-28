@@ -1,0 +1,51 @@
+name: Continuous builds
+
+on:
+  push:
+    branches: [ master, development, experimental ]
+  pull_request:
+    branches: [ master, development, experimental ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [2.7, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python  ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version:  ${{ matrix.python-version }}
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+        pip install .
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --exit-zero --show-source --max-line-length=127 --statistics
+    - name: Install correct branch of pyneuroml etc.
+      run: |
+        # Check to see if on development/experimental branches
+        export jnml_branches="development"
+        export pynml_branch="master"
+        #- if [[ ${TRAVIS_BRANCH} == "experimental" ]]; then jnml_branches=experimental; pynml_branch=experimental ; fi
+        echo "Will use jNeuroML from branches $jnml_branches"
+        echo "Will use pyNeuroML from branch $pynml_branch"
+        # Install pyNeuroML
+        git clone https://github.com/NeuroML/pyNeuroML.git
+        cd pyNeuroML
+        git checkout $pynml_branch
+        python setup.py install
+        cd -
+    - name: Run tests
+      run: |
+        # Basic test
+        cd examples
+        python Example2.py # test one example...
+        python Example4.py # test another example...
+        cd ..

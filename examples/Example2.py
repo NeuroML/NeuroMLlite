@@ -2,7 +2,6 @@ from neuromllite import RandomLayout, Cell, Synapse, InputSource, Input, Rectang
 from neuromllite.NetworkGenerator import generate_network
 from neuromllite.utils import load_network_json
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
-from neuromllite.utils import load_network_json
 
 ################################################################################
 ###   Reuse network from Example1
@@ -23,10 +22,8 @@ r2 = RectangularRegion(id='region2', x=0,y=200,z=0,width=1000,height=100,depth=1
 net.regions.append(r1)
 net.regions.append(r2)
 
-del net.populations[0].fields['unstructured']
-del net.populations[1].fields['unstructured']
-net.populations[0].random_layout = RandomLayout(size=5, region=r1.id)
-net.populations[1].random_layout = RandomLayout(size=10, region=r2.id)
+net.populations[0].random_layout = RandomLayout(region=r1.id)
+net.populations[1].random_layout = RandomLayout(region=r2.id)
 
 net.populations[0].component = 'hhcell'
 net.populations[1].component = 'hhcell'
@@ -47,13 +44,9 @@ new_file = net.to_json_file('%s.json'%net.id)
 
 
 ################################################################################
-###   Export to some formats
-###   Try:
-###        python Example2.py -nml
+###   Use a handler which just prints info on positions, etc.
 
-from neuromllite.NetworkGenerator import check_to_generate_or_run
-from neuromllite import Simulation
-import sys
+def_handler = DefaultNetworkHandler()
 
 generate_network(net, def_handler)
 
@@ -67,3 +60,4 @@ from neuromllite import Simulation
 import sys
 
 check_to_generate_or_run(sys.argv, Simulation(id='SimExample2',network=new_file))
+                               
