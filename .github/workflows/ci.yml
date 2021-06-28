@@ -55,6 +55,7 @@ jobs:
         git checkout $jnml_branches
         python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
         echo "$GITHUB_WORKSPACE/jNeuroML" >> $GITHUB_PATH
+        export PATH=$PATH:$GITHUB_WORKSPACE/jNeuroML
         env
         cd ..
         jnml -v
