@@ -54,9 +54,18 @@ jobs:
         export JNML_HOME=$GITHUB_WORKSPACE/jNeuroML
         cd ..
         jnml -v
+
+    - name: Install OMV
+      run: |
         # Install OMV
         pip install git+https://github.com/OpenSourceBrain/osb-model-validation
         omv list -V  # list all currently known...
+
+    - name: Install some simulators for testing
+      run: |
+        omv install NetPyNE  # includes NEURON
+        omv install PyNN
+        omv install PyNEST
 
     - name: Run tests
       run: |
@@ -65,3 +74,6 @@ jobs:
         python Example2.py # test one example...
         python Example4.py # test another example...
         cd ..
+    - name: OMV final version info
+      run: |
+        omv list -V # list installed engines
