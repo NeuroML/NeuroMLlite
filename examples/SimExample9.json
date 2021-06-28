@@ -1,0 +1,40 @@
+{
+    "SimExample9": {
+        "version": "NeuroMLlite v0.3.2",
+        "network": "Example9_HindmarshRose.json",
+        "duration": 1000000.0,
+        "dt": 25.0,
+        "recordVariables": {
+            "x": {
+                "all": "*"
+            },
+            "y": {
+                "all": "*"
+            },
+            "z": {
+                "all": "*"
+            }
+        },
+        "plots2D": {
+            "X-Y": {
+                "x_axis": "hrPop[0]/x",
+                "y_axis": "hrPop[0]/y"
+            },
+            "Y-Z": {
+                "x_axis": "hrPop[0]/y",
+                "y_axis": "hrPop[0]/z"
+            },
+            "X-Z": {
+                "x_axis": "hrPop[0]/x",
+                "y_axis": "hrPop[0]/z"
+            }
+        },
+        "plots3D": {
+            "X-Y-Z": {
+                "x_axis": "hrPop[0]/x",
+                "y_axis": "hrPop[0]/y",
+                "z_axis": "hrPop[0]/z"
+            }
+        }
+    }
+}

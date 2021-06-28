@@ -1,0 +1,40 @@
+{
+    "SimExample10": {
+        "version": "NeuroMLlite v0.3.2",
+        "network": "Example10_Lorenz.json",
+        "duration": 10000.0,
+        "dt": 1.0,
+        "recordVariables": {
+            "x": {
+                "all": "*"
+            },
+            "y": {
+                "all": "*"
+            },
+            "z": {
+                "all": "*"
+            }
+        },
+        "plots2D": {
+            "X-Y": {
+                "x_axis": "lorenzPop[0]/x",
+                "y_axis": "lorenzPop[0]/y"
+            },
+            "Y-Z": {
+                "x_axis": "lorenzPop[0]/y",
+                "y_axis": "lorenzPop[0]/z"
+            },
+            "X-Z": {
+                "x_axis": "lorenzPop[0]/x",
+                "y_axis": "lorenzPop[0]/z"
+            }
+        },
+        "plots3D": {
+            "X-Y-Z": {
+                "x_axis": "lorenzPop[0]/x",
+                "y_axis": "lorenzPop[0]/y",
+                "z_axis": "lorenzPop[0]/z"
+            }
+        }
+    }
+}

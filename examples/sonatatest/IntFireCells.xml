@@ -1,0 +1,105 @@
+<Lems xmlns="http://www.neuroml.org/lems/0.7.4"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.neuroml.org/lems/0.7.4  https://raw.githubusercontent.com/LEMS/LEMS/master/Schemas/LEMS/LEMS_v0.7.4.xsd"
+      description="Some Integrate and Fire cells and associated synapses.">
+
+    <ComponentType name="impulseSynapse"
+                   extends="baseCurrentBasedSynapse"
+                   description="Syn...">
+
+        <Property name="weight" dimension="none" defaultValue="1"/>
+        
+        <Constant name="PAMPERE" dimension="current" value="1pA"/>
+        <Constant name="TSMALL" dimension="time" value="0.25e-5s"/>
+
+        <Dynamics>
+
+            <StateVariable name="impulse" dimension="none" exposure="i"/>
+            <StateVariable name="tlast" dimension="time"/>
+            
+            <DerivedVariable name="i" exposure="i" dimension="current" value="PAMPERE * impulse"/>
+            
+            <TimeDerivative variable="impulse" value="0"/>
+            <TimeDerivative variable="tlast" value="0"/>
+
+            <OnStart>
+                <StateAssignment variable="impulse" value="0" />
+            </OnStart>
+
+            <OnEvent port="in">
+                <StateAssignment variable="impulse" value="weight" />
+                <StateAssignment variable="tlast" value="t" />
+            </OnEvent>
+            
+            <OnCondition test="t .gt. tlast+TSMALL">
+                <StateAssignment variable="impulse" value="0"/>
+            </OnCondition>
+
+        </Dynamics>
+    </ComponentType>
+    
+    
+    <ComponentType name="intFire1Cell"
+                   extends="baseIaf"
+                   description="Integrate and fire cell ...">
+
+        <Parameter name="tau" dimension="time"/>        
+        <Parameter name="refract" dimension="time"/>
+        
+        <Constant name="MVOLT" dimension="voltage" value="1 mV"/>
+        <Constant name="PAMPERE" dimension="current" value="1pA"/>
+        
+        <Attachments name="synapses" type="basePointCurrent"/>
+        
+        <Exposure name="iSyn" dimension="current" description="Total current due to synaptic inputs"/>
+        
+        <Dynamics>
+            
+            <StateVariable name="v" exposure="v" dimension="voltage"/>
+            <StateVariable name="lastSpikeTime" dimension="time"/>
+            <StateVariable name="scale" dimension="none"/>
+            
+            <DerivedVariable name="iSyn" dimension="current" exposure="iSyn" select="synapses[*]/i" reduce="add" />
+            
+            <OnStart>
+                <StateAssignment variable="v" value="reset"/>
+                <StateAssignment variable="scale" value="0"/>
+            </OnStart>
+
+            <OnCondition test="iSyn .gt. 0">
+                <StateAssignment variable="v" value="v + scale*MVOLT*(iSyn/PAMPERE)"/>
+            </OnCondition>
+                
+            <Regime name="refractory">
+                <OnEntry>
+                    <StateAssignment variable="lastSpikeTime" value="t" />
+                    <StateAssignment variable="v" value="reset" />
+                    <StateAssignment variable="scale" value="0" />
+                </OnEntry>
+                <OnCondition test="t .gt. lastSpikeTime + refract">
+                    <Transition regime="integrating" />
+                </OnCondition>
+            </Regime>
+
+            <Regime name="integrating" initial="true">
+                
+                <TimeDerivative variable="v" value="((reset - v) / tau)"/>
+                <TimeDerivative variable="scale" value="0"/>
+                
+                <OnEntry>
+                    <StateAssignment variable="scale" value="1" />
+                </OnEntry>
+                
+                <OnCondition test="v .gt. thresh">
+                    <EventOut port="spike"/>
+                    <Transition regime="refractory" />
+                </OnCondition>
+
+            </Regime>
+
+        </Dynamics>
+
+    </ComponentType>
+
+
+</Lems>

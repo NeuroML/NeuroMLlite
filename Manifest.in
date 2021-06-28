@@ -1,0 +1,15 @@
+# include readme
+include README.md
+
+# include license file
+LICENSE.lesser
+
+# include everything in examples
+recursive-include examples *
+exclude examples/test_files/cons_locs_pathways_mc0_Column.h5
+
+global-exclude x86_64
+global-exclude *.dat
+global-exclude *.spikes
+global-exclude *.pkl
+global-exclude *.pyc

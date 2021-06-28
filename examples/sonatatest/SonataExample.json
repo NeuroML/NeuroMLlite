@@ -1,0 +1,74 @@
+{
+    "SonataExample": {
+        "version": "NeuroMLlite v0.1.9", 
+        "parameters": {
+            "input_del": 100, 
+            "input_dur": 800, 
+            "input_amp": 0.19
+        }, 
+        "notes": "Example for testing Sonata", 
+        "cells": [
+            {
+                "testcell": {
+                    "pynn_cell": "IF_cond_alpha", 
+                    "parameters": {
+                        "tau_refrac": 3, 
+                        "tau_m": 22.1, 
+                        "i_offset": 0, 
+                        "cm": 0.117, 
+                        "v_thresh": -47, 
+                        "v_rest": -78, 
+                        "v_reset": -50
+                    }
+                }
+            }
+        ], 
+        "input_sources": [
+            {
+                "i_clamp": {
+                    "pynn_input": "DCSource", 
+                    "parameters": {
+                        "start": "input_del", 
+                        "stop": "input_del+input_dur", 
+                        "amplitude": "input_amp"
+                    }
+                }
+            }
+        ], 
+        "regions": [
+            {
+                "region1": {
+                    "x": 0.0, 
+                    "y": 0.0, 
+                    "z": 0.0, 
+                    "width": 1000.0, 
+                    "height": 100.0, 
+                    "depth": 1000.0
+                }
+            }
+        ], 
+        "populations": [
+            {
+                "pop0": {
+                    "size": 2, 
+                    "component": "testcell", 
+                    "properties": {
+                        "color": "1 0 0"
+                    }, 
+                    "random_layout": {
+                        "region": "region1"
+                    }
+                }
+            }
+        ], 
+        "inputs": [
+            {
+                "stim": {
+                    "input_source": "i_clamp", 
+                    "population": "pop0", 
+                    "percentage": 50.0
+                }
+            }
+        ]
+    }
+}

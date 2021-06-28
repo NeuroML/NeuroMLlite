@@ -1,0 +1,16 @@
+{
+    "SimSpikers": {
+        "version": "NeuroMLlite v0.3.2",
+        "network": "Spikers.json",
+        "duration": 10000.0,
+        "dt": 0.025,
+        "recordTraces": {
+            "pop0": "*",
+            "pop1": "*",
+            "pop2": "*"
+        },
+        "recordSpikes": {
+            "all": "*"
+        }
+    }
+}

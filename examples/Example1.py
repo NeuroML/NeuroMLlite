@@ -46,8 +46,7 @@ new_file = net.to_json_file('Example1_%s.json'%net.id)
 
 
 ################################################################################
-###   Export to some formats
-###   Try:
+###   Export to some formats, e.g. try:
 ###        python Example1.py -graph2
 
 from neuromllite.NetworkGenerator import check_to_generate_or_run

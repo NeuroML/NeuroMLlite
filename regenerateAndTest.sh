@@ -11,6 +11,7 @@ python Example1.py
 echo
 echo "**** Running Example 2 ****"
 python Example2.py
+python Example2.py -nml
 
 echo
 echo "**** Running Example 3 ****"
@@ -18,11 +19,12 @@ python Example3.py
 python Example3.py -netpyne
 python Example3.py -jnmlnrn
 python Example3.py -jnmlnetpyne
-python Example3.py -sonata
+#python Example3.py -sonata
 
 echo
 echo "**** Running Example 4 ****"
 python Example4.py
+python Example4.py -netpyne
 python Example4.py -pynnnest
 python Example4.py -pynnnrn
 python Example4.py -pynnbrian
@@ -39,12 +41,15 @@ echo
 echo "**** Running Example 6 ****"
 python Example6.py
 python Example6.py -nml
+python Example6.py -nml -noinputs
 
 echo
 echo "**** Running Example 7 ****"
 python Example7.py
 python Example7.py -jnmlnrn
-#python Example7.py -jnml
+python Example7.py -jnml
+python Example7.py -pynnnest
+python Example7.py -pynnnrn
 
 echo
 echo "**** Running Example 8 ****"
@@ -52,8 +57,24 @@ python Example8.py
 #python Example8.py -jnmlnrn
 #python Example8.py -jnml
 
+jnml -validate *nml  # All until now should be valid...
 
-jnml -validate *nml
+echo
+echo "**** Running Example 9 ****"
+python Example9.py
+python Example9.py -jnml
+
+
+echo
+echo "**** Running Example 10 ****"
+python Example10.py
+python Example10.py -jnml
+
+echo
+echo "**** Running Example 11 ****"
+python Example11.py
+python Example11.py -jnml
+
 
 cd ../neuromllite/test
 

@@ -1,0 +1,14 @@
+{
+    "SimSonataExample": {
+        "version": "NeuroMLlite v0.1.9", 
+        "network": "SonataExample.json", 
+        "duration": 1000.0, 
+        "dt": 0.01, 
+        "recordTraces": {
+            "all": "*"
+        }, 
+        "recordSpikes": {
+            "pop0": "*"
+        }
+    }
+}

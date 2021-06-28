@@ -1,0 +1,45 @@
+<Lems>
+    
+    <!-- 
+
+        This LEMS file has been automatically generated using PyNeuroML v0.3.15 (libNeuroML v0.2.46)
+
+     -->
+    
+    <!-- Specify which component to run -->
+    <Target component="Sim_Test" reportFile="report.txt"/>
+
+    <!-- Include core NeuroML2 ComponentType definitions -->
+    <Include file="Cells.xml"/>
+    <Include file="Networks.xml"/>
+    <Include file="Simulation.xml"/>
+    
+    <Include file="PyNN.xml"/>
+    <Include file="InputTest.net.nml"/>
+   
+    <Simulation id="Sim_Test" length="250.0ms" step="0.001ms" target="InputTest" seed="12345">  <!-- Note seed: ensures same random numbers used every run -->
+        
+        <Display id="DispPop__internal" title="Membrane potentials of cells in internal" timeScale="1ms" xmin="-15.0" xmax="265.0" ymin="-79" ymax="-71">
+            <Line id="internal[0]: v" quantity="internal/0/cell0/v" scale="1mV" color="#6aa799" timeScale="1ms"/>
+            <Line id="internal[1]: v" quantity="internal/1/cell0/v" scale="1mV" color="#029a72" timeScale="1ms"/>
+            <Line id="internal[2]: v" quantity="internal/2/cell0/v" scale="1mV" color="#d340bb" timeScale="1ms"/>
+            <Line id="internal[3]: v" quantity="internal/3/cell0/v" scale="1mV" color="#4c73a9" timeScale="1ms"/>
+        </Display>
+        
+        <OutputFile id="Volts_file__internal" fileName="Sim_Test.internal.v.dat">
+            <OutputColumn id="v_internal_0_dummy_cell_v" quantity="internal/0/cell0/v"/> 
+            <OutputColumn id="v_internal_1_dummy_cell_v" quantity="internal/1/cell0/v"/> 
+            <OutputColumn id="v_internal_2_dummy_cell_v" quantity="internal/2/cell0/v"/> 
+            <OutputColumn id="v_internal_3_dummy_cell_v" quantity="internal/3/cell0/v"/> 
+        </OutputFile>
+        
+        <EventOutputFile id="Spikes_file__internal" fileName="Sim_Test.internal.spikes" format="ID_TIME">
+            <EventSelection id="0" select="internal/0/cell0" eventPort="spike"/> 
+            <EventSelection id="1" select="internal/1/cell0" eventPort="spike"/> 
+            <EventSelection id="2" select="internal/2/cell0" eventPort="spike"/> 
+            <EventSelection id="3" select="internal/3/cell0" eventPort="spike"/> 
+        </EventOutputFile>
+        
+    </Simulation>
+
+</Lems>

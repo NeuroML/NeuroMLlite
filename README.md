@@ -1,5 +1,15 @@
 ## NeuroMLlite: a common framework for reading/writing/generating network specifications
 
+[![Travis CI](https://travis-ci.com/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.com/NeuroML/NeuroMLlite)
+[![PyPI](https://img.shields.io/pypi/v/NeuroMLlite)](https://pypi.org/project/NeuroMLlite/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/NeuroMLlite)](https://pypi.org/project/NeuroMLlite/)
+[![GitHub](https://img.shields.io/github/license/NeuroML/NeuroMLlite)](https://github.com/NeuroML/NeuroMLlite/blob/master/LICENSE.lesser)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/NeuroML/NeuroMLlite)](https://github.com/NeuroML/NeuroMLlite/pulls)
+[![GitHub issues](https://img.shields.io/github/issues/NeuroML/NeuroMLlite)](https://github.com/NeuroML/NeuroMLlite/issues)
+[![GitHub Org's stars](https://img.shields.io/github/stars/NeuroML?style=social)](https://github.com/NeuroML)
+[![Twitter Follow](https://img.shields.io/twitter/follow/NeuroML?style=social)](https://twitter.com/NeuroML)
+
+
 Work in progress. For the background to this see here: https://github.com/NeuroML/NetworkShorthand.
 
 ![Architecture](images/NetworkShorthand.png)
@@ -60,25 +70,30 @@ Can be simulated using:
 
 
 ### Ex. 5: A network with the Blue Brain Project connectivity data
-<img alt="Ex4" src="examples/images/Ex5_BBP_5percent.png" height="150"/> 
+<img alt="Ex5" src="examples/images/Ex5_BBP_5percent.png" height="150"/> 
+
+<img alt="Ex5_1" src="examples/images/bbp1.png" height="200"/>  <img alt="Ex5_2" src="examples/images/bbp2.png" height="200"/> <img alt="Ex5_3" src="examples/images/bbp3.png" height="200"/> 
 
 [JSON](examples/BBP_5percent.json) | [Python script](examples/Example5.py) 
 
 Can be exported to:
 - **NeuroML 2** (XML or HDF5 format)
 - **Graph** (see above) 
+- **Matrix** (see above) 
 
 Can be simulated using:
 - **NetPyNE**
 
 ### Ex. 6: A network based on Potjans and Diesmann 2014 (work in progress)
 <img alt="Ex6d" src="examples/images/Ex6.dot.png" height="100"/> <img alt="Ex6f" src="examples/images/Ex6.fdp.png" height="100"/>  <img alt="Ex6c" src="examples/images/Ex6.circo.png" height="100"/> 
+<img alt="Ex6matrix" src="examples/images/Ex6matrix.png" height="300"/> 
 
 [JSON](examples/Example6_PyNN.json) | [Python script](examples/Example6.py) | [Generated NeuroML2](examples/Example6_PyNN.net.nml) 
 
 Can be exported to:
 - **NeuroML 2** (XML or HDF5 format)
 - **Graph** (see above) 
+- **Matrix** (see above) 
 
 ### Ex. 7: A network based on Brunel 2000 (work in progress)
 <img alt="Ex7" src="examples/images/Ex7.png" height="250"/> 
@@ -137,5 +152,14 @@ laid out using [GraphViz](http://graphviz.org/) engines (d - dot (default); c - 
     python Example6.py -graph1n
 
 
+## Other examples
 
-[![Build Status](https://travis-ci.org/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.org/NeuroML/NeuroMLlite)
+NeuroMLlite is being tested/used in the following repositories on OSB:
+
+- [Wilson & Cowan](https://github.com/OpenSourceBrain/WilsonCowan/blob/master/NeuroML2/GenerateNetworkOverview.py)
+- [Mejias et al. 2016](https://github.com/OpenSourceBrain/MejiasEtAl2016/blob/master/NeuroML2/GenerateNeuroMLlite.py)
+- [Pospischil et al. 2008](https://github.com/OpenSourceBrain/PospischilEtAl2008/tree/master/NeuroML2/cells/summary)
+- [Bezaire et al. 2016](https://github.com/mbezaire/ca1/tree/development/NeuroML2/network/nmllite)
+- [PING networks](https://github.com/OpenSourceBrain/PINGnets/tree/master/NeuroML2) 
+- [PsyNeuLink tests](https://github.com/OpenSourceBrain/PsyNeuLinkShowcase/tree/master/NeuroML2)
+- [OpenWorm - c302](https://github.com/openworm/c302/tree/master/examples/parametersweep)

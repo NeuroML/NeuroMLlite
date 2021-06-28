@@ -1,0 +1,42 @@
+# Script for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
+
+target: test_ex7_pynn.py  
+engine: PyNN_Nest 
+mep: .test.ex7.mep
+experiments:
+
+  spike_rate_exc_in:
+    observables:
+      spike rate:
+        spiketimes file: 
+          path: ../SimExample7.expoisson.spikes
+          format: ID_TIME
+          ids: '*'
+        tolerance:  0.00020894387195494345
+        
+  spike_rate_inh_in:
+    observables:
+      spike rate:
+        spiketimes file: 
+          path: ../SimExample7.inpoisson.spikes
+          format: ID_TIME
+          ids: '*'
+        tolerance: 0.0025532645162897097
+        
+  spike_rate_e:
+    observables:
+      spike rate:
+        spiketimes file: 
+          path: ../SimExample7.Epop.spikes
+          format: ID_TIME
+          ids: '*'
+        tolerance: 0.00
+
+  spike_rate_i:
+    observables:
+      spike rate:
+        spiketimes file: 
+          path: ../SimExample7.Ipop.spikes
+          format: ID_TIME
+          ids: '*'
+        tolerance: 0.00

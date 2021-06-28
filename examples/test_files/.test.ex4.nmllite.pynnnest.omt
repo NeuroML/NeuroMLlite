@@ -1,0 +1,39 @@
+# Script for running automated tests on OSB using Travis-CI, see https://github.com/OpenSourceBrain/osb-model-validation
+
+target: test_ex4_pynn.py  
+engine: PyNN_Nest 
+mep: .test.ex4.mep
+experiments:
+  v0:
+    observables:
+      spike times:
+        file: 
+          path: ../SimExample4.pop1.v.dat
+          columns: [0,1]
+          scaling: [1000, 1000]
+        spike detection: 
+          method: threshold
+          threshold: -64
+        tolerance: 0.008722082727633224
+
+  v1:
+    observables:
+      spike times:
+        file: 
+          path: ../SimExample4.pop2.v.dat
+          columns: [0,1]
+          scaling: [1000, 1000]
+        spike detection: 
+          method: threshold
+          threshold: -69
+        tolerance: 0.006342149138579221
+
+  spikes0:
+    observables:
+      spike times:
+        spiketimes file: 
+          path: ../SimExample4.pop0.spikes
+          format: ID_TIME
+          id: 0
+        tolerance: 0.008943493382718323
+

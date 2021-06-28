@@ -5,7 +5,10 @@
 #
 
 from neuromllite.utils import print_v
+from neuromllite.utils import evaluate
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
+            
+from pyneuroml.pynml import convert_to_units
 
 from importlib import import_module
 
@@ -19,6 +22,8 @@ class PyNNHandler(DefaultNetworkHandler):
     
     def __init__(self, simulator, dt, reference):
         print_v("Initiating PyNN with simulator %s"%simulator)
+        if simulator=='nest':
+            import nest  # temp
         self.sim = import_module("pyNN.%s" % simulator)
         self.dt = dt
         self.sim.setup(timestep=self.dt, 
@@ -32,9 +37,37 @@ class PyNNHandler(DefaultNetworkHandler):
     def set_receptor_types(self, receptor_types):
         self.receptor_types = receptor_types
         
-    def add_input_source(self, input_source):
+    def add_input_source(self, input_source, network):
         input_params = input_source.parameters if input_source.parameters else {}
-        exec('self.input_sources["%s"] = self.sim.%s(**input_params)'%(input_source.id,input_source.pynn_input))
+
+        for ip in input_params:
+            input_params[ip] = evaluate(input_params[ip], network.parameters)
+               
+        ''' This is a quick hack to support noisyCurrentSource before that type is integrated into the 
+            core of NeuroML...
+            TODO: remove when integrated!
+        '''
+        if input_source.lems_source_file and 'noisyCurrentSource' in input_source.id:
+            pynn_input_params = {}
+            for p in input_params:
+                if p=='delay':
+                    pynn_input_params['start'] = convert_to_units(input_params[p],'ms')
+                elif p=='duration':
+                    pynn_input_params['stop'] = convert_to_units(input_params[p],'ms') + convert_to_units(input_params['delay'],'ms')
+                elif p=='mean':
+                    pynn_input_params['mean'] = convert_to_units(input_params[p],'nA')
+                elif p=='stdev':
+                    pynn_input_params['stdev'] = convert_to_units(input_params[p],'nA')
+                elif p=='noiseDt':
+                    pynn_input_params['dt'] = convert_to_units(input_params[p],'ms')
+                else:
+                    raise Exception('Parameter %s=%s is not appropriate for inout %s'%(p,input_params[p],input_source.id))
+           
+            exec('self.input_sources["%s"] = self.sim.NoisyCurrentSource(**pynn_input_params)'%(input_source.id))
+        else:
+            exec('self.input_sources["%s"] = self.sim.%s(**input_params)'%(input_source.id,input_source.pynn_input))
+            
+        #print(['%s (%s): %s'%(i, type(self.input_sources[i]),self.input_sources[i].simple_parameters()) for i in self.input_sources])
 
     def handle_document_start(self, id, notes):
             
@@ -109,10 +142,9 @@ class PyNNHandler(DefaultNetworkHandler):
                                                     delay = 0, \
                                                     weight = 1):
         
-        self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
-        print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
+        #self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
+        #print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
          
-        import random
         exec('self.projection__%s_conns.append((%s,%s,float(%s),float(%s)))'%(projName,preCellId,postCellId,weight,delay))
 
         
@@ -154,7 +186,7 @@ class PyNNHandler(DefaultNetworkHandler):
     #  
     def handle_single_input(self, inputListId, id, cellId, segId = 0, fract = 0.5, weight=1):
         
-        print_v("Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,cellId,segId,fract,weight))
+        #print_v("Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,cellId,segId,fract,weight))
         
         population_id, component = self.input_info[inputListId]
         

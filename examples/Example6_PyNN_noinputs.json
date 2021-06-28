@@ -1,0 +1,719 @@
+{
+    "Example6_PyNN_noinputs": {
+        "version": "NeuroMLlite v0.3.2",
+        "parameters": {
+            "N_scaling": 0.005,
+            "layer_height": 400,
+            "width": 100,
+            "depth": 100,
+            "input_weight": 0.1
+        },
+        "notes": "Another network for PyNN - work in progress...",
+        "cells": {
+            "CorticalCell": {
+                "pynn_cell": "IF_curr_exp",
+                "parameters": {
+                    "cm": 0.25,
+                    "i_offset": 0.0,
+                    "tau_m": 10.0,
+                    "tau_refrac": 2.0,
+                    "v_reset": -65.0,
+                    "v_rest": -65.0,
+                    "v_thresh": -50.0
+                }
+            }
+        },
+        "synapses": {
+            "ampa": {
+                "pynn_synapse_type": "curr_exp",
+                "pynn_receptor_type": "excitatory",
+                "parameters": {
+                    "tau_syn": 0.5
+                }
+            },
+            "gaba": {
+                "pynn_synapse_type": "curr_exp",
+                "pynn_receptor_type": "inhibitory",
+                "parameters": {
+                    "tau_syn": 0.5
+                }
+            }
+        },
+        "regions": {
+            "L23": {
+                "x": 0.0,
+                "y": 1200.0,
+                "z": 0.0,
+                "width": 100.0,
+                "height": 400.0,
+                "depth": 100.0
+            },
+            "L4": {
+                "x": 0.0,
+                "y": 800.0,
+                "z": 0.0,
+                "width": 100.0,
+                "height": 400.0,
+                "depth": 100.0
+            },
+            "L5": {
+                "x": 0.0,
+                "y": 400.0,
+                "z": 0.0,
+                "width": 100.0,
+                "height": 400.0,
+                "depth": 100.0
+            },
+            "L6": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "width": 100.0,
+                "height": 400.0,
+                "depth": 100.0
+            }
+        },
+        "populations": {
+            "L23_E": {
+                "size": "int(20683*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "0.6 0 0",
+                    "type": "E"
+                },
+                "random_layout": {
+                    "region": "L23"
+                }
+            },
+            "L23_I": {
+                "size": "int(5834*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "1 0.4 0.4",
+                    "type": "I"
+                },
+                "random_layout": {
+                    "region": "L23"
+                }
+            },
+            "L4_E": {
+                "size": "int(21915*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "0 0.25 0.5",
+                    "type": "E"
+                },
+                "random_layout": {
+                    "region": "L4"
+                }
+            },
+            "L4_I": {
+                "size": "int(5479*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "0.8 0.7 1",
+                    "type": "I"
+                },
+                "random_layout": {
+                    "region": "L4"
+                }
+            },
+            "L5_E": {
+                "size": "int(4850*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "0 0.4 0",
+                    "type": "E"
+                },
+                "random_layout": {
+                    "region": "L5"
+                }
+            },
+            "L5_I": {
+                "size": "int(1065*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "0.8 1 0.8",
+                    "type": "I"
+                },
+                "random_layout": {
+                    "region": "L5"
+                }
+            },
+            "L6_E": {
+                "size": "int(14395*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "1 0.6 0.2",
+                    "type": "E"
+                },
+                "random_layout": {
+                    "region": "L6"
+                }
+            },
+            "L6_I": {
+                "size": "int(2948*N_scaling)",
+                "component": "CorticalCell",
+                "properties": {
+                    "color": "1 0.8 0.8",
+                    "type": "I"
+                },
+                "random_layout": {
+                    "region": "L6"
+                }
+            }
+        },
+        "projections": {
+            "proj_L23_E_L23_E": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L23_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.1009
+                }
+            },
+            "proj_L23_E_L23_I": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L23_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.1346
+                }
+            },
+            "proj_L23_E_L4_E": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L4_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0077
+                }
+            },
+            "proj_L23_E_L4_I": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L4_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0691
+                }
+            },
+            "proj_L23_E_L5_E": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L5_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.1004
+                }
+            },
+            "proj_L23_E_L5_I": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L5_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0548
+                }
+            },
+            "proj_L23_E_L6_E": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L6_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0156
+                }
+            },
+            "proj_L23_E_L6_I": {
+                "presynaptic": "L23_E",
+                "postsynaptic": "L6_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0364
+                }
+            },
+            "proj_L23_I_L23_E": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L23_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.1689
+                }
+            },
+            "proj_L23_I_L23_I": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L23_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.1371
+                }
+            },
+            "proj_L23_I_L4_E": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L4_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0059
+                }
+            },
+            "proj_L23_I_L4_I": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L4_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0029
+                }
+            },
+            "proj_L23_I_L5_E": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L5_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0622
+                }
+            },
+            "proj_L23_I_L5_I": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L5_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0269
+                }
+            },
+            "proj_L23_I_L6_E": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L6_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0066
+                }
+            },
+            "proj_L23_I_L6_I": {
+                "presynaptic": "L23_I",
+                "postsynaptic": "L6_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.001
+                }
+            },
+            "proj_L4_E_L23_E": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L23_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0437
+                }
+            },
+            "proj_L4_E_L23_I": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L23_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0316
+                }
+            },
+            "proj_L4_E_L4_E": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L4_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0497
+                }
+            },
+            "proj_L4_E_L4_I": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L4_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0794
+                }
+            },
+            "proj_L4_E_L5_E": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L5_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0505
+                }
+            },
+            "proj_L4_E_L5_I": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L5_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0257
+                }
+            },
+            "proj_L4_E_L6_E": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L6_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0211
+                }
+            },
+            "proj_L4_E_L6_I": {
+                "presynaptic": "L4_E",
+                "postsynaptic": "L6_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0034
+                }
+            },
+            "proj_L4_I_L23_E": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L23_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0818
+                }
+            },
+            "proj_L4_I_L23_I": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L23_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0515
+                }
+            },
+            "proj_L4_I_L4_E": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L4_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.135
+                }
+            },
+            "proj_L4_I_L4_I": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L4_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.1597
+                }
+            },
+            "proj_L4_I_L5_E": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L5_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0057
+                }
+            },
+            "proj_L4_I_L5_I": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L5_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0022
+                }
+            },
+            "proj_L4_I_L6_E": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L6_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0166
+                }
+            },
+            "proj_L4_I_L6_I": {
+                "presynaptic": "L4_I",
+                "postsynaptic": "L6_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0005
+                }
+            },
+            "proj_L5_E_L23_E": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L23_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0323
+                }
+            },
+            "proj_L5_E_L23_I": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L23_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0755
+                }
+            },
+            "proj_L5_E_L4_E": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L4_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0067
+                }
+            },
+            "proj_L5_E_L4_I": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L4_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0033
+                }
+            },
+            "proj_L5_E_L5_E": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L5_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0831
+                }
+            },
+            "proj_L5_E_L5_I": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L5_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.06
+                }
+            },
+            "proj_L5_E_L6_E": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L6_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0572
+                }
+            },
+            "proj_L5_E_L6_I": {
+                "presynaptic": "L5_E",
+                "postsynaptic": "L6_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0277
+                }
+            },
+            "proj_L5_I_L4_E": {
+                "presynaptic": "L5_I",
+                "postsynaptic": "L4_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0003
+                }
+            },
+            "proj_L5_I_L5_E": {
+                "presynaptic": "L5_I",
+                "postsynaptic": "L5_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.3726
+                }
+            },
+            "proj_L5_I_L5_I": {
+                "presynaptic": "L5_I",
+                "postsynaptic": "L5_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.3158
+                }
+            },
+            "proj_L5_I_L6_E": {
+                "presynaptic": "L5_I",
+                "postsynaptic": "L6_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.0197
+                }
+            },
+            "proj_L5_I_L6_I": {
+                "presynaptic": "L5_I",
+                "postsynaptic": "L6_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.008
+                }
+            },
+            "proj_L6_E_L23_E": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L23_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0076
+                }
+            },
+            "proj_L6_E_L23_I": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L23_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0042
+                }
+            },
+            "proj_L6_E_L4_E": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L4_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0453
+                }
+            },
+            "proj_L6_E_L4_I": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L4_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.1057
+                }
+            },
+            "proj_L6_E_L5_E": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L5_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0204
+                }
+            },
+            "proj_L6_E_L5_I": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L5_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0086
+                }
+            },
+            "proj_L6_E_L6_E": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L6_E",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0396
+                }
+            },
+            "proj_L6_E_L6_I": {
+                "presynaptic": "L6_E",
+                "postsynaptic": "L6_I",
+                "synapse": "ampa",
+                "delay": 1,
+                "weight": 1,
+                "random_connectivity": {
+                    "probability": 0.0658
+                }
+            },
+            "proj_L6_I_L6_E": {
+                "presynaptic": "L6_I",
+                "postsynaptic": "L6_E",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.2252
+                }
+            },
+            "proj_L6_I_L6_I": {
+                "presynaptic": "L6_I",
+                "postsynaptic": "L6_I",
+                "synapse": "gaba",
+                "delay": 1,
+                "weight": -1,
+                "random_connectivity": {
+                    "probability": 0.1443
+                }
+            }
+        }
+    }
+}

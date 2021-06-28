@@ -1,0 +1,58 @@
+<neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  
+         xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" 
+         id="InputTest">
+    
+    <notes>Test file...</notes>
+    
+    <timedSynapticInput id="ext_0" synapse="DefaultSynapse" spikeTarget="./DefaultSynapse">
+        <spike id="0" time="70ms"/>
+        <spike id="1" time="73ms"/>
+        <spike id="2" time="165ms"/>
+        <spike id="3" time="200ms"/>
+    </timedSynapticInput>
+    <timedSynapticInput id="ext_1" synapse="DefaultSynapse" spikeTarget="./DefaultSynapse">
+        <spike id="0" time="170ms"/>
+        <spike id="1" time="173ms"/>
+        <spike id="2" time="185ms"/>
+        <spike id="3" time="200ms"/>
+    </timedSynapticInput>
+    
+    <IF_curr_alpha id="cell0" cm="0.239" i_offset="0." tau_syn_E="1." tau_syn_I="1." v_init="-76." tau_m="44.899999999999999" tau_refrac="3." v_reset="-55." v_rest="-78." v_thresh="-43."/>
+    
+    <alphaCurrSynapse id="ExcToExc" tau_syn="2."/>
+    <alphaCurrSynapse id="DefaultSynapse" tau_syn="2."/>
+    
+    <network id="InputTest">
+        
+        <notes>Network..</notes>
+        
+        <population id="internal" component="cell0" size="4" type="populationList">
+            <instance id="0">
+                <location x="-2.111495182295258" y="56.889501747030124" z="-21.533183968201666"/>
+            </instance>
+            <instance id="1">
+                <location x="10.123832355420802" y="30.420090706815785" z="41.498049218966969"/>
+            </instance>
+            <instance id="2">
+                <location x="-25.560874968386607" y="4.015276772078771" z="-32.53566960765572"/>
+            </instance>
+            <instance id="3">
+                <location x="-36.986628314587598" y="-77.682156322479059" z="4.125135790603116"/>
+            </instance>
+        </population>
+
+
+        <inputList id="il0" population="internal" component="ext_0">
+            <inputW id="0" target="../internal/0/cell0" destination="synapses" weight="0.05"/>
+            <inputW id="1" target="../internal/2/cell0" destination="synapses" weight="0.1"/>
+            <inputW id="2" target="../internal/3/cell0" destination="synapses" weight="0.15"/>
+        </inputList>
+        <inputList id="il1" population="internal" component="ext_1">
+            <inputW id="0" target="../internal/1/cell0" destination="synapses" weight="0.05"/>
+            <inputW id="1" target="../internal/3/cell0" destination="synapses" weight="0.005"/>
+        </inputList>
+        
+    </network>
+</neuroml>

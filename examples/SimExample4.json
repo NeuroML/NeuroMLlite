@@ -1,11 +1,14 @@
 {
     "SimExample4": {
-        "version": "NeuroMLlite v0.1.4", 
-        "network": "Example4_PyNN.json", 
-        "duration": 1000.0, 
-        "dt": 0.01, 
+        "version": "NeuroMLlite v0.3.2",
+        "network": "Example4_PyNN.json",
+        "duration": 1000.0,
+        "dt": 0.01,
         "recordTraces": {
             "all": "*"
+        },
+        "recordSpikes": {
+            "pop0": "*"
         }
     }
 }
