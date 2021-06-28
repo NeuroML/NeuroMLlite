@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [2.7, 3.7]
+        python-version: [3.7]
     env:
-      JNML_HOME: $GITHUB_WORKSPACE/jNeuroML
+      JNML_HOME: "${GITHUB_WORKSPACE}/jNeuroML"
 
     steps:
     - uses: actions/checkout@v2
