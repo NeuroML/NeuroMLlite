@@ -1,0 +1,83 @@
+name: Continuous builds
+
+on:
+  push:
+    branches: [ master, development, experimental ]
+  pull_request:
+    branches: [ master, development, experimental ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [2.7, 3.7]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python  ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version:  ${{ matrix.python-version }}
+
+    - name: Install package
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8
+        pip install matplotlib==2.2.5 cachetools==3.1.1 # for testing python 2.7...
+        pip install pyelectro
+        pip install .
+
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --exit-zero --show-source --max-line-length=127 --statistics
+
+    - name: Install correct branch of pyneuroml etc.
+      run: |
+        env
+        # Check to see if on development/experimental branches
+        export jnml_branches="development"
+        export pynml_branch="master"
+        echo "Will use jNeuroML from branches $jnml_branches"
+        echo "Will use pyNeuroML from branch $pynml_branch"
+        # Install pyNeuroML
+        git clone https://github.com/NeuroML/pyNeuroML.git
+        cd pyNeuroML
+        git checkout $pynml_branch
+        python setup.py install
+        cd -
+        # Install latest jnml...
+        git clone https://github.com/NeuroML/jNeuroML.git
+        cd jNeuroML
+        git checkout $jnml_branches
+        python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
+        export PATH=$PATH:$GITHUB_WORKSPACE/jNeuroML
+        export JNML_HOME=$GITHUB_WORKSPACE/jNeuroML
+        cd ..
+        jnml -v
+
+    - name: Install OMV
+      run: |
+        # Install OMV
+        pip install git+https://github.com/OpenSourceBrain/osb-model-validation
+        omv list -V  # list all currently known...
+
+    - name: Install some simulators for testing
+      run: |
+        pip install cython
+        if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
+        omv install NetPyNE  # includes NEURON
+        omv install PyNN
+
+    - name: Run tests
+      run: |
+        # Basic test
+        cd examples
+        python Example2.py # test one example...
+        python Example4.py # test another example...
+        cd ..
+
+    - name: OMV final version info
+      run: |
+        omv list -V # list installed engines
