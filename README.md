@@ -1,6 +1,6 @@
 ## NeuroMLlite: a common framework for reading/writing/generating network specifications
 
-[![Travis CI](https://travis-ci.com/NeuroML/NeuroMLlite.svg?branch=master)](https://travis-ci.com/NeuroML/NeuroMLlite)
+[![Continuous builds](https://github.com/NeuroML/NeuroMLlite/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuroML/NeuroMLlite/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/NeuroMLlite)](https://pypi.org/project/NeuroMLlite/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/NeuroMLlite)](https://pypi.org/project/NeuroMLlite/)
 [![GitHub](https://img.shields.io/github/license/NeuroML/NeuroMLlite)](https://github.com/NeuroML/NeuroMLlite/blob/master/LICENSE.lesser)

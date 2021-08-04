@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7]
+        python-version: [3.7,3.9]
     env:
       JNML_HOME: "${GITHUB_WORKSPACE}/jNeuroML"
 
@@ -41,6 +41,7 @@ jobs:
         # Check to see if on development/experimental branches
         export jnml_branches="development"
         export pynml_branch="master"
+        echo "JNML_HOME: $JNML_HOME"
         echo "Will use jNeuroML from branches $jnml_branches"
         echo "Will use pyNeuroML from branch $pynml_branch"
         # Install pyNeuroML
@@ -54,8 +55,12 @@ jobs:
         cd jNeuroML
         git checkout $jnml_branches
         python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
+        echo "Installed!"
+        ls -alth
         echo "$GITHUB_WORKSPACE/jNeuroML" >> $GITHUB_PATH
         export PATH=$PATH:$GITHUB_WORKSPACE/jNeuroML
+        ./jnml -v
+        which jnml
         env
         cd ..
         jnml -v
