@@ -118,7 +118,7 @@ def _parse_attributes(dict_format, to_build):
                     exec('to_build.%s.append(ff)'%key)
                     #for c in
             else:
-                if type(value)==str or type(value)==int or type(value)==float or type(value)==bool:
+                if type(value)==str or type(value)==int or type(value)==float or type(value)==bool or type(value)==list:
                     to_build.__setattr__(key, value)
                 else:
                     type_to_use = to_build.allowed_fields[key][1]
