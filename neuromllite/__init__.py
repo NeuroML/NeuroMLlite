@@ -12,7 +12,7 @@ from neuromllite.BaseTypes import NetworkReader
 
 class EvaluableExpression(str):
 
-    def __init__(self,expr):
+    def __init__(self, expr):
         self.expr = expr
 
 

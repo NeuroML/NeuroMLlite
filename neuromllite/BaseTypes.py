@@ -63,7 +63,7 @@ class Base(object):
 
     def __getattr__(self, name):
 
-        if verbose: print_v(" > Checking the value of attribute %s in %s..."%(name,self.get_id()))
+        #if verbose: print_v(" > Checking the value of attribute %s in: %s..."%(name,self.get_id()))
 
         if name=='id' and not 'id' in self.allowed_fields:
             return None
@@ -82,11 +82,13 @@ class Base(object):
         if name in self.allowed_fields:
             if not name in self.fields:
                 return None
+            #if verbose: print_v(" >   Attribute %s is a field: %s (%s)..."%(name,self.fields[name],type(self.fields[name])))
             return self.fields[name]
 
         if name in self.allowed_children:
             if not name in self.children:
                 self.children[name] = []
+            #if verbose: print_v(" >   Attribute %s is a child: %s (%s)..."%(name,self.children[name],type(self.children[name])))
             return self.children[name]
 
         print_v('No field or child: %s in %s'%(name, self.id))
@@ -436,7 +438,7 @@ if __name__ == '__main__':
 
     class EvaluableExpression(str):
 
-        def __init__(self,expr):
+        def __init__(self, expr):
             self.expr = expr
 
     class RandomConnectivity(Base):
