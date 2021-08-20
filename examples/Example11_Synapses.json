@@ -1,6 +1,6 @@
 {
     "Example11_Synapses": {
-        "version": "NeuroMLlite v0.3.2",
+        "version": "NeuroMLlite v0.3.3",
         "parameters": {
             "input_amp": 0.23,
             "weight": 1.01

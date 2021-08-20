@@ -64,12 +64,13 @@ class MDFHandler(DefaultNetworkHandler):
         self.mdf_graph['notes'] = notes
         self.mdf_graph['nodes'] = {}
         self.mdf_graph['edges'] = {}
-        self.mdf_graph['parameters'] = {}
+        #self.mdf_graph['parameters'] = {}
 
+        '''
         if self.pnl_additions:
             self.mdf_graph['controller'] = None
             self.mdf_graph["type"] = {"PNL": "Composition","generic": "graph"}
-            self.mdf_graph['parameters']['PNL'] = {"required_node_roles": []}
+            self.mdf_graph['parameters']['PNL'] = {"required_node_roles": []}'''
 
         self.mdf_info[self.id]["graphs"][network_id] = self.mdf_graph
 
@@ -129,8 +130,8 @@ class MDFHandler(DefaultNetworkHandler):
 
                     model = MDFHandler._load_lems_file_with_neuroml2_types(fname)
 
-                    print('All comp types: %s'%model.component_types.keys())
-                    print('All comps: %s'%model.components.keys())
+                    #print('All comp types: %s'%model.component_types.keys())
+                    #print('All comps: %s'%model.components.keys())
                     lems_comp = model.components.get(component)
                     comp_type_name = lems_comp.type
                     lems_comp_type = model.component_types.get(comp_type_name)
@@ -139,10 +140,10 @@ class MDFHandler(DefaultNetworkHandler):
                     node['notes'] = notes
 
                     for p in lems_comp.parameters:
-                        node['parameters'][p] = evaluate(lems_comp.parameters[p])
+                        node['parameters'][p] = {'value': get_value_in_si(evaluate(lems_comp.parameters[p]))}
 
                     for c in lems_comp_type.constants:
-                        node['parameters'][c.name] = get_value_in_si(c.value)
+                        node['parameters'][c.name] = {'value': get_value_in_si(c.value)}
 
 
                     for dv in lems_comp_type.dynamics.derived_variables:
@@ -154,11 +155,9 @@ class MDFHandler(DefaultNetworkHandler):
                                 #<DerivedVariable name="OUTPUT" dimension="none" exposure="OUTPUT" value="variable"/>
                                 node['output_ports'][dv.exposure] = {'value':self._convert_value(dv.value)}
 
-                    if len(lems_comp_type.dynamics.state_variables)>0:
-                        node['states'] = {}
 
                     for sv in lems_comp_type.dynamics.state_variables:
-                        node['states'][sv.name] = {}
+                        node['parameters'][sv.name] = {}
 
                     print(dir(lems_comp_type.dynamics))
 
@@ -166,10 +165,10 @@ class MDFHandler(DefaultNetworkHandler):
                         if type(os)==lems.OnStart:
                             for a in os.actions:
                                 if type(a)==lems.StateAssignment:
-                                    node['states'][a.variable]['default_initial_value'] = a.value
+                                    node['parameters'][a.variable]['default_initial_value'] = a.value
 
                     for td in lems_comp_type.dynamics.time_derivatives:
-                        node['states'][td.variable]['time_derivative'] = self._convert_value(td.value)
+                        node['parameters'][td.variable]['time_derivative'] = self._convert_value(td.value)
 
 
 

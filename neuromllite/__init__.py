@@ -1,6 +1,6 @@
 import collections
 
-__version__ = '0.3.2'
+__version__ = '0.3.3'
 
 #import pyNN
 #import nest
@@ -12,7 +12,7 @@ from neuromllite.BaseTypes import NetworkReader
 
 class EvaluableExpression(str):
 
-    def __init__(self,expr):
+    def __init__(self, expr):
         self.expr = expr
 
 
