@@ -13,6 +13,13 @@ def get_example_network():
     net = Network(id='net0')
     net.notes = "...."
 
+    net.parameters = {'int':3,
+                      'float':3.3,
+                      'str':'str',
+                      'bool':True,
+                      'list':[1,2,3],
+                      'dict':{'a':1,'f':False}}
+
     p0 = Population(id='pop0', size=5, component='iaf', properties={'color':'0 .8 0'})
     p1 = Population(id='pop1', size=10, component='iaf', properties={'color':'0 0 .8'})
     net.populations.append(p0)
@@ -78,16 +85,12 @@ class TestCustomSaveLoad(unittest.TestCase):
                 super(NewSynapse, self).__init__(**kwargs)
 
 
-        class NewEvaluableExpression(str):
-
-            def __init__(self,expr):
-                self.expr = expr
 
         class NewRandomConnectivity(Base):
 
             def __init__(self, **kwargs):
 
-                self.allowed_fields = collections.OrderedDict([('probability',('Random probability of connection',NewEvaluableExpression))])
+                self.allowed_fields = collections.OrderedDict([('probability',('Random probability of connection', EvaluableExpression))])
 
                 super(NewRandomConnectivity, self).__init__(**kwargs)
 
@@ -187,11 +190,12 @@ class TestBaseSaveLoad(unittest.TestCase):
             else:
                 o1 = load_simulation_json(new_file)
 
-
             str1 = str(o1)
             json1 = o1.to_json()
 
             print(str1)
+
+            print('Loaded from %s'%new_file)
 
             if sys.version_info[0]==2: # Order not preserved in py2, just test len
                 self.assertEqual(len(str0), len(str1))
@@ -227,5 +231,8 @@ if __name__ == '__main__':
 
     # Some tests
     tc = TestCustomSaveLoad()
-
     tc.test_save_load_json()
+
+    tb = TestBaseSaveLoad()
+    tb.test_save_load_pickle()
+    tb.test_save_load_json()

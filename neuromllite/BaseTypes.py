@@ -96,14 +96,27 @@ class Base(object):
 
 
     @classmethod
-    def _is_base_type(cls, value, can_be_list=False, can_be_dict=False, can_be_eval_expr=False):
+    def _is_evaluable_expression(cls, value):
+        if not hasattr(value,'__name__'): return False
+        return value.__name__=='EvaluableExpression' or \
+            value.__name__=='neuromllite.EvaluableExpression'
+
+    @classmethod
+    def _is_base_type(cls,
+                      value,
+                      can_be_list=False,
+                      can_be_dict=False,
+                      can_be_eval_expr=False):
+
+        if verbose: print_v(" > Checking type of %s, ee: %s"%(value, cls._is_evaluable_expression(value)))
+
         return value==int or \
                value==str or \
                value==bool or \
                value==float or \
                (can_be_list and value==list) or \
                (can_be_dict and value==dict) or \
-               (can_be_eval_expr and value.__name__=='EvaluableExpression')
+               (can_be_eval_expr and cls._is_evaluable_expression(value))
 
     def __setattr__(self, name, value):
 
@@ -120,10 +133,29 @@ class Base(object):
             return
 
         if name in self.allowed_fields:
-            if self._is_base_type(self.allowed_fields[name][1]):
+
+            if self._is_evaluable_expression(self.allowed_fields[name][1]):
+
+                if self._is_base_type(type(value),
+                                      can_be_list=True,
+                                      can_be_dict=True,
+                                      can_be_eval_expr=True):
+
+                    self.fields[name] = value
+                else:
+                    raise Exception("Cannot set field %s to %s. Expecting %s not %s"%(name, value, self.allowed_fields[name][1], type(value)))
+
+            elif self._is_base_type(self.allowed_fields[name][1],
+                                  can_be_list=False,
+                                  can_be_dict=False,
+                                  can_be_eval_expr=False):
 
                 self.fields[name] = (self.allowed_fields[name][1])(value)
             else:
+                '''
+                if not self.allowed_fields[name][1] == type(value):
+                    raise Exception("Cannot set field %s to %s. Expecting %s not %s"%(name, value, self.allowed_fields[name][1], type(value)))'''
+
                 self.fields[name] = value
             return
 
@@ -134,6 +166,8 @@ class Base(object):
         import numpy as np
         if verbose: print(' ====   to_dict_format: [%s]'%var)
         if cls._is_base_type(type(var)): # e.g. into float, str
+            return var
+        elif cls._is_evaluable_expression(type(var)):
             return var
         elif var is None:
             return var
