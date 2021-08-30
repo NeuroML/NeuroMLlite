@@ -1,7 +1,6 @@
 import collections
 import json
 import sys
-import numpy
 from collections import OrderedDict
 
 verbose = False
@@ -108,6 +107,7 @@ class Base(object):
                       can_be_ndarray=False,
                       can_be_eval_expr=False):
 
+        import numpy
         if verbose: print_v(" > Checking type of %s, ee: %s"%(value, cls._is_evaluable_expression(value)))
 
         return value==int or \
