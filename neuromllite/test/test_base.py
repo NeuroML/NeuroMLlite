@@ -10,7 +10,7 @@ except ImportError:
 
 def get_example_network():
 
-    net = Network(id='net0')
+    net = Network(id='net0',parameters={})
     net.notes = "...."
 
     net.parameters = {'int':3,
@@ -18,7 +18,8 @@ def get_example_network():
                       'str':'str',
                       'bool':True,
                       'list':[1,2,3],
-                      'dict':{'a':1,'f':False}}
+                      'dict':{'a':1,'f':False,'d':{'a':2}},
+                      'dict2':{'a':1,'l':[33,22]}}
 
     p0 = Population(id='pop0', size=5, component='iaf', properties={'color':'0 .8 0'})
     p1 = Population(id='pop1', size=10, component='iaf', properties={'color':'0 0 .8'})
@@ -61,7 +62,8 @@ class TestCustomSaveLoad(unittest.TestCase):
                                                                ('seed',('Seed for random number generator used when building network',int)),
                                                                ('stable',('Testing...',bool)),
                                                                ('parameters',('Dictionary of global parameters for the network',dict)),
-                                                               ('random_connectivity',('Use random connectivity',NewRandomConnectivity))])
+                                                               ('random_connectivity',('Use random connectivity',NewRandomConnectivity)),
+                                                               ('ee1',('TestEE',EvaluableExpression))])
 
                 super(NewNetwork, self).__init__(**kwargs)
 
@@ -97,6 +99,12 @@ class TestCustomSaveLoad(unittest.TestCase):
 
 
         net = NewNetwork(id='netid', parameters={'size':3,'name':None})
+        net.ee1 = 'str'
+        net.ee1 = 1
+        net.ee1 = 1.1
+        net.ee1 = True
+        net.ee1 = [1,2]
+
         cell = NewCell(id='cellid1')
         cell.neuroml2_source_file = 'nnn'
         cell2 = NewCell(id='cellid2')

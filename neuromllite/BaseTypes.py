@@ -1,6 +1,7 @@
 import collections
 import json
 import sys
+import numpy
 from collections import OrderedDict
 
 verbose = False
@@ -41,10 +42,8 @@ class Base(object):
 
             if name in self.allowed_fields:
 
-                if self._is_base_type(self.allowed_fields[name][1]):
-                    self.fields[name] = (self.allowed_fields[name][1])(value)
-                else:
-                    self.fields[name] = value
+                self._set_field(name, value)
+
             else:
                 info = 'Error, cannot set %s = %s in %s. Allowed fields here:'%(name, value, self.get_type())
                 for af in self.allowed_fields:
@@ -106,6 +105,7 @@ class Base(object):
                       value,
                       can_be_list=False,
                       can_be_dict=False,
+                      can_be_ndarray=False,
                       can_be_eval_expr=False):
 
         if verbose: print_v(" > Checking type of %s, ee: %s"%(value, cls._is_evaluable_expression(value)))
@@ -116,6 +116,7 @@ class Base(object):
                value==float or \
                (can_be_list and value==list) or \
                (can_be_dict and value==dict) or \
+               (can_be_ndarray and value==numpy.ndarray) or \
                (can_be_eval_expr and cls._is_evaluable_expression(value))
 
     def __setattr__(self, name, value):
@@ -133,32 +134,43 @@ class Base(object):
             return
 
         if name in self.allowed_fields:
+            self._set_field(name, value)
 
-            if self._is_evaluable_expression(self.allowed_fields[name][1]):
-
-                if self._is_base_type(type(value),
-                                      can_be_list=True,
-                                      can_be_dict=True,
-                                      can_be_eval_expr=True):
-
-                    self.fields[name] = value
-                else:
-                    raise Exception("Cannot set field %s to %s. Expecting %s not %s"%(name, value, self.allowed_fields[name][1], type(value)))
-
-            elif self._is_base_type(self.allowed_fields[name][1],
-                                  can_be_list=False,
-                                  can_be_dict=False,
-                                  can_be_eval_expr=False):
-
-                self.fields[name] = (self.allowed_fields[name][1])(value)
-            else:
-                '''
-                if not self.allowed_fields[name][1] == type(value):
-                    raise Exception("Cannot set field %s to %s. Expecting %s not %s"%(name, value, self.allowed_fields[name][1], type(value)))'''
-
-                self.fields[name] = value
             return
 
+    def _set_field(self, name, value):
+
+        if self._is_evaluable_expression(self.allowed_fields[name][1]):
+
+            if self._is_base_type(type(value),
+                                  can_be_list=True,
+                                  can_be_dict=True,
+                                  can_be_ndarray=True,
+                                  can_be_eval_expr=True):
+
+                self.fields[name] = value
+            else:
+                raise Exception("Cannot set field %s to %s. Expecting %s not %s"%(name, value, self.allowed_fields[name][1], type(value)))
+
+        elif self.allowed_fields[name][1] == dict:
+
+            if type(value) == dict:
+                self.fields[name] = value
+            else:
+                raise Exception("Cannot set field %s to %s. Expecting %s not %s"%(name, value, self.allowed_fields[name][1], type(value)))
+
+        elif self._is_base_type(self.allowed_fields[name][1],
+                              can_be_list=False,
+                              can_be_dict=False,
+                              can_be_eval_expr=False):
+
+            self.fields[name] = (self.allowed_fields[name][1])(value)
+        else:
+            '''
+            if not self.allowed_fields[name][1] == type(value):
+                raise Exception("Cannot set field %s to %s. Expecting %s not %s"%(name, value, self.allowed_fields[name][1], type(value)))'''
+
+            self.fields[name] = value
 
     @classmethod
     def to_dict_format(cls, var, ordered = True):
@@ -172,6 +184,11 @@ class Base(object):
         elif var is None:
             return var
         elif type(var) == list:
+            l = []
+            for v in var:
+                l.append(cls.to_dict_format(v, ordered=ordered))
+            return l
+        elif type(var) == tuple: # save as a list...
             l = []
             for v in var:
                 l.append(cls.to_dict_format(v, ordered=ordered))
