@@ -63,7 +63,13 @@ class TestCustomSaveLoad(unittest.TestCase):
                                                                ('stable',('Testing...',bool)),
                                                                ('parameters',('Dictionary of global parameters for the network',dict)),
                                                                ('random_connectivity',('Use random connectivity',NewRandomConnectivity)),
-                                                               ('ee1',('TestEE',EvaluableExpression))])
+                                                               ('ee0',('TestEE',EvaluableExpression)),
+                                                               ('ee1',('TestEE',EvaluableExpression)),
+                                                               ('ee2',('TestEE',EvaluableExpression)),
+                                                               ('ee3',('TestEE',EvaluableExpression)),
+                                                               ('ee4',('TestEE',EvaluableExpression)),
+                                                               ('ee5',('TestEE',EvaluableExpression)),
+                                                               ('ee6',('TestEE',EvaluableExpression))])
 
                 super(NewNetwork, self).__init__(**kwargs)
 
@@ -99,11 +105,15 @@ class TestCustomSaveLoad(unittest.TestCase):
 
 
         net = NewNetwork(id='netid', parameters={'size':3,'name':None})
-        net.ee1 = 'str'
-        net.ee1 = 1
-        net.ee1 = 1.1
-        net.ee1 = True
-        net.ee1 = [1,2]
+
+        # Some tests on what's allowed
+        net.ee0 = 'str'
+        net.ee1 = {'a':2}
+        net.ee2 = 1
+        net.ee3 = 1.1
+        net.ee4 = True
+        net.ee5 = [1,2]
+        net.ee6 = None
 
         cell = NewCell(id='cellid1')
         cell.neuroml2_source_file = 'nnn'
@@ -178,6 +188,11 @@ class TestCustomSaveLoad(unittest.TestCase):
             assert(len(str_orig)==len(str_nety)) # Order not preserved in py2, just test len
         else:
             assert(str_orig==str_nety)
+
+        print('Test EvaluableExpressions')
+        for i in range(7):
+            assert(eval('net.ee%i'%i)==eval('netj.ee%i'%i))
+            assert(eval('net.ee%i'%i)==eval('nety.ee%i'%i))
 
 
 class TestBaseSaveLoad(unittest.TestCase):

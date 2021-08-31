@@ -105,6 +105,7 @@ class Base(object):
                       can_be_list=False,
                       can_be_dict=False,
                       can_be_ndarray=False,
+                      can_be_none=False,
                       can_be_eval_expr=False):
 
         import numpy
@@ -117,6 +118,7 @@ class Base(object):
                (can_be_list and value==list) or \
                (can_be_dict and value==dict) or \
                (can_be_ndarray and value==numpy.ndarray) or \
+               (can_be_none and value is type(None)) or \
                (can_be_eval_expr and cls._is_evaluable_expression(value))
 
     def __setattr__(self, name, value):
@@ -146,6 +148,7 @@ class Base(object):
                                   can_be_list=True,
                                   can_be_dict=True,
                                   can_be_ndarray=True,
+                                  can_be_none=True,   # Temporarily
                                   can_be_eval_expr=True):
 
                 self.fields[name] = value

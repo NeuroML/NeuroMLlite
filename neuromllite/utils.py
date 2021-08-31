@@ -118,14 +118,14 @@ def _parse_attributes(dict_format, to_build):
                     ff = _parse_element({v:value[v]}, ff)
                     exec('to_build.%s.append(ff)'%key)
             else:
-                if type(value)==str or type(value)==int or type(value)==float or type(value)==bool or type(value)==list:
+                if type(value)==str or type(value)==int or type(value)==float or type(value)==bool or type(value)==list or value is None:
                     to_build.__setattr__(key, value)
                 else:
                     type_to_use = to_build.allowed_fields[key][1]
                     if verbose:
                         print('type_to_use: %s (%s)'%(type_to_use,type(type_to_use)))
                         print('- %s = %s'%(key, value))
-                        
+
                     if type_to_use==EvaluableExpression:
                         vv = {}
                         dd = _parse_attributes(value, vv)
