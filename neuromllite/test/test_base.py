@@ -10,8 +10,16 @@ except ImportError:
 
 def get_example_network():
 
-    net = Network(id='net0')
+    net = Network(id='net0',parameters={})
     net.notes = "...."
+
+    net.parameters = {'int':3,
+                      'float':3.3,
+                      'str':'str',
+                      'bool':True,
+                      'list':[1,2,3],
+                      'dict':{'a':1,'f':False,'d':{'a':2}},
+                      'dict2':{'a':1,'l':[33,22]}}
 
     p0 = Population(id='pop0', size=5, component='iaf', properties={'color':'0 .8 0'})
     p1 = Population(id='pop1', size=10, component='iaf', properties={'color':'0 0 .8'})
@@ -54,7 +62,14 @@ class TestCustomSaveLoad(unittest.TestCase):
                                                                ('seed',('Seed for random number generator used when building network',int)),
                                                                ('stable',('Testing...',bool)),
                                                                ('parameters',('Dictionary of global parameters for the network',dict)),
-                                                               ('random_connectivity',('Use random connectivity',NewRandomConnectivity))])
+                                                               ('random_connectivity',('Use random connectivity',NewRandomConnectivity)),
+                                                               ('ee0',('TestEE',EvaluableExpression)),
+                                                               ('ee1',('TestEE',EvaluableExpression)),
+                                                               ('ee2',('TestEE',EvaluableExpression)),
+                                                               ('ee3',('TestEE',EvaluableExpression)),
+                                                               ('ee4',('TestEE',EvaluableExpression)),
+                                                               ('ee5',('TestEE',EvaluableExpression)),
+                                                               ('ee6',('TestEE',EvaluableExpression))])
 
                 super(NewNetwork, self).__init__(**kwargs)
 
@@ -78,22 +93,28 @@ class TestCustomSaveLoad(unittest.TestCase):
                 super(NewSynapse, self).__init__(**kwargs)
 
 
-        class NewEvaluableExpression(str):
-
-            def __init__(self,expr):
-                self.expr = expr
 
         class NewRandomConnectivity(Base):
 
             def __init__(self, **kwargs):
 
-                self.allowed_fields = collections.OrderedDict([('probability',('Random probability of connection',NewEvaluableExpression))])
+                self.allowed_fields = collections.OrderedDict([('probability',('Random probability of connection', EvaluableExpression))])
 
                 super(NewRandomConnectivity, self).__init__(**kwargs)
 
 
 
         net = NewNetwork(id='netid', parameters={'size':3,'name':None})
+
+        # Some tests on what's allowed
+        net.ee0 = 'str'
+        net.ee1 = {'a':2}
+        net.ee2 = 1
+        net.ee3 = 1.1
+        net.ee4 = True
+        net.ee5 = [1,2]
+        net.ee6 = None
+
         cell = NewCell(id='cellid1')
         cell.neuroml2_source_file = 'nnn'
         cell2 = NewCell(id='cellid2')
@@ -168,6 +189,11 @@ class TestCustomSaveLoad(unittest.TestCase):
         else:
             assert(str_orig==str_nety)
 
+        print('Test EvaluableExpressions')
+        for i in range(7):
+            assert(eval('net.ee%i'%i)==eval('netj.ee%i'%i))
+            assert(eval('net.ee%i'%i)==eval('nety.ee%i'%i))
+
 
 class TestBaseSaveLoad(unittest.TestCase):
 
@@ -187,11 +213,12 @@ class TestBaseSaveLoad(unittest.TestCase):
             else:
                 o1 = load_simulation_json(new_file)
 
-
             str1 = str(o1)
             json1 = o1.to_json()
 
             print(str1)
+
+            print('Loaded from %s'%new_file)
 
             if sys.version_info[0]==2: # Order not preserved in py2, just test len
                 self.assertEqual(len(str0), len(str1))
@@ -227,5 +254,8 @@ if __name__ == '__main__':
 
     # Some tests
     tc = TestCustomSaveLoad()
-
     tc.test_save_load_json()
+
+    tb = TestBaseSaveLoad()
+    tb.test_save_load_pickle()
+    tb.test_save_load_json()

@@ -181,3 +181,5 @@ report*.txt
 /neuromllite/netid.json
 /neuromllite/test/netid.json
 /neuromllite/test/netid.yaml
+
+docs/_build
