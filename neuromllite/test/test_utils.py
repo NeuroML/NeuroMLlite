@@ -103,7 +103,10 @@ class TestUtils(unittest.TestCase):
         return True
 
     def test_val_info_tuple(self):
-        _val_info(tuple(1,2))
+        print(_val_info((1,2)))
+        print(_val_info((("test", 1), 2)))
+        print(_val_info((("test", object()), 2)))
+
 
 if __name__ == "__main__":
     tu = TestUtils()

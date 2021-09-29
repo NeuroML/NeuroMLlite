@@ -177,6 +177,10 @@ def _val_info(param_val):
         pp = '%s'%param_val
         pp=pp.replace('\n','')
         #pp+=' (TF %s %s)'%(param_val.shape,param_val.dtype)
+    elif type(param_val) == tuple:
+        # If param_val is a tuple, recursively print its elements
+        # separated by commas and wrapped in parentheses
+        pp = "(" + ', '.join([_val_info(el) for el in param_val]) + ")"
     else:
         pp = '%s'%param_val
         t = type(param_val)
