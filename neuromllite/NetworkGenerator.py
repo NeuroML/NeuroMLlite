@@ -335,6 +335,9 @@ def check_to_generate_or_run(argv, sim):
     elif '-arbor' in argv:
         generate_and_run(sim, simulator='Arbor')
 
+    elif '-bindsnet' in argv:
+        generate_and_run(sim, simulator='BindsNET')
+
     elif '-jnml' in argv:
         generate_and_run(sim, simulator='jNeuroML')
 
@@ -1108,6 +1111,26 @@ plt.show()
 
             print_v("Done with MatrixHandler...")
 
+
+        elif simulator == 'BindsNET':
+
+            from neuromllite.BindsNETHandler import BindsNETHandler
+            import bindsnet
+
+            print('\n   ********************************************************')
+            print('   *** Warning: Support for BindsNET is very preliminary!! ***')
+            print('   ********************************************************\n')
+
+            bindsnet_handler = BindsNETHandler(network)
+
+            generate_network(network, bindsnet_handler, always_include_props=True, base_dir=base_dir)
+
+            traces = {}
+            events = {}
+
+            if return_results:
+                _print_result_info(traces, events)
+                return traces, events
 
         elif simulator == 'Arbor':
 

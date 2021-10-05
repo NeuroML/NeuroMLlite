@@ -51,6 +51,7 @@ class Cell(BaseWithId):
                                ('neuroml2_cell',('Name of standard NeuroML2 cell type',str)),
                                ('pynn_cell',('Name of standard PyNN cell type',str)),
                                ('arbor_cell',('Name of standard Arbor cell type',str)),
+                               ('bindsnet_node',('Name of standard BindsNET node',str)),
                                ('parameters',('Dictionary of parameters for the cell',dict))])
 
         super(Cell, self).__init__(**kwargs)
