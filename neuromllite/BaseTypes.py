@@ -89,7 +89,6 @@ class Base(object):
             #if verbose: print_v(" >   Attribute %s is a child: %s (%s)..."%(name,self.children[name],type(self.children[name])))
             return self.children[name]
 
-        print_v('No field or child: %s in %s'%(name, self.id))
         return None
 
 

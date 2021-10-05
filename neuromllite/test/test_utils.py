@@ -1,5 +1,8 @@
 from neuromllite import *
 from neuromllite.utils import *
+
+from neuromllite.utils import _val_info
+
 import numpy as np
 
 from test_base import get_example_network, get_example_simulation
@@ -98,6 +101,11 @@ class TestUtils(unittest.TestCase):
 
 
         return True
+
+    def test_val_info_tuple(self):
+        print(_val_info((1,2)))
+        print(_val_info((("test", 1), 2)))
+        print(_val_info((("test", object()), 2)))
 
 
 if __name__ == "__main__":
