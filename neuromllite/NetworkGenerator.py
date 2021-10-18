@@ -306,7 +306,7 @@ def generate_network(nl_model,
     if hasattr(handler, 'finalise_document'):
         handler.finalise_document()
     else:
-        print(44)
+        pass
 
 
 def check_to_generate_or_run(argv, sim):
@@ -1125,11 +1125,48 @@ plt.show()
 
             generate_network(network, bindsnet_handler, always_include_props=True, base_dir=base_dir)
 
+            monitors_v = {}
+            monitors_s = {}
+            for pop in bindsnet_handler.pops_vs_components:
+                comp = bindsnet_handler.pops_vs_components[pop]
+                bn_layer = bindsnet_handler.pops_vs_bn_layers[pop]
+                print('Monitoring all spikes in %s (%s) -> %s'%(pop,comp,bn_layer))
+                m = bindsnet.network.monitors.Monitor(obj=bn_layer, state_vars=['s'])
+                bindsnet_handler.bn_network.add_monitor(monitor=m, name='%s_spikes'%pop)
+                monitors_s[pop] = m
+
+                if comp!='Input':
+                    print('Monitoring all v in %s (%s)'%(pop,comp))
+                    mv = bindsnet.network.monitors.Monitor(bn_layer, ['v'])
+                    bindsnet_handler.bn_network.add_monitor(monitor=mv, name='%s_voltage'%pop)
+                    monitors_v[pop] = mv
+
             traces = {}
             events = {}
 
+            times = [t/1000. for t in range(int(simulation.duration/simulation.dt)+1)]
+            traces['t'] = times
+
+            bindsnet_handler.bn_network.run(inputs={}, time=simulation.duration)
+
+            for pop in monitors_v:
+                vs = monitors_v[pop].get("v").numpy()
+                print('Shape of voltage results for %s: %s'%(pop, vs.shape))
+                v = vs
+                print(v)
+                traces['%s/0'%pop]= v
+
+            for pop in monitors_s:
+                ss = monitors_s[pop].get("s").numpy()
+                print('Shape of spike results for %s: %s'%(pop, ss.shape))
+                s = ss
+                print(s)
+                #traces['%s/0'%pop]= ss
+
+            print_v("Finished BindsNET simulation")
+            _print_result_info(traces, events)
+
             if return_results:
-                _print_result_info(traces, events)
                 return traces, events
 
         elif simulator == 'Arbor':

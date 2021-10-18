@@ -17,6 +17,7 @@ import bindsnet
 class BindsNETHandler(DefaultNetworkHandler):
 
     pops_vs_components = {}
+    pops_vs_bn_layers = {}
 
     proj_weights = {}
     proj_delays = {}
@@ -179,6 +180,7 @@ class BindsNETHandler(DefaultNetworkHandler):
             size = len(self.pop_indices_vs_gids[pop])
             comp = self.pops_vs_components[pop]
             cell = self.nl_network.get_child(comp, 'cells')
-            cmd = "%s = bindsnet.network.nodes.%s(%s)"%(pop, cell.bindsnet_node, size)
+            layer_name = '%s_bn_pop'%pop
+            cmd = "self.pops_vs_bn_layers['%s'] = bindsnet.network.nodes.%s(%s)"%(pop, cell.bindsnet_node, size)
             print('Creating a population %s with %s instances of %s using: <%s>'%(pop, size, cell, cmd))
             exec(cmd)
