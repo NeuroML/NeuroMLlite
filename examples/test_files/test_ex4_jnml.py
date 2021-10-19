@@ -3,6 +3,6 @@ import os, sys
 os.chdir("..")
 sys.path.append(".")
 
-sys.argv.append('-jnml')
+sys.argv.append("-jnml")
 
 import Example4
