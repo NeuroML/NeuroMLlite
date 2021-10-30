@@ -18,7 +18,8 @@ setup(
     long_description_content_type="text/markdown",
     install_requires=['libNeuroML>=0.2.54',
                       'pyyaml',
-                      'numpy'],
+                      'numpy',
+                      'pyparsing<3'],
     classifiers = [
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
