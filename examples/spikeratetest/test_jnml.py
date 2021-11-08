@@ -1,4 +1,4 @@
 import sys
 
-sys.argv.append('-jnml')
+sys.argv.append("-jnml")
 import Spikers

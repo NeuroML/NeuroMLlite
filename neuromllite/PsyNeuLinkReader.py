@@ -1,4 +1,3 @@
-
 import os
 
 from neuroml.hdf5.NetworkContainer import *
@@ -6,85 +5,91 @@ from neuromllite.BaseTypes import NetworkReader
 
 from neuromllite.utils import print_v, load_json
 
+
 class PsyNeuLinkReader(NetworkReader):
-    
-    component_objects = {} # Store cell ids vs objects, e.g. NeuroML2 based object
-    
-    PRE_SYN = 'silentSyn'
-    POST_SYN = 'rsDL'
-    
+
+    component_objects = {}  # Store cell ids vs objects, e.g. NeuroML2 based object
+
+    PRE_SYN = "silentSyn"
+    POST_SYN = "rsDL"
+
     def __init__(self, **parameters):
-                     
-        print_v("Creating PsyNeuLinkReader with %s..."%parameters)
+
+        print_v("Creating PsyNeuLinkReader with %s..." % parameters)
         self.parameters = parameters
         self.current_population = None
         self.pre_pop = None
         self.post_pop = None
-        
+
     def _generate_id(self, name):
-        return name.replace(' ','_').replace('[','_').replace(']','_').replace('-','_')
+        return (
+            name.replace(" ", "_").replace("[", "_").replace("]", "_").replace("-", "_")
+        )
 
     def parse(self, handler):
 
-        FORMAT = 'BIDS-MDF'
-        filename = os.path.abspath(self.parameters['filename'])
-        id=filename.split('/')[-1].split('.')[0]
-        
+        FORMAT = "BIDS-MDF"
+        filename = os.path.abspath(self.parameters["filename"])
+        id = filename.split("/")[-1].split(".")[0]
+
         self.handler = handler
-    
+
         bids_mdf = load_json(filename)
-        
+
         print(bids_mdf)
-        
-        if len(bids_mdf['graphs'])!=1:
-            raise Exception('Can only parse %s files with a single graph'%(FORMAT))
-        
-        graph = bids_mdf['graphs'][0]
-        net_id = self._generate_id(graph['name'])
-        
-        if 'id' in self.parameters:
-            id = self._generate_id(self.parameters['id'])
+
+        if len(bids_mdf["graphs"]) != 1:
+            raise Exception("Can only parse %s files with a single graph" % (FORMAT))
+
+        graph = bids_mdf["graphs"][0]
+        net_id = self._generate_id(graph["name"])
+
+        if "id" in self.parameters:
+            id = self._generate_id(self.parameters["id"])
         else:
             id = net_id
-            
-        notes = "Network (%s) read in from PsyNeuLink/%s: %s"%(id, FORMAT, filename)
+
+        notes = "Network (%s) read in from PsyNeuLink/%s: %s" % (id, FORMAT, filename)
         handler.handle_document_start(id, notes)
-        
+
         handler.handle_network(id, notes)
-        
-        for node_id in graph['nodes']:
-            node = graph['nodes'][node_id]
-            pop_id = self._generate_id(node['name'])
+
+        for node_id in graph["nodes"]:
+            node = graph["nodes"][node_id]
+            pop_id = self._generate_id(node["name"])
             size = 1
             properties = {}
-            self.handler.handle_population(pop_id, 
-                                         self.parameters['DEFAULT_CELL_ID'], 
-                                         size,
-                                         properties=properties)
-                                         
-        for edge_id in graph['edges']:
-            edge = graph['edges'][edge_id]
-            pre_pop = self._generate_id(edge['sender'])
-            post_pop = self._generate_id(edge['receiver'])
-            weight = float(edge['weight']) if 'weight' in edge else 1
-            proj_id = self._generate_id(edge_id)
-            self.handler.handle_projection(proj_id, 
-                                           pre_pop, 
-                                           post_pop, 
-                                           synapse=self.PRE_SYN,
-                                           type='continuousProjection')
-                                           
-            self.handler.handle_connection(proj_id, 
-                                           0, 
-                                           pre_pop, 
-                                           post_pop, 
-                                           self.PRE_SYN,
-                                           0,
-                                           0, 
-                                           delay = 0, \
-                                           weight = weight)
+            self.handler.handle_population(
+                pop_id, self.parameters["DEFAULT_CELL_ID"], size, properties=properties
+            )
 
-    '''
+        for edge_id in graph["edges"]:
+            edge = graph["edges"][edge_id]
+            pre_pop = self._generate_id(edge["sender"])
+            post_pop = self._generate_id(edge["receiver"])
+            weight = float(edge["weight"]) if "weight" in edge else 1
+            proj_id = self._generate_id(edge_id)
+            self.handler.handle_projection(
+                proj_id,
+                pre_pop,
+                post_pop,
+                synapse=self.PRE_SYN,
+                type="continuousProjection",
+            )
+
+            self.handler.handle_connection(
+                proj_id,
+                0,
+                pre_pop,
+                post_pop,
+                self.PRE_SYN,
+                0,
+                0,
+                delay=0,
+                weight=weight,
+            )
+
+    """
     def parse_group(self, g):
         #print("+++++++++++++++Parsing group: "+ str(g)+", name: "+g._v_name)
 
@@ -257,45 +262,57 @@ class PsyNeuLinkReader(NetworkReader):
                                          self.post_pop, 
                                          synapse)
 
-            self.post_pop=None'''
-                
-    
-if __name__ == '__main__':
+            self.post_pop=None"""
 
-    test_files = ['../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/model_with_simple_graph.json']
-    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABC.bids-mdf.json')
-    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/ColorMotionTask_SIMPLE.json')
-    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/StroopModelEVC.json')
-    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/GilzenratModel.json')
-    test_files.append('../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json')
-    
-    test_files = ['../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json']
-    test_files = ['../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/FN.bids-mdf.json']
 
-    
-    
+if __name__ == "__main__":
+
+    test_files = [
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/model_with_simple_graph.json"
+    ]
+    test_files.append(
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABC.bids-mdf.json"
+    )
+    test_files.append(
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/ColorMotionTask_SIMPLE.json"
+    )
+    test_files.append(
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/StroopModelEVC.json"
+    )
+    test_files.append(
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/tests/GilzenratModel.json"
+    )
+    test_files.append(
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json"
+    )
+
+    test_files = [
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/ABCD.bids-mdf.json"
+    ]
+    test_files = [
+        "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/NeuroML2/FN.bids-mdf.json"
+    ]
+
     for filename in test_files:
-        pnl_parser = PsyNeuLinkReader(filename=filename, 
-                                  DEFAULT_CELL_ID='hhcell')
+        pnl_parser = PsyNeuLinkReader(filename=filename, DEFAULT_CELL_ID="hhcell")
 
         from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
+
         def_handler = DefaultNetworkHandler()
 
-        pnl_parser.parse(def_handler)   
+        pnl_parser.parse(def_handler)
 
         from neuroml.hdf5.NetworkBuilder import NetworkBuilder
 
         neuroml_handler = NetworkBuilder()
 
-
-        pnl_parser = PsyNeuLinkReader(filename=filename, 
-                                  DEFAULT_CELL_ID='hhcell')
-        pnl_parser.parse(neuroml_handler) 
+        pnl_parser = PsyNeuLinkReader(filename=filename, DEFAULT_CELL_ID="hhcell")
+        pnl_parser.parse(neuroml_handler)
 
         from neuroml.writers import NeuroMLWriter
 
-        nml_file_name = '%s.net.nml'%neuroml_handler.get_nml_doc().id
+        nml_file_name = "%s.net.nml" % neuroml_handler.get_nml_doc().id
 
-        NeuroMLWriter.write(neuroml_handler.get_nml_doc(),nml_file_name)
+        NeuroMLWriter.write(neuroml_handler.get_nml_doc(), nml_file_name)
 
-        print('Written NeuroML file to: %s'%nml_file_name)
+        print("Written NeuroML file to: %s" % nml_file_name)
