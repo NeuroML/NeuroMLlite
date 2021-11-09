@@ -10,7 +10,9 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/NeuroML?style=social)](https://twitter.com/NeuroML)
 
 
-Work in progress. For the background to this see here: https://github.com/NeuroML/NetworkShorthand.
+Work in progress. This will develop in to a framework for more portable, concise network specifications which will form an important part of [NeuroML v3](https://docs.neuroml.org/NeuroMLOrg/History.html#the-future).
+
+For some more background to this package see here: https://github.com/NeuroML/NetworkShorthand.
 
 ![Architecture](images/NetworkShorthand.png)
 
@@ -163,3 +165,5 @@ NeuroMLlite is being tested/used in the following repositories on OSB:
 - [PING networks](https://github.com/OpenSourceBrain/PINGnets/tree/master/NeuroML2) 
 - [PsyNeuLink tests](https://github.com/OpenSourceBrain/PsyNeuLinkShowcase/tree/master/NeuroML2)
 - [OpenWorm - c302](https://github.com/openworm/c302/tree/master/examples/parametersweep)
+
+
