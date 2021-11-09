@@ -71,7 +71,7 @@ jobs:
 
     - name: Run pytest
       run: |
-        pip install pytest
+        pip install pytest tables # tables for Sonata test file
         cd neuromllite/test/
         pytest -v
 
