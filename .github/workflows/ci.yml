@@ -65,6 +65,16 @@ jobs:
         cd ..
         #jnml -v
 
+    - name: List packages so far
+      run: |
+        pip list
+
+    - name: Run pytest
+      run: |
+        pip install pytest
+        cd neuromllite/test/
+        pytest -v
+
     - name: Install OMV
       run: |
         # Install OMV
