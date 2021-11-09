@@ -69,12 +69,6 @@ jobs:
       run: |
         pip list
 
-    - name: Run pytest
-      run: |
-        pip install pytest tables # tables for Sonata test file
-        cd neuromllite/test/
-        pytest -v
-
     - name: Install OMV
       run: |
         # Install OMV
@@ -88,6 +82,12 @@ jobs:
         omv install NEURON
         omv install NetPyNE
         omv install PyNN
+
+    - name: Run pytest
+      run: |
+        pip install pytest tables # tables for Sonata test file
+        cd neuromllite/test/
+        pytest -v
 
     - name: Run tests
       run: |
