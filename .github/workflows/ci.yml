@@ -2,9 +2,9 @@ name: Continuous builds
 
 on:
   push:
-    branches: [ master, development, experimental, only_black ]
+    branches: [ master, development, experimental, modelspec ]
   pull_request:
-    branches: [ master, development, experimental, only_black ]
+    branches: [ master, development, experimental, modelspec ]
 
 jobs:
   build:
