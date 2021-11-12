@@ -1,6 +1,6 @@
 import collections
 
-__version__ = "0.3.8"
+__version__ = "0.3.8.modelspec"
 
 # import pyNN
 # import nest
