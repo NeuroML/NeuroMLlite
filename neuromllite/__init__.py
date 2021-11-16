@@ -5,8 +5,9 @@ __version__ = "0.3.8.modelspec"
 # import pyNN
 # import nest
 
-from neuromllite.BaseTypes import Base
-from neuromllite.BaseTypes import BaseWithId
+from modelspec.BaseTypes import Base
+from modelspec.BaseTypes import BaseWithId
+
 from neuromllite.BaseTypes import NetworkReader
 
 
