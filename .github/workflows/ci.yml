@@ -14,7 +14,7 @@ jobs:
       matrix:
         python-version: [3.7,3.9]
     env:
-      JNML_HOME: "${GITHUB_WORKSPACE}/jNeuroML"
+      JNML_HOME: "/home/runner/work/NeuroMLlite/NeuroMLlite/jNeuroML"
 
     steps:
     - uses: actions/checkout@v2
@@ -57,14 +57,12 @@ jobs:
         python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
         echo "Installed!"
         ls -alth
-        echo "$GITHUB_WORKSPACE/jNeuroML" >> $GITHUB_PATH
-        export PATH=$PATH:$GITHUB_WORKSPACE/jNeuroML
-        export JNML_HOME=$GITHUB_WORKSPACE/jNeuroML
+
+        export PATH=$PATH:$JNML_HOME
         ./jnml -v
         which jnml
         env
         cd ..
-        #jnml -v
 
     - name: List packages so far
       run: |
@@ -74,6 +72,9 @@ jobs:
       run: |
         # Install OMV
         pip install git+https://github.com/OpenSourceBrain/osb-model-validation
+
+        export PATH=$PATH:$JNML_HOME
+        
         omv list -V  # list all currently known...
         env
 
