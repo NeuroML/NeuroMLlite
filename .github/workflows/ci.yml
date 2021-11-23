@@ -74,7 +74,7 @@ jobs:
         pip install git+https://github.com/OpenSourceBrain/osb-model-validation
 
         export PATH=$PATH:$JNML_HOME
-        
+
         omv list -V  # list all currently known...
         env
 
@@ -85,6 +85,7 @@ jobs:
         omv install NEURON
         omv install NetPyNE
         omv install PyNN
+        omv install Brian2
 
     - name: Run pytest
       run: |
@@ -94,11 +95,10 @@ jobs:
 
     - name: Run tests
       run: |
-        # Basic test
-        cd examples
-        python Example2.py # test one example...
-        python Example4.py # test another example...
-        cd ..
+
+        export PATH=$PATH:$JNML_HOME
+        # All tests
+        ./regenerateAndTest.sh
 
     - name: OMV final version info
       run: |
