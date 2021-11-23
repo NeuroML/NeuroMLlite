@@ -59,6 +59,7 @@ jobs:
         ls -alth
         echo "$GITHUB_WORKSPACE/jNeuroML" >> $GITHUB_PATH
         export PATH=$PATH:$GITHUB_WORKSPACE/jNeuroML
+        export JNML_HOME=$GITHUB_WORKSPACE/jNeuroML
         ./jnml -v
         which jnml
         env
@@ -74,6 +75,7 @@ jobs:
         # Install OMV
         pip install git+https://github.com/OpenSourceBrain/osb-model-validation
         omv list -V  # list all currently known...
+        env
 
     - name: Install some simulators for testing
       run: |
