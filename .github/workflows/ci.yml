@@ -14,7 +14,7 @@ jobs:
       matrix:
         python-version: [3.7,3.9]
     env:
-      JNML_HOME: "${GITHUB_WORKSPACE}/jNeuroML"
+      JNML_HOME: "/home/runner/work/NeuroMLlite/NeuroMLlite/jNeuroML"
 
     steps:
     - uses: actions/checkout@v2
@@ -41,4 +41,16 @@ jobs:
         # Check to see if on development/experimental branches
         export jnml_branches="development"
         export pynml_branch="master"
-        echo "JNML_HOME: $env.JNML_HOME"
+
+        echo "testing..."
+
+        echo "JNML_HOME: $JNML_HOME"
+        echo "PATH: $PATH"
+
+    - name: Install correct branch of pyneuroml etc.
+      run: |
+
+        echo "testing..."
+
+        echo "JNML_HOME: $JNML_HOME"
+        echo "PATH: $PATH"
