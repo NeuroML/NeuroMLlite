@@ -97,6 +97,9 @@ jobs:
       run: |
 
         export PATH=$PATH:$JNML_HOME
+        export NEURON_HOME=$pythonLocation
+        env
+        echo "===================="
         # All tests
         ./regenerateAndTest.sh
 
