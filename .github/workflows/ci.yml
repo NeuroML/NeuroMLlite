@@ -11,10 +11,11 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.7,3.9]
     env:
-      JNML_HOME: "${GITHUB_WORKSPACE}/jNeuroML"
+      JNML_HOME: "/home/runner/work/NeuroMLlite/NeuroMLlite/jNeuroML"
 
     steps:
     - uses: actions/checkout@v2
@@ -45,7 +46,7 @@ jobs:
         env
         # Check to see if on development/experimental branches
         export jnml_branches="development"
-        export pynml_branch="master"
+        export pynml_branch="development"
         echo "JNML_HOME: $JNML_HOME"
         echo "Will use jNeuroML from branches $jnml_branches"
         echo "Will use pyNeuroML from branch $pynml_branch"
@@ -62,13 +63,12 @@ jobs:
         python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
         echo "Installed!"
         ls -alth
-        echo "$GITHUB_WORKSPACE/jNeuroML" >> $GITHUB_PATH
-        export PATH=$PATH:$GITHUB_WORKSPACE/jNeuroML
+
+        export PATH=$PATH:$JNML_HOME
         ./jnml -v
         which jnml
         env
         cd ..
-        #jnml -v
 
     - name: List packages so far
       run: |
@@ -78,7 +78,11 @@ jobs:
       run: |
         # Install OMV
         pip install git+https://github.com/OpenSourceBrain/osb-model-validation
+
+        export PATH=$PATH:$JNML_HOME
+
         omv list -V  # list all currently known...
+        env
 
     - name: Install some simulators for testing
       run: |
@@ -87,6 +91,7 @@ jobs:
         omv install NEURON
         omv install NetPyNE
         omv install PyNN
+        omv install Brian2
 
     - name: Run pytest
       run: |
@@ -96,11 +101,13 @@ jobs:
 
     - name: Run tests
       run: |
-        # Basic test
-        cd examples
-        python Example2.py # test one example...
-        python Example4.py # test another example...
-        cd ..
+
+        export PATH=$PATH:$JNML_HOME
+        export NEURON_HOME=$pythonLocation
+        env
+        echo "===================="
+        # All tests
+        ./regenerateAndTest.sh
 
     - name: OMV final version info
       run: |
