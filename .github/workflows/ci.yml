@@ -41,7 +41,7 @@ jobs:
         env
         # Check to see if on development/experimental branches
         export jnml_branches="development"
-        export pynml_branch="master"
+        export pynml_branch="development"
         echo "JNML_HOME: $JNML_HOME"
         echo "Will use jNeuroML from branches $jnml_branches"
         echo "Will use pyNeuroML from branch $pynml_branch"
