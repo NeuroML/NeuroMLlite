@@ -85,7 +85,7 @@ python Example11.py -jnml
 
 cd ../neuromllite/test
 
-nosetests -vs
+pytest -v
 
 cd -
 
