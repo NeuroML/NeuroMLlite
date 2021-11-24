@@ -86,7 +86,6 @@ jobs:
         omv install NetPyNE
         omv install PyNN
         omv install Brian2
-        omv install PyNEST
 
     - name: Run pytest
       run: |
