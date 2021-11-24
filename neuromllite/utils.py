@@ -6,10 +6,27 @@ import os
 import math
 import numpy as np
 
-from neuromllite.BaseTypes import print_v, print_
 from neuromllite import EvaluableExpression
 
 verbose = False
+
+
+def print_(text, print_it=False):
+    """
+    Print a message preceded by neuromllite, only if print_it=True
+    """
+    prefix = "neuromllite >>> "
+    if not isinstance(text, str):
+        text = ("%s" % text).decode("ascii")
+    if print_it:
+        print("%s%s" % (prefix, text.replace("\n", "\n" + prefix)))
+
+
+def print_v(text):
+    """
+    Print a message preceded by neuromllite always
+    """
+    print_(text, True)
 
 
 def load_json(filename):

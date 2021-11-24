@@ -3,42 +3,6 @@ import json
 import sys
 from collections import OrderedDict
 
-verbose = False
-
-MARKDOWN_FORMAT = "markdown"
-DICT_FORMAT = "dict"
-
-
-def print_(text, print_it=False):
-    """
-    Print a message preceded by neuromllite, only if print_it=True
-    """
-    prefix = "neuromllite >>> "
-    if not isinstance(text, str):
-        text = ("%s" % text).decode("ascii")
-    if print_it:
-        print("%s%s" % (prefix, text.replace("\n", "\n" + prefix)))
-
-
-def print_v(text):
-    """
-    Print a message preceded by neuromllite always
-    """
-    print_(text, True)
-
-
-from modelspec.BaseTypes import Base
-from modelspec.BaseTypes import BaseWithId
-
-class NetworkReader:
-
-    pop_locations = {}
-
-    def parse(self, handler):
-        raise Exception("This needs to be implemented...")
-
-    def get_locations(self):
-        return self.pop_locations
 
 
 if __name__ == "__main__":

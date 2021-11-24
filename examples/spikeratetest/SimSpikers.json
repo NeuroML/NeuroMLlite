@@ -1,6 +1,6 @@
 {
     "SimSpikers": {
-        "version": "NeuroMLlite v0.3.8",
+        "version": "NeuroMLlite v0.4.1",
         "network": "Spikers.json",
         "duration": 10000.0,
         "dt": 0.025,

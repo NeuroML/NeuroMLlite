@@ -1,6 +1,6 @@
 import collections
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 # import pyNN
 # import nest
@@ -8,12 +8,23 @@ __version__ = "0.4.0"
 from modelspec.BaseTypes import Base
 from modelspec.BaseTypes import BaseWithId
 
-from neuromllite.BaseTypes import NetworkReader
 
 
 class EvaluableExpression(str):
     def __init__(self, expr):
         self.expr = expr
+
+
+class NetworkReaderX:
+
+    pop_locations = {}
+
+    def parse(self, handler):
+        raise Exception("This needs to be implemented...")
+
+    def get_locations(self):
+        return self.pop_locations
+
 
 
 class Network(BaseWithId):
