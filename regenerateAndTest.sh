@@ -1,5 +1,12 @@
-set -e
+set -ex
 
+# pytest
+cd neuromllite/test
+pytest -v
+cd -
+
+
+# test example in multiple simulators
 cd examples
 
 rm -rf *dat *nml LEMS* x86_64 *mod *hoc
@@ -82,12 +89,6 @@ echo "**** Running Example 11 ****"
 python Example11.py
 python Example11.py -jnml
 
-
-cd ../neuromllite/test
-
-pytest -v
-
-cd -
 
 echo
 echo "** All generated and tested! **"

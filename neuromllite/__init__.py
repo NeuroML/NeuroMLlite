@@ -7,12 +7,7 @@ __version__ = "0.4.1"
 
 from modelspec.BaseTypes import Base
 from modelspec.BaseTypes import BaseWithId
-
-
-
-class EvaluableExpression(str):
-    def __init__(self, expr):
-        self.expr = expr
+from modelspec.BaseTypes import EvaluableExpression
 
 
 class NetworkReaderX:
@@ -24,7 +19,6 @@ class NetworkReaderX:
 
     def get_locations(self):
         return self.pop_locations
-
 
 
 class Network(BaseWithId):

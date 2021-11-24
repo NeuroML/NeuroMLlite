@@ -4,7 +4,6 @@ import sys
 from collections import OrderedDict
 
 
-
 if __name__ == "__main__":
 
     # Some tests
