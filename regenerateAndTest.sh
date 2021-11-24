@@ -25,7 +25,9 @@ echo
 echo "**** Running Example 4 ****"
 python Example4.py
 python Example4.py -netpyne
-python Example4.py -pynnnest
+if [[ "$CI" != "true" ]]; then
+    python Example4.py -pynnnest
+fi
 python Example4.py -pynnnrn
 #python Example4.py -pynnbrian  # Not supported in python 3...
 python Example4.py -jnmlnetpyne
@@ -34,7 +36,10 @@ python Example4.py -jnml
 
 echo
 echo "**** Running Example 5 ****"
-python Example5.py
+
+if [[ "$CI" != "true" ]]; then
+    python Example5.py
+fi
 #python Example5.py -netpyne  # Takes 2-3 mins
 
 echo
@@ -48,7 +53,9 @@ echo "**** Running Example 7 ****"
 python Example7.py
 python Example7.py -jnmlnrn
 python Example7.py -jnml
-python Example7.py -pynnnest
+if [[ "$CI" != "true" ]]; then
+    python Example7.py -pynnnest
+fi
 python Example7.py -pynnnrn
 
 echo
