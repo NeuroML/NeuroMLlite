@@ -83,6 +83,7 @@ echo
 echo "**** Running Example 10 ****"
 python Example10.py
 python Example10.py -jnml
+python Example10.py -mdf
 
 echo
 echo "**** Running Example 11 ****"

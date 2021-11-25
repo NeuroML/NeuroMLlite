@@ -6,10 +6,10 @@
 
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 from neuromllite.utils import print_v
-from neuromllite.utils import save_to_json_file
-from neuromllite.utils import save_to_yaml_file
-from neuromllite.utils import locate_file
-from neuromllite.utils import evaluate
+from modelspec.utils import save_to_json_file
+from modelspec.utils import save_to_yaml_file
+from modelspec.utils import locate_file
+from modelspec.utils import evaluate
 from pyneuroml.pynml import get_value_in_si
 
 import lems.api as lems  # from pylems
@@ -27,7 +27,8 @@ class MDFHandler(DefaultNetworkHandler):
 
         self.mdf_info = {}
 
-        from modeci_mdf import MODECI_MDF_VERSION
+        #from modeci_mdf import MODECI_MDF_VERSION
+        MODECI_MDF_VERSION = "0.3"
 
         self.mdf_info[self.id] = {}
         self.mdf_info[self.id]["format"] = "ModECI MDF v%s" % MODECI_MDF_VERSION
