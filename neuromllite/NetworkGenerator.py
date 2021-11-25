@@ -1,10 +1,13 @@
-from neuromllite.utils import evaluate
+from modelspec.utils import evaluate
+from modelspec.utils import save_to_json_file
+from modelspec.utils import locate_file
+from modelspec.utils import parse_list_like
+
 from neuromllite.utils import load_network_json
 from neuromllite.utils import print_v
 from neuromllite.utils import get_pops_vs_cell_indices_seg_ids
-from neuromllite.utils import save_to_json_file
-from neuromllite.utils import locate_file
-from neuromllite.utils import parse_list_like
+
+
 import numpy as np
 import os
 import random

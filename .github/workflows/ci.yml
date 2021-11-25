@@ -2,9 +2,9 @@ name: Continuous builds
 
 on:
   push:
-    branches: [ master, development, experimental, only_black ]
+    branches: [ master, development, experimental, modelspec ]
   pull_request:
-    branches: [ master, development, experimental, only_black ]
+    branches: [ master, development, experimental, modelspec ]
 
 jobs:
   build:
@@ -24,13 +24,18 @@ jobs:
       with:
         python-version:  ${{ matrix.python-version }}
 
-    - name: Install package
+    - name: Install some dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8
         pip install matplotlib==2.2.5 cachetools==3.1.1 # for testing python 2.7 & GH actions fails...
         pip install pyelectro
-        pip install .
+
+    - name: Install modelspec
+      run: python -m pip install git+https://github.com/ModECI/modelspec.git@main
+
+    - name: Install NeuroMLlite
+      run: pip install .
 
     - name: Lint with flake8
       run: |

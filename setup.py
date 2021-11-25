@@ -18,7 +18,11 @@ setup(
     description="A common JSON/YAML based format for compact network specification, closely tied to NeuroML v2",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    install_requires=["libNeuroML>=0.2.54", "pyyaml", "numpy", "pyparsing<3"],
+    install_requires=["libNeuroML>=0.2.54",
+                      "pyyaml",
+                      "numpy",
+                      "pyparsing<3",
+                      "modelspec>=0.1.1"],
     classifiers=[
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
