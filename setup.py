@@ -22,7 +22,7 @@ setup(
                       "pyyaml",
                       "numpy",
                       "pyparsing<3",
-                      "modelspec>=0.1.1"],
+                      "modelspec>=0.1.3"],
     classifiers=[
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
