@@ -1,8 +1,8 @@
 from setuptools import setup
 
-import neuromllite
-
-version = neuromllite.__version__
+for line in open('neuromllite/__init__.py'):
+    if line.startswith("__version__"):
+        version = line.split("=")[1].strip()[1:-1]
 
 setup(
     name="neuromllite",
