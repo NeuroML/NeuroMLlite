@@ -90,7 +90,7 @@ jobs:
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv install NEURON
         omv install NetPyNE
-        omv install PyNN
+        omv install jNeuroML_PyNN_NEURON
         omv install Brian2
 
     - name: Run pytest
