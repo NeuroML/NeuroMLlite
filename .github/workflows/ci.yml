@@ -113,7 +113,7 @@ jobs:
         
     - name: Run OMV tests
       run: |
-        omv all -V 
+        omv all -V --engine=jNeuroML_NEURON # limited for now, issues with nest...
 
     - name: OMV final version info
       run: |
