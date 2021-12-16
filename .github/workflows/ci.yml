@@ -87,8 +87,8 @@ jobs:
     - name: Install some simulators for testing
       run: |
         #pip install cython
-        pip install NEURON
-        pip install NetPyNE
+        omv install NEURON
+        pip install NetPyNE  # strange issues on py3.7 with omv install...
         omv install PyNN
         omv install jNeuroML
         omv install Brian2
@@ -101,7 +101,7 @@ jobs:
         cd neuromllite/test/
         pytest -v
 
-    - name: Run tests
+    - name: Regenerate and test
       run: |
 
         export PATH=$PATH:$JNML_HOME
@@ -110,6 +110,9 @@ jobs:
         echo "===================="
         # All tests
         ./regenerateAndTest.sh
+        
+    - name: Run OMV tests
+      run: |
         omv all -V 
 
     - name: OMV final version info
