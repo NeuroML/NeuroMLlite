@@ -87,12 +87,13 @@ jobs:
     - name: Install some simulators for testing
       run: |
         #pip install cython
-        omv install NEURON
-        omv install NetPyNE
+        pip install NEURON
+        pip install NetPyNE
         omv install PyNN
         omv install jNeuroML
         omv install Brian2
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
+        omv list -V # list installed engines
 
     - name: Run pytest
       run: |
@@ -109,6 +110,7 @@ jobs:
         echo "===================="
         # All tests
         ./regenerateAndTest.sh
+        omv all -V 
 
     - name: OMV final version info
       run: |
