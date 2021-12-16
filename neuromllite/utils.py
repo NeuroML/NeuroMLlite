@@ -36,12 +36,37 @@ def print_v(text):
     print_(text, True)
 
 
+def load_network(filename):
+    """
+    Load a NeuroMLlite network JSON/YAML file
+    """
+    if filename.endswith(".yaml") or filename.endswith(".yml"):
+        return load_network_yaml(filename)
+    else:
+        return load_network_json(filename)
+
+
 def load_network_json(filename):
     """
     Load a NeuroMLlite network JSON file
     """
 
     data = load_json(filename)
+
+    print_v("Loaded network specification from %s" % filename)
+
+    net = Network()
+    net = _parse_element(data, net)
+
+    return net
+
+
+def load_network_yaml(filename):
+    """
+    Load a NeuroMLlite network YAML file
+    """
+
+    data = load_yaml(filename)
 
     print_v("Loaded network specification from %s" % filename)
 

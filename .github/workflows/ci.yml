@@ -86,12 +86,14 @@ jobs:
 
     - name: Install some simulators for testing
       run: |
-        pip install cython
-        if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
+        #pip install cython
         omv install NEURON
-        omv install NetPyNE
+        pip install NetPyNE  # strange issues on py3.7 with omv install...
         omv install PyNN
+        omv install jNeuroML
         omv install Brian2
+        if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
+        omv list -V # list installed engines
 
     - name: Run pytest
       run: |
@@ -99,7 +101,7 @@ jobs:
         cd neuromllite/test/
         pytest -v
 
-    - name: Run tests
+    - name: Regenerate and test
       run: |
 
         export PATH=$PATH:$JNML_HOME
@@ -108,6 +110,10 @@ jobs:
         echo "===================="
         # All tests
         ./regenerateAndTest.sh
+        
+    - name: Run OMV tests
+      run: |
+        omv all -V --engine=jNeuroML_NEURON # limited for now, issues with nest...
 
     - name: OMV final version info
       run: |
