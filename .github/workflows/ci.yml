@@ -86,13 +86,13 @@ jobs:
 
     - name: Install some simulators for testing
       run: |
-        pip install cython
-        if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
+        #pip install cython
         omv install NEURON
         omv install NetPyNE
         omv install PyNN
         omv install jNeuroML
         omv install Brian2
+        if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
 
     - name: Run pytest
       run: |
