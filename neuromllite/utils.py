@@ -3,7 +3,7 @@ import sys
 import json
 
 
-from modelspec.BaseTypes import EvaluableExpression
+from modelspec.base_types import EvaluableExpression
 
 from modelspec.utils import (
     load_json,
@@ -55,8 +55,10 @@ def load_network_json(filename):
 
     print_v("Loaded network specification from %s" % filename)
 
-    net = Network()
-    net = _parse_element(data, net)
+    net = Network.from_dict(data)
+
+    # net = Network(id="net")
+    # net = _parse_element(data, net)
 
     return net
 
@@ -70,8 +72,10 @@ def load_network_yaml(filename):
 
     print_v("Loaded network specification from %s" % filename)
 
-    net = Network()
-    net = _parse_element(data, net)
+    net = Network.from_dict(data)
+
+    # net = Network()
+    # net = _parse_element(data, net)
 
     return net
 
@@ -81,14 +85,15 @@ def load_simulation_json(filename):
     Load a NeuroMLlite simulation JSON file
     """
 
-    with open(filename, "r") as f:
 
+    with open(filename, "r") as f:
         data = json.load(f, object_hook=ascii_encode_dict)
 
     print_v("Loaded simulation specification from %s" % filename)
 
-    sim = Simulation()
-    sim = _parse_element(data, sim)
+    sim = Simulation.from_dict(data)
+    # sim = Simulation(id="sim")
+    # sim = _parse_element(data, sim)
 
     return sim
 

@@ -108,7 +108,7 @@ def generate_network(
             )
             synapse_objects[s.id] = nml2_doc.get_by_id(s.id)
 
-        if s.pynn_synapse:
+        if hasattr(s, 'pynn_synapse') and s.pynn_synapse is not None:
             synapse_objects[s.id] = nml2_doc_temp.get_by_id(s.id)
 
     for p in nl_model.populations:
@@ -662,7 +662,7 @@ def generate_neuroml2_from_network(
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
-            if i.neuroml2_input:
+            if hasattr(i, 'neuroml2_input') and i.neuroml2_input is not None:
                 input_params = i.parameters if i.parameters else {}
 
                 # TODO make more generic...
@@ -1391,10 +1391,10 @@ plt.show()
             arbor_recipe = arbor_handler.neuroML_arbor_recipe
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
             spike_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordSpikes, network
+                simulation.record_spikes, network
             )
             """
             for pop_id in arbor_handler.populations:
@@ -1583,10 +1583,10 @@ plt.show()
             )
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
             spike_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordSpikes, network
+                simulation.record_spikes, network
             )
 
             for pop_id in pynn_handler.populations:
@@ -1740,17 +1740,17 @@ plt.show()
             simConfig.recordStep = simulation.dt
 
             simConfig.recordCells = ["all"]
-            simConfig.recordTraces = {}
+            simConfig.record_traces = {}
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
 
             for pop_id in trace_pop_indices_seg_ids:
                 for index in trace_pop_indices_seg_ids[pop_id]:
                     seg_ids = trace_pop_indices_seg_ids[pop_id][index]
                     if seg_ids == None:
-                        simConfig.recordTraces[
+                        simConfig.record_traces[
                             "%s.%s.%s.v" % (simulation.id, pop_id, index)
                         ] = {
                             "sec": "soma",
@@ -1760,7 +1760,7 @@ plt.show()
                         }
                     else:
                         for seg_id in seg_ids:
-                            simConfig.recordTraces[
+                            simConfig.record_traces[
                                 "%s.%s.%s.%s.v" % (simulation.id, pop_id, index, seg_id)
                             ] = {
                                 "sec": seg_id,
@@ -1923,7 +1923,7 @@ plt.show()
 
             spike_pop_indices = sorted(
                 get_pops_vs_cell_indices_seg_ids(
-                    simulation.recordSpikes, network
+                    simulation.record_spikes, network
                 ).keys()
             )
 
@@ -1973,13 +1973,13 @@ plt.show()
             gen_spike_saves_for_cells = {}
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
             spike_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordSpikes, network
+                simulation.record_spikes, network
             )
             rate_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordRates, network
+                simulation.record_rates, network
             )
 
             pops = network.populations
@@ -2044,9 +2044,9 @@ plt.show()
                         gen_plots_for_quantities[plot_ref].append(quantity)
                         gen_saves_for_quantities[save_ref].append(quantity)
 
-                if simulation.recordVariables:
-                    for var in simulation.recordVariables:
-                        to_rec = simulation.recordVariables[var]
+                if simulation.record_variables:
+                    for var in simulation.record_variables:
+                        to_rec = simulation.record_variables[var]
                         if "all" in to_rec or p.id in to_rec:
                             size = evaluate(p.size, network.parameters)
                             for i in range(size):
@@ -2148,9 +2148,10 @@ plt.show()
                 _print_result_info(traces, events)
                 return results  # traces, events =
     except Exception as e:
+        raise e
         raise Exception(
             "Exception while trying to run in simulator %s:\n%s" % (simulator, e)
-        )
+        ) from e
 
 
 def _print_info(l):
