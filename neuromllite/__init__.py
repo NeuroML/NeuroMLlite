@@ -4,15 +4,12 @@ __version__ = "0.4.2"
 
 # import pyNN
 # import nest
-import attr
-
-from attr import has, field, fields
-from attr.validators import optional, instance_of, in_
 
 from typing import List, Dict, Any, Optional, Union, Tuple, Callable, TypeVar, Type
 
-from modelspec.base_types import Base
-from modelspec.base_types import EvaluableExpression, ValueExprType, value_expr_types
+import modelspec
+from modelspec import optional, instance_of, in_, has, field, fields
+from modelspec.base_types import Base, ValueExprType, value_expr_types
 
 
 def convert2float(x: Any) -> float:
@@ -31,7 +28,6 @@ def convert2int(x: Any) -> float:
         return None
 
 
-
 class NetworkReaderX:
     pop_locations = {}
 
@@ -41,13 +37,14 @@ class NetworkReaderX:
     def get_locations(self):
         return self.pop_locations
 
-@attr.define
+
+@modelspec.define
 class NMLBase(Base):
     """Base class for NeuroML objects."""
     notes: str = field(kw_only=True, default=None, validator=optional(instance_of(str)))
 
 
-@attr.define
+@modelspec.define
 class Cell(NMLBase):
     """
     A Cell definition.
@@ -72,7 +69,7 @@ class Cell(NMLBase):
     parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
-@attr.define
+@modelspec.define
 class Synapse(NMLBase):
     """
     A Synapse definition.
@@ -93,7 +90,7 @@ class Synapse(NMLBase):
     parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
-@attr.define
+@modelspec.define
 class InputSource(NMLBase):
     """
     An InputSource definition.
@@ -112,7 +109,7 @@ class InputSource(NMLBase):
     parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
-@attr.define
+@modelspec.define
 class RectangularRegion(NMLBase):
     """
     A RectangularRegion definition.
@@ -135,7 +132,7 @@ class RectangularRegion(NMLBase):
     depth: float = field(validator=instance_of(float), converter=convert2float)
 
 
-@attr.define
+@modelspec.define
 class RandomLayout(NMLBase):
     """
     A RandomLayout definition.
@@ -146,7 +143,7 @@ class RandomLayout(NMLBase):
     region: str = field(validator=instance_of(str))
 
 
-@attr.define
+@modelspec.define
 class RelativeLayout(NMLBase):
     """
     A RelativeLayout definition.
@@ -163,7 +160,7 @@ class RelativeLayout(NMLBase):
     z: float = field(validator=instance_of(float), converter=convert2float)
 
 
-@attr.define
+@modelspec.define
 class Location(NMLBase):
     """
     A Location definition.
@@ -178,7 +175,7 @@ class Location(NMLBase):
     z: float = field(validator=instance_of(float), converter=convert2float)
 
 
-@attr.define
+@modelspec.define
 class SingleLocation(NMLBase):
     """
     A SingleLocation definition.
@@ -189,7 +186,7 @@ class SingleLocation(NMLBase):
     location: Location = field(validator=instance_of(Location))
 
 
-@attr.define
+@modelspec.define
 class Population(NMLBase):
     """
     A Population definition.
@@ -228,7 +225,7 @@ class Population(NMLBase):
             return False
 
 
-@attr.define
+@modelspec.define
 class RandomConnectivity(NMLBase):
     """
     A RandomConnectivity definition.
@@ -239,7 +236,7 @@ class RandomConnectivity(NMLBase):
     probability: ValueExprType = field(validator=instance_of(value_expr_types))
 
 
-@attr.define
+@modelspec.define
 class OneToOneConnector(NMLBase):
     """
     A OneToOneConnector definition.
@@ -248,7 +245,7 @@ class OneToOneConnector(NMLBase):
 
 
 # Temp! to redefine more generally!
-@attr.define
+@modelspec.define
 class ConvergentConnectivity(NMLBase):
     """
     A ConvergentConnectivity definition.
@@ -259,7 +256,7 @@ class ConvergentConnectivity(NMLBase):
     num_per_post: float = field(validator=instance_of(float), converter=convert2float)
 
 
-@attr.define
+@modelspec.define
 class Projection(NMLBase):
     """
     A Projection definition.
@@ -292,7 +289,7 @@ class Projection(NMLBase):
     one_to_one_connector: OneToOneConnector = field(default=None, validator=optional(instance_of(OneToOneConnector)))
 
 
-@attr.define
+@modelspec.define
 class Input(NMLBase):
     """
     An Input definition.
@@ -316,7 +313,7 @@ class Input(NMLBase):
     weight: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
 
 
-@attr.define
+@modelspec.define
 class NetworkReader(NMLBase):
     """
     A NetworkReader definition.
@@ -329,7 +326,7 @@ class NetworkReader(NMLBase):
     parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
-@attr.define
+@modelspec.define
 class Simulation(NMLBase):
     """
     A Simulation definition.
@@ -362,7 +359,7 @@ class Simulation(NMLBase):
     plots3D: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
-@attr.define
+@modelspec.define
 class Network(NMLBase):
     """
     A Network containing multiple Population's, connected by Projection's and receiving Input's

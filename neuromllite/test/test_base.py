@@ -1,9 +1,9 @@
 from neuromllite import *
 from neuromllite.utils import *
 
-import attr
-from attr import has, field, fields
-from attr.validators import optional, instance_of, in_
+import modelspec
+from modelspec import field
+from modelspec import optional, instance_of
 
 import pickle
 
@@ -58,7 +58,7 @@ def get_example_simulation():
 class TestCustomSaveLoad(unittest.TestCase):
     def test_save_load_json(self):
 
-        @attr.define
+        @modelspec.define
         class NewCell(Base):
             """
             A new cell definition
@@ -67,10 +67,10 @@ class TestCustomSaveLoad(unittest.TestCase):
                 id: the cell id
                 neuroml2_source_file: The path to the source file
             """
-            id: str = attr.ib(validator=instance_of(str))
+            id: str = field(validator=instance_of(str))
             neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
 
-        @attr.define
+        @modelspec.define
         class NewSynapse(Base):
             """
             A new synapse definition
@@ -80,11 +80,11 @@ class TestCustomSaveLoad(unittest.TestCase):
                 neuroml2_source_file: The path to the source file
                 tested: A boolean attribute
             """
-            id: str = attr.ib(validator=instance_of(str))
+            id: str = field(validator=instance_of(str))
             neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
-            tested: bool = attr.ib(default=None, validator=optional(instance_of(bool)))
+            tested: bool = field(default=None, validator=optional(instance_of(bool)))
 
-        @attr.define
+        @modelspec.define
         class NewRandomConnectivity(Base):
             """
             A new random connectivity definition
@@ -93,9 +93,9 @@ class TestCustomSaveLoad(unittest.TestCase):
                 probability: Random probability of connection
 
             """
-            probability: ValueExprType = attr.ib(default=None, validator=optional(instance_of(value_expr_types)))
+            probability: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
 
-        @attr.define
+        @modelspec.define
         class NewNetwork(Base):
             """
             A new network definition
