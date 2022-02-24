@@ -41,9 +41,14 @@ class NetworkReaderX:
     def get_locations(self):
         return self.pop_locations
 
+@attr.define
+class NMLBase(Base):
+    """Base class for NeuroML objects."""
+    notes: str = field(kw_only=True, default=None, validator=optional(instance_of(str)))
+
 
 @attr.define
-class Cell(Base):
+class Cell(NMLBase):
     """
     A Cell definition.
 
@@ -68,7 +73,7 @@ class Cell(Base):
 
 
 @attr.define
-class Synapse(Base):
+class Synapse(NMLBase):
     """
     A Synapse definition.
 
@@ -89,7 +94,7 @@ class Synapse(Base):
 
 
 @attr.define
-class InputSource(Base):
+class InputSource(NMLBase):
     """
     An InputSource definition.
 
@@ -108,7 +113,7 @@ class InputSource(Base):
 
 
 @attr.define
-class RectangularRegion(Base):
+class RectangularRegion(NMLBase):
     """
     A RectangularRegion definition.
 
@@ -131,7 +136,7 @@ class RectangularRegion(Base):
 
 
 @attr.define
-class RandomLayout(Base):
+class RandomLayout(NMLBase):
     """
     A RandomLayout definition.
 
@@ -142,7 +147,7 @@ class RandomLayout(Base):
 
 
 @attr.define
-class RelativeLayout(Base):
+class RelativeLayout(NMLBase):
     """
     A RelativeLayout definition.
 
@@ -159,7 +164,7 @@ class RelativeLayout(Base):
 
 
 @attr.define
-class Location(Base):
+class Location(NMLBase):
     """
     A Location definition.
 
@@ -174,7 +179,7 @@ class Location(Base):
 
 
 @attr.define
-class SingleLocation(Base):
+class SingleLocation(NMLBase):
     """
     A SingleLocation definition.
 
@@ -185,7 +190,7 @@ class SingleLocation(Base):
 
 
 @attr.define
-class Population(Base):
+class Population(NMLBase):
     """
     A Population definition.
 
@@ -224,7 +229,7 @@ class Population(Base):
 
 
 @attr.define
-class RandomConnectivity(Base):
+class RandomConnectivity(NMLBase):
     """
     A RandomConnectivity definition.
 
@@ -235,7 +240,7 @@ class RandomConnectivity(Base):
 
 
 @attr.define
-class OneToOneConnector(Base):
+class OneToOneConnector(NMLBase):
     """
     A OneToOneConnector definition.
     """
@@ -244,7 +249,7 @@ class OneToOneConnector(Base):
 
 # Temp! to redefine more generally!
 @attr.define
-class ConvergentConnectivity(Base):
+class ConvergentConnectivity(NMLBase):
     """
     A ConvergentConnectivity definition.
 
@@ -255,7 +260,7 @@ class ConvergentConnectivity(Base):
 
 
 @attr.define
-class Projection(Base):
+class Projection(NMLBase):
     """
     A Projection definition.
 
@@ -288,7 +293,7 @@ class Projection(Base):
 
 
 @attr.define
-class Input(Base):
+class Input(NMLBase):
     """
     An Input definition.
 
@@ -312,7 +317,7 @@ class Input(Base):
 
 
 @attr.define
-class NetworkReader(Base):
+class NetworkReader(NMLBase):
     """
     A NetworkReader definition.
 
@@ -325,7 +330,7 @@ class NetworkReader(Base):
 
 
 @attr.define
-class Simulation(Base):
+class Simulation(NMLBase):
     """
     A Simulation definition.
 
@@ -358,7 +363,7 @@ class Simulation(Base):
 
 
 @attr.define
-class Network(Base):
+class Network(NMLBase):
     """
     A Network containing multiple Population's, connected by Projection's and receiving Input's
 
@@ -376,6 +381,7 @@ class Network(Base):
         temperature: Temperature at which to run network (float in deg C)
         parameters: Dictionary of global parameters for the network
         network_reader: A class which can read in a network (e.g. from a structured format)
+        notes: Human readable notes about the network
     """
 
     id: str = field(validator=instance_of(str))
@@ -386,7 +392,7 @@ class Network(Base):
     populations: List[Population] = field(factory=list, validator=instance_of(list))
     projections: List[Projection] = field(factory=list, validator=instance_of(list))
     inputs: List[Input] = field(factory=list, validator=instance_of(list))
-    version: str = field(default=f"NeuroMLlite v{__version__}", validator=instance_of(str))
+    version: str = field(default=f"NeuroMLlite v{__version__}", validator=instance_of(str), metadata={"omit_if_default": False})
     seed: int = field(default=None, validator=optional(instance_of(int)))
     temperature: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
     parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
