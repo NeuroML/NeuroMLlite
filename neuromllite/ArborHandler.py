@@ -317,7 +317,7 @@ def create_arbor_cell(cell, nl_network, gid):
         )
         decor.set_property(Vm=v_init)
 
-        decor.paint('"soma"', cell.parameters["mechanism"])
+        decor.paint('"soma"', arbor.density(cell.parameters["mechanism"]))
 
         if gid == 0:
             ic = arbor.iclamp(
@@ -326,14 +326,14 @@ def create_arbor_cell(cell, nl_network, gid):
                 nl_network.parameters["input_amp"],
             )
             print_v("Stim: %s" % ic)
-            decor.place('"center"', ic)
+            decor.place('"center"', ic, 'iclamp')
 
-        decor.place('"center"', arbor.spike_detector(-10))
+        decor.place('"center"', arbor.spike_detector(-10), 'detector')
 
         # (2) Mark location for synapse at the midpoint of branch 1 (the first dendrite).
         labels["synapse_site"] = "(location 0 0.5)"
         # (4) Attach a single synapse.
-        decor.place('"synapse_site"', "expsyn")
+        decor.place('"synapse_site"', arbor.synapse('expsyn'), 'syn')
 
         default_cell = arbor.cable_cell(default_tree, labels, decor)
 
@@ -357,8 +357,8 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
         # all memory in the C++ class is initialized correctly.
         arbor.recipe.__init__(self)
         self.props = arbor.neuron_cable_properties()
-        self.cat = arbor.default_catalogue()
-        self.props.register(self.cat)
+        #self.cat = arbor.default_catalogue()
+        #self.props.register(self.cat)
         self.pop_indices_vs_gids = pop_indices_vs_gids
         self.pops_vs_components = pops_vs_components
         self.nl_network = nl_network
@@ -423,7 +423,7 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
                         src_gid = self.get_gid(proj.presynaptic, src_index)
                         conns.append(
                             arbor.connection(
-                                (src_gid, 0), (gid, 0), in_w[src_index], in_d[src_index]
+                                (src_gid,'detector'), 'syn', in_w[src_index], in_d[src_index]
                             )
                         )
 
@@ -462,7 +462,7 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
         print_v("Getting event_generators for: %s" % (gid))
         if gid == 0:
             sched = arbor.explicit_schedule([1])
-            return [arbor.event_generator((0, 0), 0.1, sched)]
+            return [arbor.event_generator('syn', 0.1, sched)]
         return []
 
     # (10) Place a probe at the root of each cell.

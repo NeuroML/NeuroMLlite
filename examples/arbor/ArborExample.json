@@ -1,6 +1,6 @@
 {
     "ArborExample": {
-        "version": "NeuroMLlite v0.3.0",
+        "version": "NeuroMLlite v0.4.3",
         "parameters": {
             "v_init": -50,
             "scale": 3,

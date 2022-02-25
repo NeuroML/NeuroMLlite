@@ -92,6 +92,7 @@ jobs:
         omv install PyNN
         omv install jNeuroML
         omv install Brian2
+        omv install arbor
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv list -V # list installed engines
 
