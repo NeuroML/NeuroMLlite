@@ -1378,9 +1378,9 @@ plt.show()
             from neuromllite.ArborHandler import ArborHandler
             import arbor
 
-            print("\n   ********************************************************")
-            print("   *** Warning: Support for Arbor is very preliminary!! ***")
-            print("   ********************************************************\n")
+            print("\n   *********************************************************")
+            print("   *** Warning: Support for Arbor is very preliminary!!! ***")
+            print("   *********************************************************\n")
 
             arbor_handler = ArborHandler(network)
 
