@@ -103,7 +103,7 @@ net.projections.append(
 
 net.projections[0].random_connectivity = RandomConnectivity(probability=0.5)
 
-"""
+'''
 net.synapses.append(Synapse(id='gabaSyn',
                             pynn_receptor_type='inhibitory',
                             pynn_synapse_type='cond_alpha',
@@ -116,10 +116,10 @@ net.projections.append(Projection(id='proj1',
                                   synapse='gabaSyn',
                                   delay=2,
                                   weight=0.01))
-net.projections[1].random_connectivity=RandomConnectivity(probability=1)"""
+net.projections[1].random_connectivity=RandomConnectivity(probability=1)'''
 
 net.inputs.append(
-    Input(id="stim", input_source=input_source.id, population=p0.id, percentage=100)
+    Input(id="stim", input_source=input_source.id, population=p0.id, cell_ids=[1,2])
 )
 
 print(net.to_json())

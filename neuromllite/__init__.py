@@ -1,6 +1,6 @@
 import collections
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 
 # import pyNN
 # import nest
@@ -337,7 +337,20 @@ class Input(BaseWithId):
             [
                 ("input_source", ("Type of input to use in population", str)),
                 ("population", ("Population to target", str)),
-                ("percentage", ("Percentage of _Cell_s to apply this input to", float)),
+                (
+                    "cell_ids",
+                    (
+                        "Specific ids of _Cell_s to apply this input to (cannot be used with percentage)",
+                        EvaluableExpression,
+                    ),
+                ),
+                (
+                    "percentage",
+                    (
+                        "Percentage of _Cell_s to apply this input to (cannot be used with cell_ids)",
+                        float,
+                    ),
+                ),
                 (
                     "number_per_cell",
                     (

@@ -90,6 +90,13 @@ echo "**** Running Example 11 ****"
 python Example11.py
 python Example11.py -jnml
 
+echo
+echo "**** Running Arbor Example ****"
+cd arbor
+python ArborExample.py
+python ArborExample.py -arbor
+
+
 
 echo
 echo "** All generated and tested! **"

@@ -88,10 +88,11 @@ jobs:
       run: |
         #pip install cython
         omv install NEURON
-        pip install NetPyNE  # strange issues on py3.7 with omv install...
+        pip install NetPyNE==1.0.0.2  # strange issues on py3.7 with omv install...
         omv install PyNN
         omv install jNeuroML
         omv install Brian2
+        omv install arbor
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv list -V # list installed engines
 
@@ -110,7 +111,7 @@ jobs:
         echo "===================="
         # All tests
         ./regenerateAndTest.sh
-        
+
     - name: Run OMV tests
       run: |
         omv all -V --engine=jNeuroML_NEURON # limited for now, issues with nest...
