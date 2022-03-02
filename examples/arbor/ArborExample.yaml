@@ -71,4 +71,6 @@ ArborExample:
         stim:
             input_source: i_clamp
             population: pop0
-            cell_ids: []
+            cell_ids:
+            - 1
+            - 2

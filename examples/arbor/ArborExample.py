@@ -119,7 +119,7 @@ net.projections.append(Projection(id='proj1',
 net.projections[1].random_connectivity=RandomConnectivity(probability=1)'''
 
 net.inputs.append(
-    Input(id="stim", input_source=input_source.id, population=p0.id, cell_ids=[])
+    Input(id="stim", input_source=input_source.id, population=p0.id, cell_ids=[1,2])
 )
 
 print(net.to_json())
