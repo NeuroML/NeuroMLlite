@@ -1,4 +1,4 @@
-version: NeuroMLlite v0.3.0
+version: NeuroMLlite v0.4.3
 specification:
     Network:
         definition: A Network containing multiple _Population_s, connected by _Projection_s
@@ -74,6 +74,9 @@ specification:
             arbor_cell:
                 type: str
                 description: Name of standard Arbor cell type
+            bindsnet_node:
+                type: str
+                description: Name of standard BindsNET node
             parameters:
                 type: dict
                 description: Dictionary of parameters for the cell
@@ -278,9 +281,14 @@ specification:
             population:
                 type: str
                 description: Population to target
+            cell_ids:
+                type: EvaluableExpression
+                description: Specific ids of _Cell_s to apply this input to (cannot
+                    be used with percentage)
             percentage:
                 type: float
-                description: Percentage of _Cell_s to apply this input to
+                description: Percentage of _Cell_s to apply this input to (cannot
+                    be used with cell_ids)
             number_per_cell:
                 type: EvaluableExpression
                 description: 'Number of individual inputs per selected _Cell_ (default:
