@@ -71,4 +71,4 @@ ArborExample:
         stim:
             input_source: i_clamp
             population: pop0
-            percentage: 100.0
+            cell_ids: []

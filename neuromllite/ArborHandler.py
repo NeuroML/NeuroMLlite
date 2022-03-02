@@ -12,17 +12,14 @@ from pyneuroml.pynml import convert_to_units
 
 import numpy as np
 
-
 import arbor
 
 
 class ArborHandler(DefaultNetworkHandler):
 
     pops_vs_components = {}
-
     proj_weights = {}
     proj_delays = {}
-
     input_info = {}
 
     """
@@ -247,24 +244,6 @@ class ArborHandler(DefaultNetworkHandler):
             "Input: %s[%s] (%s), pop: %s, cellId: %i, seg: %i, fract: %f, weight: %f"
             % (inputListId, id, component, population_id, cellId, segId, fract, weight)
         )
-        """
-        #Bad in many ways...
-        for cell in self.cells:
-            stim = self.inputs[0]
-            print(dir(stim))
-            print_v('Added: %s to %s'%(stim, cell))
-
-
-
-        #exec('print  self.POP_%s'%(population_id))
-        #exec('print  self.POP_%s[%s]'%(population_id,cellId))
-
-        exec('self.POP_%s[%s].inject(self.input_sources[component]) '%(population_id,cellId))
-        #exec('self.input_sources[component].inject_into(self.populations["%s"])'%(population_id))
-
-        #exec('pulse = self.sim.DCSource(amplitude=0.9, start=19, stop=89)')
-        #pulse.inject_into(pop_pre)
-        #exec('self.populations["pop0"][0].inject(pulse)')"""
 
     #
     #  Should be overridden to to connect each input to the target cell
@@ -276,6 +255,7 @@ class ArborHandler(DefaultNetworkHandler):
         print_v("Building recipe with: %s" % self.pop_indices_vs_gids)
         print_v("Weights: %s" % self.proj_weights)
         print_v("Delays: %s" % self.proj_delays)
+        print_v("Inputs: %s" % self.input_info)
 
         self.neuroML_arbor_recipe = NeuroML_Arbor_Recipe(
             self.nl_network,
@@ -319,6 +299,7 @@ def create_arbor_cell(cell, nl_network, gid):
 
         decor.paint('"soma"', arbor.density(cell.parameters["mechanism"]))
 
+
         if gid == 0:
             ic = arbor.iclamp(
                 nl_network.parameters["input_del"],
@@ -328,7 +309,7 @@ def create_arbor_cell(cell, nl_network, gid):
             print_v("Stim: %s" % ic)
             decor.place('"center"', ic, "iclamp")
 
-        decor.place('"center"', arbor.spike_detector(-10), "detector")
+        decor.place('"center"', arbor.spike_detector(0), "detector")
 
         # (2) Mark location for synapse at the midpoint of branch 1 (the first dendrite).
         labels["synapse_site"] = "(location 0 0.5)"
@@ -462,11 +443,14 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
 
     # (9) Attach a generator to the first cell in the ring.
     def event_generators(self, gid):
-        print_v("Getting event_generators for: %s" % (gid))
+        egs = []
+        '''
         if gid == 0:
             sched = arbor.explicit_schedule([1])
-            return [arbor.event_generator("syn", 0.1, sched)]
-        return []
+            egs = [arbor.event_generator("syn", 0.1, sched)]'''
+
+        print_v("Getting event_generators for %s: %s" % (gid, egs))
+        return egs
 
     # (10) Place a probe at the root of each cell.
     def probes(self, gid):
