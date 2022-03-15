@@ -97,8 +97,10 @@ python ArborExample.py
 python ArborExample.py -arbor
 
 
-
 echo
 echo "** All generated and tested! **"
+
+cd ../../docs
+python generate.py
 
 cd ..
