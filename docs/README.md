@@ -1,3 +1,6 @@
+# Specification of NeuroMLlite v0.4.3
+**Note: the NeuroMLlite specification is still in development! Subject to change...**
+
 ## Network
 
 A Network containing multiple <a href="#population">Population</a>s, connected by <a href="#projection">Projection</a>s and receiving <a href="#input">Input</a>s
