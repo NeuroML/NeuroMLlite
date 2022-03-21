@@ -183,3 +183,5 @@ report*.txt
 /neuromllite/test/netid.yaml
 
 docs/_build
+/*ken.sh
+/examples/Example10_Lorenz.mdf.json

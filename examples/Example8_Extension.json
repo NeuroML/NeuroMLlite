@@ -1,6 +1,6 @@
 {
     "Example8_Extension": {
-        "version": "NeuroMLlite v0.3.8",
+        "version": "NeuroMLlite v0.4.3",
         "seed": 7890,
         "temperature": 32.0,
         "parameters": {

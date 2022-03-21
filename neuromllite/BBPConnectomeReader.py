@@ -2,12 +2,12 @@ import tables  # pytables for HDF5 support
 import os
 
 from neuroml.hdf5.NetworkContainer import *
-from neuromllite.BaseTypes import NetworkReader
+from neuromllite import NetworkReaderX
 
 from neuromllite.utils import print_v
 
 
-class BBPConnectomeReader(NetworkReader):
+class BBPConnectomeReader(NetworkReaderX):
 
     component_objects = {}  # Store cell ids vs objects, e.g. NeuroML2 based object
 
@@ -302,9 +302,9 @@ if __name__ == "__main__":
 
 
     nrn_handler = NeuronHandler()
-    
+
     nrn_handler.executeHoc('load_file("hhcell.hoc")')
     bbp = BBPConnectomeReader()
-    bbp.parse(file_name, nrn_handler)  
-    
+    bbp.parse(file_name, nrn_handler)
+
     #bbp.save_to_hdf5(nml_h5_file_name)"""

@@ -12,18 +12,16 @@ from pyneuroml.pynml import convert_to_units
 
 import numpy as np
 
-
 import arbor
 
 
 class ArborHandler(DefaultNetworkHandler):
 
     pops_vs_components = {}
-
     proj_weights = {}
     proj_delays = {}
-
     input_info = {}
+    input_lists = {}
 
     """
     populations = {}
@@ -203,17 +201,6 @@ class ArborHandler(DefaultNetworkHandler):
             + postPop
             + " completed"
         )
-        """
-        #exec('print(self.projection__%s_conns)'%projName)
-        exec('self.projection__%s_connector = self.sim.FromListConnector(self.projection__%s_conns, column_names=["weight", "delay"])'%(projName,projName))
-
-        exec('self.projections["%s"] = self.sim.Projection(self.populations["%s"],self.populations["%s"], ' % (projName,prePop,postPop) + \
-                                                          'connector=self.projection__%s_connector, ' % projName + \
-                                                          'synapse_type=self.sim.StaticSynapse(weight=%s, delay=%s), ' % (1,5) + \
-                                                          'receptor_type="%s", ' % (self.receptor_types[synapse]) + \
-                                                          'label="%s")'%projName)
-
-        #exec('print(self.projections["%s"].describe())'%projName)"""
 
     #
     #  Should be overridden to create input source array
@@ -232,7 +219,8 @@ class ArborHandler(DefaultNetworkHandler):
             )
             return
 
-        self.input_info[inputListId] = (population_id, component)
+        self.input_info[inputListId] = (population_id, component, input_comp_obj)
+        self.input_lists[inputListId] = []
 
     #
     #  Should be overridden to to connect each input to the target cell
@@ -241,30 +229,13 @@ class ArborHandler(DefaultNetworkHandler):
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
 
-        population_id, component = self.input_info[inputListId]
+        population_id, component, input_comp_obj = self.input_info[inputListId]
 
         print_v(
             "Input: %s[%s] (%s), pop: %s, cellId: %i, seg: %i, fract: %f, weight: %f"
             % (inputListId, id, component, population_id, cellId, segId, fract, weight)
         )
-        """
-        #Bad in many ways...
-        for cell in self.cells:
-            stim = self.inputs[0]
-            print(dir(stim))
-            print_v('Added: %s to %s'%(stim, cell))
-
-
-
-        #exec('print  self.POP_%s'%(population_id))
-        #exec('print  self.POP_%s[%s]'%(population_id,cellId))
-
-        exec('self.POP_%s[%s].inject(self.input_sources[component]) '%(population_id,cellId))
-        #exec('self.input_sources[component].inject_into(self.populations["%s"])'%(population_id))
-
-        #exec('pulse = self.sim.DCSource(amplitude=0.9, start=19, stop=89)')
-        #pulse.inject_into(pop_pre)
-        #exec('self.populations["pop0"][0].inject(pulse)')"""
+        self.input_lists[inputListId].append((cellId, segId, fract, weight))
 
     #
     #  Should be overridden to to connect each input to the target cell
@@ -276,6 +247,8 @@ class ArborHandler(DefaultNetworkHandler):
         print_v("Building recipe with: %s" % self.pop_indices_vs_gids)
         print_v("Weights: %s" % self.proj_weights)
         print_v("Delays: %s" % self.proj_delays)
+        print_v("Inputs: %s" % self.input_info)
+        print_v("Input lists: %s" % self.input_lists)
 
         self.neuroML_arbor_recipe = NeuroML_Arbor_Recipe(
             self.nl_network,
@@ -283,64 +256,11 @@ class ArborHandler(DefaultNetworkHandler):
             self.pops_vs_components,
             self.proj_weights,
             self.proj_delays,
+            self.input_info,
+            self.input_lists,
         )
 
 
-def create_arbor_cell(cell, nl_network, gid):
-
-    if cell.arbor_cell == "cable_cell":
-
-        default_tree = arbor.segment_tree()
-        radius = (
-            evaluate(cell.parameters["radius"], nl_network.parameters)
-            if "radius" in cell.parameters
-            else 3
-        )
-
-        default_tree.append(
-            arbor.mnpos,
-            arbor.mpoint(-1 * radius, 0, 0, radius),
-            arbor.mpoint(radius, 0, 0, radius),
-            tag=1,
-        )
-
-        labels = arbor.label_dict({"soma": "(tag 1)", "center": "(location 0 0.5)"})
-
-        labels["root"] = "(root)"
-
-        decor = arbor.decor()
-
-        v_init = (
-            evaluate(cell.parameters["v_init"], nl_network.parameters)
-            if "v_init" in cell.parameters
-            else -70
-        )
-        decor.set_property(Vm=v_init)
-
-        decor.paint('"soma"', cell.parameters["mechanism"])
-
-        if gid == 0:
-            ic = arbor.iclamp(
-                nl_network.parameters["input_del"],
-                nl_network.parameters["input_dur"],
-                nl_network.parameters["input_amp"],
-            )
-            print_v("Stim: %s" % ic)
-            decor.place('"center"', ic)
-
-        decor.place('"center"', arbor.spike_detector(-10))
-
-        # (2) Mark location for synapse at the midpoint of branch 1 (the first dendrite).
-        labels["synapse_site"] = "(location 0 0.5)"
-        # (4) Attach a single synapse.
-        decor.place('"synapse_site"', "expsyn")
-
-        default_cell = arbor.cable_cell(default_tree, labels, decor)
-
-        print_v("Created a new cell for gid %i: %s" % (gid, cell))
-        print_v("%s" % (default_cell))
-
-        return default_cell
 
 
 # Create a NeuroML recipe
@@ -352,18 +272,85 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
         pops_vs_components,
         proj_weights,
         proj_delays,
+        input_info,
+        input_lists,
     ):
         # The base C++ class constructor must be called first, to ensure that
         # all memory in the C++ class is initialized correctly.
         arbor.recipe.__init__(self)
         self.props = arbor.neuron_cable_properties()
-        self.cat = arbor.default_catalogue()
-        self.props.register(self.cat)
+        # self.cat = arbor.default_catalogue()
+        # self.props.register(self.cat)
         self.pop_indices_vs_gids = pop_indices_vs_gids
         self.pops_vs_components = pops_vs_components
         self.nl_network = nl_network
         self.proj_weights = proj_weights
         self.proj_delays = proj_delays
+        self.input_info = input_info
+        self.input_lists = input_lists
+
+
+    def create_arbor_cell(self, cell, gid, pop_id, index):
+
+        if cell.arbor_cell == "cable_cell":
+
+            default_tree = arbor.segment_tree()
+            radius = (
+                evaluate(cell.parameters["radius"], self.nl_network.parameters)
+                if "radius" in cell.parameters
+                else 3
+            )
+
+            default_tree.append(
+                arbor.mnpos,
+                arbor.mpoint(-1 * radius, 0, 0, radius),
+                arbor.mpoint(radius, 0, 0, radius),
+                tag=1,
+            )
+
+            labels = arbor.label_dict({"soma": "(tag 1)", "center": "(location 0 0.5)"})
+
+            labels["root"] = "(root)"
+
+            decor = arbor.decor()
+
+            v_init = (
+                evaluate(cell.parameters["v_init"], self.nl_network.parameters)
+                if "v_init" in cell.parameters
+                else -70
+            )
+            decor.set_property(Vm=v_init)
+
+            decor.paint('"soma"', arbor.density(cell.parameters["mechanism"]))
+
+            decor.place('"center"', arbor.spike_detector(0), "detector")
+
+            for ip in self.input_info:
+                if self.input_info[ip][0] == pop_id:
+                    print_v("Stim: %s (%s) being placed on %s" % (ip,self.input_info[ip],pop_id))
+                    for il in self.input_lists[ip]:
+                        cellId, segId, fract, weight = il
+                        if cellId == index:
+                            if self.input_info[ip][1] == 'i_clamp': # TODO: remove hardcoding of this...
+                                ic = arbor.iclamp(
+                                    self.nl_network.parameters["input_del"],
+                                    self.nl_network.parameters["input_dur"],
+                                    self.nl_network.parameters["input_amp"],
+                                )
+                                print_v("Stim: %s on %s" % (ic,gid))
+                                decor.place('"center"', ic, "iclamp")
+
+            # (2) Mark location for synapse at the midpoint of branch 1 (the first dendrite).
+            labels["synapse_site"] = "(location 0 0.5)"
+            # (4) Attach a single synapse.
+            decor.place('"synapse_site"', arbor.synapse("expsyn"), "syn")
+
+            default_cell = arbor.cable_cell(default_tree, labels, decor)
+
+            print_v("Created a new cell for gid %i: %s" % (gid, cell))
+            print_v("%s" % (default_cell))
+
+            return default_cell
 
     def get_pop_index(self, gid):
         # Todo: optimise...
@@ -392,9 +379,11 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
         pop_id, index = self.get_pop_index(gid)
         comp = self.pops_vs_components[pop_id]
 
-        return create_arbor_cell(
-            self.nl_network.get_child(comp, "cells"), self.nl_network, gid
+        a_cell = self.create_arbor_cell(
+            self.nl_network.get_child(comp, "cells"), gid, pop_id, index
         )
+        return a_cell
+
 
     # The kind method returns the type of cell with gid.
     # Note: this must agree with the type returned by cell_description.
@@ -423,7 +412,10 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
                         src_gid = self.get_gid(proj.presynaptic, src_index)
                         conns.append(
                             arbor.connection(
-                                (src_gid, 0), (gid, 0), in_w[src_index], in_d[src_index]
+                                (src_gid, "detector"),
+                                "syn",
+                                in_w[src_index],
+                                in_d[src_index],
                             )
                         )
 
@@ -459,11 +451,14 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
 
     # (9) Attach a generator to the first cell in the ring.
     def event_generators(self, gid):
-        print_v("Getting event_generators for: %s" % (gid))
+        egs = []
+        '''
         if gid == 0:
             sched = arbor.explicit_schedule([1])
-            return [arbor.event_generator((0, 0), 0.1, sched)]
-        return []
+            egs = [arbor.event_generator("syn", 0.1, sched)]'''
+
+        print_v("Getting event_generators for %s: %s" % (gid, egs))
+        return egs
 
     # (10) Place a probe at the root of each cell.
     def probes(self, gid):

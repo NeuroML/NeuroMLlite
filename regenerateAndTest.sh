@@ -1,5 +1,12 @@
-set -e
+set -ex
 
+# pytest
+cd neuromllite/test
+pytest -v
+cd -
+
+
+# test example in multiple simulators
 cd examples
 
 rm -rf *dat *nml LEMS* x86_64 *mod *hoc
@@ -25,7 +32,9 @@ echo
 echo "**** Running Example 4 ****"
 python Example4.py
 python Example4.py -netpyne
-python Example4.py -pynnnest
+if [[ "$CI" != "true" ]]; then
+    python Example4.py -pynnnest
+fi
 python Example4.py -pynnnrn
 #python Example4.py -pynnbrian  # Not supported in python 3...
 python Example4.py -jnmlnetpyne
@@ -34,7 +43,10 @@ python Example4.py -jnml
 
 echo
 echo "**** Running Example 5 ****"
-python Example5.py
+
+if [[ "$CI" != "true" ]]; then
+    python Example5.py
+fi
 #python Example5.py -netpyne  # Takes 2-3 mins
 
 echo
@@ -48,7 +60,9 @@ echo "**** Running Example 7 ****"
 python Example7.py
 python Example7.py -jnmlnrn
 python Example7.py -jnml
-python Example7.py -pynnnest
+if [[ "$CI" != "true" ]]; then
+    python Example7.py -pynnnest
+fi
 python Example7.py -pynnnrn
 
 echo
@@ -69,20 +83,24 @@ echo
 echo "**** Running Example 10 ****"
 python Example10.py
 python Example10.py -jnml
+python Example10.py -mdf
 
 echo
 echo "**** Running Example 11 ****"
 python Example11.py
 python Example11.py -jnml
 
+echo
+echo "**** Running Arbor Example ****"
+cd arbor
+python ArborExample.py
+python ArborExample.py -arbor
 
-cd ../neuromllite/test
-
-nosetests -vs
-
-cd -
 
 echo
 echo "** All generated and tested! **"
+
+cd ../../docs
+python generate.py
 
 cd ..

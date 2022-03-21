@@ -4,7 +4,7 @@ import sys
 import random
 
 from neuroml.hdf5.NetworkContainer import *
-from neuromllite.BaseTypes import NetworkReader
+from neuromllite import NetworkReader
 from neuromllite.utils import print_v, load_json
 from pyneuroml.lems import generate_lems_file_for_neuroml
 
@@ -553,15 +553,15 @@ class SonataReader(NetworkReader):
 
                         """
                         input_list_id = 'il_%s_%i'%(input,cell_id)
-                        self.handler.handle_input_list(input_list_id, 
-                                                       nml_pop_id, 
-                                                       component, 
+                        self.handler.handle_input_list(input_list_id,
+                                                       nml_pop_id,
+                                                       component,
                                                        1)
 
-                        self.handler.handle_single_input(input_list_id, 
-                                                          0, 
-                                                          cellId = cell_id, 
-                                                          segId = 0, 
+                        self.handler.handle_single_input(input_list_id,
+                                                          0,
+                                                          cellId = cell_id,
+                                                          segId = 0,
                                                           fract = 0.5)
                                                          """
                     else:

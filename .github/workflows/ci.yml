@@ -2,15 +2,16 @@ name: Continuous builds
 
 on:
   push:
-    branches: [ master, development, experimental, only_black ]
+    branches: [ master, development, experimental, modelspec ]
   pull_request:
-    branches: [ master, development, experimental, only_black ]
+    branches: [ master, development, experimental, modelspec ]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.7,3.9]
     env:
@@ -23,13 +24,18 @@ jobs:
       with:
         python-version:  ${{ matrix.python-version }}
 
-    - name: Install package
+    - name: Install some dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8
         pip install matplotlib==2.2.5 cachetools==3.1.1 # for testing python 2.7 & GH actions fails...
         pip install pyelectro
-        pip install .
+
+    - name: Install modelspec
+      run: python -m pip install git+https://github.com/ModECI/modelspec.git@main
+
+    - name: Install NeuroMLlite
+      run: pip install .
 
     - name: Lint with flake8
       run: |
@@ -40,17 +46,76 @@ jobs:
         env
         # Check to see if on development/experimental branches
         export jnml_branches="development"
-        export pynml_branch="master"
-
-        echo "testing..."
-
+        export pynml_branch="development"
         echo "JNML_HOME: $JNML_HOME"
-        echo "PATH: $PATH"
+        echo "Will use jNeuroML from branches $jnml_branches"
+        echo "Will use pyNeuroML from branch $pynml_branch"
+        # Install pyNeuroML
+        git clone https://github.com/NeuroML/pyNeuroML.git
+        cd pyNeuroML
+        git checkout $pynml_branch
+        python setup.py install
+        cd -
+        # Install latest jnml...
+        git clone https://github.com/NeuroML/jNeuroML.git
+        cd jNeuroML
+        git checkout $jnml_branches
+        python getNeuroML.py $jnml_branches  # will call mvn install on this & other repos
+        echo "Installed!"
+        ls -alth
 
-    - name: Install correct branch of pyneuroml etc.
+        export PATH=$PATH:$JNML_HOME
+        ./jnml -v
+        which jnml
+        env
+        cd ..
+
+    - name: List packages so far
+      run: |
+        pip list
+
+    - name: Install OMV
+      run: |
+        # Install OMV
+        pip install git+https://github.com/OpenSourceBrain/osb-model-validation
+
+        export PATH=$PATH:$JNML_HOME
+
+        omv list -V  # list all currently known...
+        env
+
+    - name: Install some simulators for testing
+      run: |
+        #pip install cython
+        omv install NEURON
+        pip install NetPyNE==1.0.0.2  # strange issues on py3.7 with omv install...
+        omv install PyNN
+        omv install jNeuroML
+        omv install Brian2
+        omv install arbor
+        if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
+        omv list -V # list installed engines
+
+    - name: Run pytest
+      run: |
+        pip install pytest tables # tables for Sonata test file
+        cd neuromllite/test/
+        pytest -v
+
+    - name: Regenerate and test
       run: |
 
-        echo "testing..."
+        export PATH=$PATH:$JNML_HOME
+        export NEURON_HOME=$pythonLocation
+        env
+        echo "===================="
+        # All tests
+        ./regenerateAndTest.sh
 
-        echo "JNML_HOME: $JNML_HOME"
-        echo "PATH: $PATH"
+    - name: Run OMV tests
+      run: |
+        omv all -V --engine=jNeuroML_NEURON # limited for now, issues with nest...
+
+    - name: OMV final version info
+      run: |
+        omv list -V # list installed engines

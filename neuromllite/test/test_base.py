@@ -182,7 +182,7 @@ class TestCustomSaveLoad(unittest.TestCase):
         filenamey = "%s.yaml" % net.id
         # net.id = net.id+'_yaml'
         net.to_yaml_file(filenamey)
-        from neuromllite.utils import load_json, load_yaml, _parse_element
+        from modelspec.utils import load_json, load_yaml, _parse_element
 
         dataj = load_json(filenamej)
         print_v("Loaded network specification from %s" % filenamej)

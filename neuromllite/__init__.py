@@ -1,18 +1,24 @@
 import collections
 
-__version__ = "0.3.8"
+__version__ = "0.4.3"
 
 # import pyNN
 # import nest
 
-from neuromllite.BaseTypes import Base
-from neuromllite.BaseTypes import BaseWithId
-from neuromllite.BaseTypes import NetworkReader
+from modelspec.BaseTypes import Base
+from modelspec.BaseTypes import BaseWithId
+from modelspec.BaseTypes import EvaluableExpression
 
 
-class EvaluableExpression(str):
-    def __init__(self, expr):
-        self.expr = expr
+class NetworkReaderX:
+
+    pop_locations = {}
+
+    def parse(self, handler):
+        raise Exception("This needs to be implemented...")
+
+    def get_locations(self):
+        return self.pop_locations
 
 
 class Network(BaseWithId):
@@ -331,7 +337,20 @@ class Input(BaseWithId):
             [
                 ("input_source", ("Type of input to use in population", str)),
                 ("population", ("Population to target", str)),
-                ("percentage", ("Percentage of _Cell_s to apply this input to", float)),
+                (
+                    "cell_ids",
+                    (
+                        "Specific ids of _Cell_s to apply this input to (cannot be used with percentage)",
+                        EvaluableExpression,
+                    ),
+                ),
+                (
+                    "percentage",
+                    (
+                        "Percentage of _Cell_s to apply this input to (cannot be used with cell_ids)",
+                        float,
+                    ),
+                ),
                 (
                     "number_per_cell",
                     (

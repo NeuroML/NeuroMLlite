@@ -1,10 +1,13 @@
-from neuromllite.utils import evaluate
-from neuromllite.utils import load_network_json
+from modelspec.utils import evaluate
+from modelspec.utils import save_to_json_file
+from modelspec.utils import locate_file
+from modelspec.utils import parse_list_like
+
+from neuromllite.utils import load_network
 from neuromllite.utils import print_v
 from neuromllite.utils import get_pops_vs_cell_indices_seg_ids
-from neuromllite.utils import save_to_json_file
-from neuromllite.utils import locate_file
-from neuromllite.utils import parse_list_like
+
+
 import numpy as np
 import os
 import random
@@ -345,14 +348,20 @@ def generate_network(
             )
 
             input_count = 0
-            for i in range(len(pop_locations[input.population])):
-                flip = rng.random()
-                weight = input.weight if input.weight else 1
-                if flip * 100.0 < input.percentage:
+
+            if input.cell_ids is not None:
+                if input.percentage is not None:
+                    raise Exception(
+                        "On input: %s, only one of percentage or cell_ids is allowed"
+                        % input
+                    )
+                for i in input.cell_ids:
+                    weight = input.weight if input.weight else 1
 
                     if input.number_per_cell and input.segment_ids:
                         raise Exception(
                             "On input: %s, only one of number_per_cell or segment_ids is allowed"
+                            % input
                         )
 
                     if input.number_per_cell:
@@ -374,6 +383,43 @@ def generate_network(
                             weight=evaluate(weight, nl_model.parameters),
                         )
                         input_count += 1
+
+            if input.percentage is not None:
+                if input.cell_ids is not None:
+                    raise Exception(
+                        "On input: %s, only one of percentage or cell_ids is allowed"
+                        % input
+                    )
+                for i in range(len(pop_locations[input.population])):
+                    flip = rng.random()
+                    weight = input.weight if input.weight else 1
+                    if flip * 100.0 < input.percentage:
+
+                        if input.number_per_cell and input.segment_ids:
+                            raise Exception(
+                                "On input: %s, only one of number_per_cell or segment_ids is allowed"
+                                % input
+                            )
+
+                        if input.number_per_cell:
+                            number_per_cell = evaluate(
+                                input.number_per_cell, nl_model.parameters
+                            )
+                            seg_ids = [0] * number_per_cell
+                        elif input.segment_ids:
+                            seg_ids = parse_list_like(input.segment_ids)
+                        else:
+                            seg_ids = [0]
+
+                        for seg_id in seg_ids:
+                            handler.handle_single_input(
+                                input.id,
+                                input_count,
+                                i,
+                                segId=seg_id,
+                                weight=evaluate(weight, nl_model.parameters),
+                            )
+                            input_count += 1
 
             handler.finalise_input_source(input.id)
 
@@ -445,12 +491,12 @@ def check_to_generate_or_run(argv, sim):
 
     elif "-nml" in argv or "-neuroml" in argv:
 
-        network = load_network_json(sim.network)
+        network = load_network(sim.network)
         generate_neuroml2_from_network(network, simulation=sim, validate=True)
 
     elif "-nmlh5" in argv or "-neuromlh5" in argv:
 
-        network = load_network_json(sim.network)
+        network = load_network(sim.network)
         generate_neuroml2_from_network(
             network, simulation=sim, validate=True, format="hdf5"
         )
@@ -756,6 +802,9 @@ def generate_neuroml2_from_network(
             elif c.neuroml2_cell.lower() == "izhikevich2007cell":
                 cell = neuroml.Izhikevich2007Cell(id=c.id)
                 nml_doc.izhikevich2007_cells.append(cell)
+            elif c.neuroml2_cell.lower() == "iafcell":
+                cell = neuroml.IafCell(id=c.id)
+                nml_doc.iaf_cells.append(cell)
             elif c.neuroml2_cell.lower() == "fitzhughnagumo1969cell":
                 cell = neuroml.FitzHughNagumo1969Cell(id=c.id)
                 nml_doc.fitz_hugh_nagumo1969_cells.append(cell)
@@ -967,7 +1016,7 @@ def generate_and_run(
     """
 
     if network == None:
-        network = load_network_json(simulation.network)
+        network = load_network(simulation.network)
 
     print_v(
         "Generating network %s and running in simulator: %s..."
@@ -1372,9 +1421,9 @@ plt.show()
             from neuromllite.ArborHandler import ArborHandler
             import arbor
 
-            print("\n   ********************************************************")
-            print("   *** Warning: Support for Arbor is very preliminary!! ***")
-            print("   ********************************************************\n")
+            print("\n   *********************************************************")
+            print("   *** Warning: Support for Arbor is very preliminary!!! ***")
+            print("   *********************************************************\n")
 
             arbor_handler = ArborHandler(network)
 

@@ -1,5 +1,5 @@
 ArborExample:
-    version: NeuroMLlite v0.3.0
+    version: NeuroMLlite v0.4.3
     parameters:
         v_init: -50
         scale: 3
@@ -71,4 +71,6 @@ ArborExample:
         stim:
             input_source: i_clamp
             population: pop0
-            percentage: 100.0
+            cell_ids:
+            - 1
+            - 2

@@ -1,0 +1,46 @@
+Example10_Lorenz:
+    format: ModECI MDF v0.3
+    graphs:
+        Example10_Lorenz:
+            notes: 'Example 10: Lorenz'
+            nodes:
+                lorenzPop_0:
+                    parameters:
+                        sigma:
+                            value: 10.0
+                        b:
+                            value: 2.67
+                        r:
+                            value: 28.0
+                        x0:
+                            value: 1.0
+                        y0:
+                            value: 1.0
+                        z0:
+                            value: 1.0
+                        sec:
+                            value: 1.0
+                        x:
+                            default_initial_value: x0
+                            time_derivative: ( sigma * (y - x) ) / sec
+                        y:
+                            default_initial_value: y0
+                            time_derivative: ( r * x - y - x * z ) / sec
+                        z:
+                            default_initial_value: z0
+                            time_derivative: ( x * y - b * z) / sec
+                    input_ports: {}
+                    output_ports:
+                        x:
+                            value: x
+                        y:
+                            value: y
+                        z:
+                            value: z
+                    notes: "Cell: [Cell (lorenzCell), lems_source_file = test_files/Lorenz1963.xml,\
+                        \ parameters = {'sigma': 'sigma', 'b': 'b', 'r': 'r', 'x0':\
+                        \ 'x0', 'y0': 'y0', 'z0': 'z0'}] is defined in test_files/Lorenz1963.xml\
+                        \ and in Lems is: Component, id: lorenzCell, type: lorenz,\n\
+                        \   parameters: {'sigma': '10', 'b': '2.67', 'r': '28', 'x0':\
+                        \ '1.0', 'y0': '1.0', 'z0': '1.0'}\n   parent: None\n"
+            edges: {}
