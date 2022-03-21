@@ -1,4 +1,4 @@
-# Specification of NeuroMLlite v0.4.3
+# Specification of NeuroMLlite v0.4.4
 **Note: the NeuroMLlite specification is still in development! Subject to change...**
 
 ## Network

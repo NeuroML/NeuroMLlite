@@ -1,5 +1,5 @@
 {
-    "version": "NeuroMLlite v0.4.3",
+    "version": "NeuroMLlite v0.4.4",
     "specification": {
         "Network": {
             "definition": "A Network containing multiple _Population_s, connected by _Projection_s and receiving _Input_s",

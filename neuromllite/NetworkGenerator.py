@@ -512,7 +512,10 @@ def check_to_generate_or_run(argv, sim):
                     sim, simulator="jNeuroML_NetPyNE", num_processors=num_processors
                 )
             elif "graph" in a:  # e.g. -graph3c
-                generate_and_run(sim, simulator=a[1:])  # Will not "run" obviously...
+                show_graph = True
+                if "-nogui" in argv:
+                    show_graph = False
+                generate_and_run(sim, simulator=a[1:], nogui= not show_graph)  # Will not "run" obviously...
             elif "matrix" in a:  # e.g. -matrix2
                 generate_and_run(sim, simulator=a[1:])  # Will not "run" obviously...
 
@@ -1010,6 +1013,7 @@ def generate_and_run(
     base_dir=None,
     target_dir=None,
     num_processors=1,
+    nogui=False,
 ):
     """
     Generates the network in the specified simulator and runs, if appropriate
@@ -1322,7 +1326,7 @@ plt.show()
                 )
                 return
 
-            handler = GraphVizHandler(level, engine=engine, nl_network=network)
+            handler = GraphVizHandler(level, engine=engine, nl_network=network, view_on_render = not nogui)
 
             generate_network(
                 network, handler, always_include_props=True, base_dir=base_dir

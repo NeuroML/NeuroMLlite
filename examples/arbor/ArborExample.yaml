@@ -1,5 +1,5 @@
 ArborExample:
-    version: NeuroMLlite v0.4.3
+    version: NeuroMLlite v0.4.4
     parameters:
         v_init: -50
         scale: 3
