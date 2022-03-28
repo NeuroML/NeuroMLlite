@@ -1796,7 +1796,7 @@ plt.show()
             simConfig.recordStep = simulation.dt
 
             simConfig.recordCells = ["all"]
-            simConfig.record_traces = {}
+            simConfig.recordTraces = {}
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
                 simulation.record_traces, network
@@ -1806,7 +1806,7 @@ plt.show()
                 for index in trace_pop_indices_seg_ids[pop_id]:
                     seg_ids = trace_pop_indices_seg_ids[pop_id][index]
                     if seg_ids == None:
-                        simConfig.record_traces[
+                        simConfig.recordTraces[
                             "%s.%s.%s.v" % (simulation.id, pop_id, index)
                         ] = {
                             "sec": "soma",
@@ -1816,7 +1816,7 @@ plt.show()
                         }
                     else:
                         for seg_id in seg_ids:
-                            simConfig.record_traces[
+                            simConfig.recordTraces[
                                 "%s.%s.%s.%s.v" % (simulation.id, pop_id, index, seg_id)
                             ] = {
                                 "sec": seg_id,
@@ -1929,7 +1929,7 @@ plt.show()
 
             for pop_id in trace_pop_indices_seg_ids:
                 indices_segids = trace_pop_indices_seg_ids[pop_id]
-                print("Saving in pop %s: %s" % (pop_id, indices_segids))
+                print("Saving in population %s: %s" % (pop_id, indices_segids))
                 save_ref = "%s.%s.v.dat" % (simulation.id, pop_id)
                 pop_v_file = open(save_ref, "w")
                 all_v = []
