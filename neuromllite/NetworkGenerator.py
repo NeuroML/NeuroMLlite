@@ -774,7 +774,7 @@ def generate_neuroml2_from_network(
             for comp in model.components:
                 if c.id == comp.id:
                     print_v("Found component: %s in %s" % (comp, fname))
-                    if len(c.parameters) > 0:
+                    if c.parameters is not None and len(c.parameters) > 0:
                         for p in c.parameters:
                             comp.set_parameter(
                                 p, evaluate(c.parameters[p], nl_model.parameters)
@@ -853,7 +853,7 @@ def generate_neuroml2_from_network(
                 for comp in model.components:
                     if s.id == comp.id:
                         print_v("Found component: %s in %s" % (comp, fname))
-                        if len(s.parameters) > 0:
+                        if s.parameters is not None and len(s.parameters) > 0:
                             for p in s.parameters:
                                 comp.set_parameter(
                                     p, evaluate(s.parameters[p], nl_model.parameters)
