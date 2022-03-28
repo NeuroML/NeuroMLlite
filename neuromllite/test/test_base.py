@@ -1,6 +1,10 @@
 from neuromllite import *
 from neuromllite.utils import *
 
+import modelspec
+from modelspec import field
+from modelspec import optional, instance_of
+
 import pickle
 
 try:
@@ -46,93 +50,82 @@ def get_example_simulation():
         network="%s.json" % "net0",
         duration="1000",
         dt="0.01",
-        recordTraces={"all": "*"},
+        record_traces={"all": "*"},
     )
     return sim
 
 
 class TestCustomSaveLoad(unittest.TestCase):
     def test_save_load_json(self):
-        class NewNetwork(BaseWithId):
 
-            _definition = "..."
+        @modelspec.define
+        class NewCell(Base):
+            """
+            A new cell definition
 
-            def __init__(self, **kwargs):
+            Args:
+                id: the cell id
+                neuroml2_source_file: The path to the source file
+            """
+            id: str = field(validator=instance_of(str))
+            neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
 
-                self.allowed_children = collections.OrderedDict(
-                    [
-                        ("cells", ("The cell definitions...", NewCell)),
-                        ("synapses", ("The synapse definitions...", NewSynapse)),
-                    ]
-                )
+        @modelspec.define
+        class NewSynapse(Base):
+            """
+            A new synapse definition
 
-                self.allowed_fields = collections.OrderedDict(
-                    [
-                        ("version", ("Information on verson of NeuroMLlite", str)),
-                        (
-                            "seed",
-                            (
-                                "Seed for random number generator used when building network",
-                                int,
-                            ),
-                        ),
-                        ("stable", ("Testing...", bool)),
-                        (
-                            "parameters",
-                            ("Dictionary of global parameters for the network", dict),
-                        ),
-                        (
-                            "random_connectivity",
-                            ("Use random connectivity", NewRandomConnectivity),
-                        ),
-                        ("ee0", ("TestEE", EvaluableExpression)),
-                        ("ee1", ("TestEE", EvaluableExpression)),
-                        ("ee2", ("TestEE", EvaluableExpression)),
-                        ("ee3", ("TestEE", EvaluableExpression)),
-                        ("ee4", ("TestEE", EvaluableExpression)),
-                        ("ee5", ("TestEE", EvaluableExpression)),
-                        ("ee6", ("TestEE", EvaluableExpression)),
-                    ]
-                )
+            Args:
+                id: the synapse id
+                neuroml2_source_file: The path to the source file
+                tested: A boolean attribute
+            """
+            id: str = field(validator=instance_of(str))
+            neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+            tested: bool = field(default=None, validator=optional(instance_of(bool)))
 
-                super(NewNetwork, self).__init__(**kwargs)
-
-                self.version = "NeuroMLlite 0.0"
-
-        class NewCell(BaseWithId):
-            def __init__(self, **kwargs):
-
-                self.allowed_fields = collections.OrderedDict(
-                    [("neuroml2_source_file", ("File name of NeuroML2 file", str))]
-                )
-
-                super(NewCell, self).__init__(**kwargs)
-
-        class NewSynapse(BaseWithId):
-            def __init__(self, **kwargs):
-
-                self.allowed_fields = collections.OrderedDict(
-                    [
-                        ("neuroml2_source_file", ("File name of NeuroML2 file", str)),
-                        ("tested", ("Is it tested?", bool)),
-                    ]
-                )
-
-                super(NewSynapse, self).__init__(**kwargs)
-
+        @modelspec.define
         class NewRandomConnectivity(Base):
-            def __init__(self, **kwargs):
+            """
+            A new random connectivity definition
 
-                self.allowed_fields = collections.OrderedDict(
-                    [
-                        (
-                            "probability",
-                            ("Random probability of connection", EvaluableExpression),
-                        )
-                    ]
-                )
+            Args:
+                probability: Random probability of connection
 
-                super(NewRandomConnectivity, self).__init__(**kwargs)
+            """
+            probability: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+
+        @modelspec.define
+        class NewNetwork(Base):
+            """
+            A new network definition
+
+            Args:
+                id: a unique identifier for the network
+                cells: a list of cells
+                synapses: a list of synapses
+                version: Information on verson of NeuroMLlite
+                seed: Seed for random number generator used when building network
+                stable: Testing...
+                parameters: Dictionary of global parameters for the network
+                random_connectivity: Use random connectivity
+            """
+            id: str = field(validator=instance_of(str))
+            cells: List[NewCell] = field(factory=list)
+            synapses: List[NewSynapse] = field(factory=list)
+            version: str = field(default="NeuroMLlite 0.0", validator=instance_of(str))
+            seed: int = field(default=None, validator=optional(instance_of(int)))
+            stable: bool = field(default=None, validator=optional(instance_of(bool)))
+            parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+            random_connectivity: NewRandomConnectivity = field(default=None, validator=optional(instance_of(NewRandomConnectivity)))
+            ee0: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+            ee1: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+            ee2: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+            ee3: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+            ee4: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+            ee5: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+            ee6: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+
 
         net = NewNetwork(id="netid", parameters={"size": 3, "name": None})
 
@@ -182,19 +175,17 @@ class TestCustomSaveLoad(unittest.TestCase):
         filenamey = "%s.yaml" % net.id
         # net.id = net.id+'_yaml'
         net.to_yaml_file(filenamey)
-        from modelspec.utils import load_json, load_yaml, _parse_element
+        from modelspec.utils import load_json, load_yaml
 
         dataj = load_json(filenamej)
         print_v("Loaded network specification from %s" % filenamej)
-        netj = NewNetwork()
-        _parse_element(dataj, netj)
+        netj = NewNetwork.from_dict(dataj)
         str_netj = str(netj)
 
         datay = load_yaml(filenamey)
         print_v("Loaded network specification from %s" % filenamey)
 
-        nety = NewNetwork()
-        _parse_element(datay, nety)
+        nety = NewNetwork.from_dict(datay)
         str_nety = str(nety)
 
         verbose = False
