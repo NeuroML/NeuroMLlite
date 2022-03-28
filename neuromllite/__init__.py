@@ -99,12 +99,14 @@ class InputSource(NMLBase):
         id: Unique identifier for this InputSource
         parameters: Dictionary of parameters for the InputSource
         neuroml2_source_file: File name of NeuroML2 file defining the input source
+        neuroml2_input: Name of standard NeuroML2 input
         lems_source_file: File name of LEMS file defining the input source
         pynn_input: Name of PyNN input
     """
     id: str = field(validator=instance_of(str))
     parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
     neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    neuroml2_input: str = field(default=None, validator=optional(instance_of(str)))
     lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
     pynn_input: str = field(default=None, validator=optional(instance_of(str)))
 
