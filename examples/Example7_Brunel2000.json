@@ -1,19 +1,6 @@
 {
     "Example7_Brunel2000": {
-        "version": "NeuroMLlite v0.4.4",
-        "parameters": {
-            "g": 4,
-            "eta": 1,
-            "order": 5,
-            "epsilon": 0.1,
-            "J": 0.1,
-            "delay": 1.5,
-            "tauMem": 20.0,
-            "tauSyn": 0.1,
-            "tauRef": 2.0,
-            "U0": 0.0,
-            "theta": 20.0
-        },
+        "version": "NeuroMLlite v0.5.0",
         "notes": "Example 7: based on network of Brunel 2000",
         "cells": {
             "ifcell": {
@@ -166,6 +153,19 @@
                     "probability": "epsilon"
                 }
             }
+        },
+        "parameters": {
+            "g": 4,
+            "eta": 1,
+            "order": 5,
+            "epsilon": 0.1,
+            "J": 0.1,
+            "delay": 1.5,
+            "tauMem": 20.0,
+            "tauSyn": 0.1,
+            "tauRef": 2.0,
+            "U0": 0.0,
+            "theta": 20.0
         }
     }
 }

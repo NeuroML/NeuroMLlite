@@ -18,6 +18,15 @@ DEFAULT_NET_GENERATION_SEED = 1234
 DEFAULT_SIMULATION_SEED = 5678
 
 
+
+def __TEMP_CHECK_IF_SET(value):
+    """
+    Should just be a check for None! Update in modelspec...
+    """
+    if value is None: return False
+    if value == '': return False
+    return True
+
 def _get_rng_for_network(nl_model):
     """
     Get a random number generator and the seed used to generate it
@@ -81,7 +90,7 @@ def generate_network(
                 if not p == "__builtins__":
                     notes += "\n        %s = %s" % (p, nl_model.parameters[p])
         handler.handle_document_start(nl_model.id, notes)
-        temperature = "%sdegC" % nl_model.temperature if nl_model.temperature else None
+        temperature = "%sdegC" % nl_model.temperature if nl_model.temperature is not None else None
         handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
 
     nml2_doc_temp = _extract_pynn_components_to_neuroml(nl_model)
@@ -349,10 +358,10 @@ def generate_network(
 
             input_count = 0
 
-            if input.cell_ids is not None:
-                if input.percentage is not None:
+            if __TEMP_CHECK_IF_SET(input.cell_ids):
+                if __TEMP_CHECK_IF_SET(input.percentage):
                     raise Exception(
-                        "On input: %s, only one of percentage or cell_ids is allowed"
+                        "On the input: %s, only one of percentage or cell_ids is allowed"
                         % input
                     )
                 for i in input.cell_ids:
@@ -384,8 +393,8 @@ def generate_network(
                         )
                         input_count += 1
 
-            if input.percentage is not None:
-                if input.cell_ids is not None:
+            if __TEMP_CHECK_IF_SET(input.percentage):
+                if __TEMP_CHECK_IF_SET(input.cell_ids):
                     raise Exception(
                         "On input: %s, only one of percentage or cell_ids is allowed"
                         % input
@@ -674,7 +683,7 @@ def generate_neuroml2_from_network(
             for comp in model.components:
                 if i.id == comp.id:
                     print_v("Found a component: %s in %s" % (comp, fname))
-                    if i.parameters is not None and len(i.parameters) > 0:
+                    if hasattr(i, 'parameters') and len(i.parameters) > 0:
                         for p in i.parameters:
                             comp.set_parameter(
                                 p, evaluate(i.parameters[p], nl_model.parameters)
@@ -765,7 +774,7 @@ def generate_neuroml2_from_network(
             for comp in model.components:
                 if c.id == comp.id:
                     print_v("Found component: %s in %s" % (comp, fname))
-                    if c.parameters is not None and len(c.parameters) > 0:
+                    if len(c.parameters) > 0:
                         for p in c.parameters:
                             comp.set_parameter(
                                 p, evaluate(c.parameters[p], nl_model.parameters)
@@ -844,7 +853,7 @@ def generate_neuroml2_from_network(
                 for comp in model.components:
                     if s.id == comp.id:
                         print_v("Found component: %s in %s" % (comp, fname))
-                        if s.parameters is not None and len(s.parameters) > 0:
+                        if len(s.parameters) > 0:
                             for p in s.parameters:
                                 comp.set_parameter(
                                     p, evaluate(s.parameters[p], nl_model.parameters)

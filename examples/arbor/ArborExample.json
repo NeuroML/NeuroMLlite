@@ -1,13 +1,6 @@
 {
     "ArborExample": {
-        "version": "NeuroMLlite v0.4.4",
-        "parameters": {
-            "v_init": -50,
-            "scale": 3,
-            "input_amp": 0.01,
-            "input_del": 50,
-            "input_dur": 5
-        },
+        "version": "NeuroMLlite v0.5.0",
         "notes": "Example for testing Arbor",
         "cells": {
             "test_arbor_cell": {
@@ -100,6 +93,13 @@
                     2
                 ]
             }
+        },
+        "parameters": {
+            "v_init": -50,
+            "scale": 3,
+            "input_amp": 0.01,
+            "input_del": 50,
+            "input_dur": 5
         }
     }
 }

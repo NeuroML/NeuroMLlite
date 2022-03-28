@@ -1,13 +1,6 @@
 {
     "Example6_PyNN": {
-        "version": "NeuroMLlite v0.4.4",
-        "parameters": {
-            "N_scaling": 0.005,
-            "layer_height": 400,
-            "width": 100,
-            "depth": 100,
-            "input_weight": 0.1
-        },
+        "version": "NeuroMLlite v0.5.0",
         "notes": "Another network for PyNN - work in progress...",
         "cells": {
             "CorticalCell": {
@@ -866,6 +859,13 @@
                     "probability": 0.1443
                 }
             }
+        },
+        "parameters": {
+            "N_scaling": 0.005,
+            "layer_height": 400,
+            "width": 100,
+            "depth": 100,
+            "input_weight": 0.1
         }
     }
 }

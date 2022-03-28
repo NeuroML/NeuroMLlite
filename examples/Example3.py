@@ -22,7 +22,7 @@ sim = Simulation(
     network=new_file,
     duration="1000",
     dt="0.025",
-    recordTraces={"all": "*"},
+    record_traces={"all": "*"},
 )
 
 sim.to_json_file()

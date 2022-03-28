@@ -1,6 +1,6 @@
 import collections
 
-__version__ = "0.4.4"
+__version__ = "0.5.0"
 
 # import pyNN
 # import nest
@@ -299,6 +299,7 @@ class Input(NMLBase):
         input_source: Type of input to use in population
         population: Population to target
         percentage: Percentage of Cells to apply input to
+        cell_ids: Specific ids of _Cell_s to apply this input to (cannot be used with percentage
         number_per_cell: Number of individual inputs per selected Cell (default: 1)
         segment_ids: Which segments to target (default: [0])
         weight: Weight to use (default: 1)
@@ -307,6 +308,7 @@ class Input(NMLBase):
     id: str = field(validator=instance_of(str))
     input_source: str = field(default=None, validator=optional(instance_of(str)))
     population: str = field(default=None, validator=optional(instance_of(str)))
+    cell_ids: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
     percentage: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
     number_per_cell: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
     segment_ids: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
@@ -338,10 +340,10 @@ class Simulation(NMLBase):
         duration: Duration of simulation (ms)
         dt: Timestep of simulation (ms)
         seed: Seed for stochastic elements os the simulation
-        recordTraces: Record traces?
-        recordSpikes: Record spikes?
-        recordRates: Record rates?
-        recordVariables: Record named variables?
+        record_traces: Record traces?
+        record_spikes: Record spikes?
+        record_rates: Record rates?
+        record_variables: Record named variables?
         plots2D: Work in progress...
         plots3D: Work in progress...
     """

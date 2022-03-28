@@ -40,7 +40,7 @@ sim = Simulation(
     network=new_file,
     duration="1e4",
     dt="1",
-    recordVariables={"x": {"all": "*"}, "y": {"all": "*"}, "z": {"all": "*"}},
+    record_variables={"x": {"all": "*"}, "y": {"all": "*"}, "z": {"all": "*"}},
     plots2D={
         "X-Y": {"x_axis": "lorenzPop[0]/x", "y_axis": "lorenzPop[0]/y"},
         "Y-Z": {"x_axis": "lorenzPop[0]/y", "y_axis": "lorenzPop[0]/z"},

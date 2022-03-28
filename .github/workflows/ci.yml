@@ -32,7 +32,7 @@ jobs:
         pip install pyelectro
 
     - name: Install modelspec
-      run: python -m pip install git+https://github.com/ModECI/modelspec.git@main
+      run: python -m pip install git+https://github.com/ModECI/modelspec.git@development
 
     - name: Install NeuroMLlite
       run: pip install .

@@ -284,7 +284,7 @@ def create_new_model(
         duration=duration,
         dt=dt,
         seed=simulation_seed,
-        recordTraces={"all": "*"},
+        record_traces={"all": "*"},
     )
 
     if simulation_filename == None:
