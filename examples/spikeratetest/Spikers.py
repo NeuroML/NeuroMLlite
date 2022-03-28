@@ -68,16 +68,16 @@ net.populations.append(ipop1)
 """
 net.synapses.append(Synapse(id='ampa', neuroml2_source_file='test_files/ampa.synapse.nml'))
 #net.synapses.append(Synapse(id='gaba', neuroml2_source_file='test_files/gaba.synapse.nml'))
-                            
-                            
+
+
 net.projections.append(Projection(id='projEI',
-                                  presynaptic=pE.id, 
+                                  presynaptic=pE.id,
                                   postsynaptic=pRS.id,
                                   synapse='ampa',
                                   delay=2,
                                   weight=0.2,
                                   random_connectivity=RandomConnectivity(probability=.8)))
-                            
+
                             """
 net.inputs.append(
     Input(
@@ -110,8 +110,8 @@ sim = Simulation(
     network=new_file,
     duration="10000",
     dt="0.025",
-    recordTraces={"pop0": "*", "pop1": "*", "pop2": "*"},
-    recordSpikes={"all": "*"},
+    record_traces={"pop0": "*", "pop1": "*", "pop2": "*"},
+    record_spikes={"all": "*"},
 )
 
 sim.to_json_file()
