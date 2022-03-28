@@ -90,6 +90,7 @@ class MDFHandler(DefaultNetworkHandler):
             + component
             + compInfo
             + sizeInfo
+            + ", properties: %s"% properties
         )
 
         if size >= 0:
@@ -99,6 +100,9 @@ class MDFHandler(DefaultNetworkHandler):
 
                 comp = self.nl_network.get_child(component, "cells")
                 base_dir = "./"  # for now...
+
+                if properties:
+                    node["metadata"] = properties
 
                 node["parameters"] = {}
                 node["input_ports"] = {}
