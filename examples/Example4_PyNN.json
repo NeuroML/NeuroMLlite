@@ -2,48 +2,51 @@
     "Example4_PyNN": {
         "version": "NeuroMLlite v0.5.0",
         "notes": "Example 4: a network with PyNN cells & inputs",
+        "parameters": {
+            "input_amp": 0.99
+        },
         "cells": {
             "testcell": {
-                "pynn_cell": "IF_cond_alpha",
                 "parameters": {
                     "tau_refrac": 5,
                     "i_offset": 0.1
-                }
+                },
+                "pynn_cell": "IF_cond_alpha"
             },
             "testcell2": {
-                "pynn_cell": "IF_cond_alpha",
                 "parameters": {
                     "tau_refrac": 5,
                     "i_offset": -0.1
-                }
+                },
+                "pynn_cell": "IF_cond_alpha"
             }
         },
         "synapses": {
             "ampaSyn": {
-                "pynn_synapse_type": "cond_alpha",
-                "pynn_receptor_type": "excitatory",
                 "parameters": {
                     "e_rev": -10,
                     "tau_syn": 2
-                }
+                },
+                "pynn_synapse_type": "cond_alpha",
+                "pynn_receptor_type": "excitatory"
             },
             "gabaSyn": {
-                "pynn_synapse_type": "cond_alpha",
-                "pynn_receptor_type": "inhibitory",
                 "parameters": {
                     "e_rev": -80,
                     "tau_syn": 10
-                }
+                },
+                "pynn_synapse_type": "cond_alpha",
+                "pynn_receptor_type": "inhibitory"
             }
         },
         "input_sources": {
             "i_clamp": {
-                "pynn_input": "DCSource",
                 "parameters": {
                     "amplitude": "input_amp",
                     "start": 200.0,
                     "stop": 800.0
-                }
+                },
+                "pynn_input": "DCSource"
             }
         },
         "regions": {
@@ -119,9 +122,6 @@
                 "population": "pop0",
                 "percentage": 50.0
             }
-        },
-        "parameters": {
-            "input_amp": 0.99
         }
     }
 }

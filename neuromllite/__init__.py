@@ -51,22 +51,22 @@ class Cell(NMLBase):
 
     Args:
         id: Unique identifier for this Cell
+        parameters: Dictionary of parameters for the cell
         neuroml2_source_file: File name of NeuroML2 file defining the cell
         lems_source_file: File name of LEMS file defining the cell
         neuroml2_cell: Name of standard NeuroML2 cell type
         pynn_cell: Name of standard PyNN cell type
         arbor_cell: Name of standard Arbor cell type
         bindsnet_node: Name of standard BindsNET node
-        parameters: Dictionary of parameters for the cell
     """
     id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
     neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
     lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
     neuroml2_cell: str = field(default=None, validator=optional(instance_of(str)))
     pynn_cell: str = field(default=None, validator=optional(instance_of(str)))
     arbor_cell: str = field(default=None, validator=optional(instance_of(str)))
     bindsnet_node: str = field(default=None, validator=optional(instance_of(str)))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
 @modelspec.define
@@ -76,18 +76,18 @@ class Synapse(NMLBase):
 
     Args:
         id: Unique identifier for this Synapse
+        parameters: Dictionary of parameters for the synapse
         neuroml2_source_file: File name of NeuroML2 file defining the synapse
         lems_source_file: File name of LEMS file defining the synapse
         pynn_synapse_type: The pynn synapse type. Valid values are: "curr_exp", "curr_alpha", "cond_exp", "cond_alpha".
         pynn_receptor_type: The pynn receptor type. Valid values are: "excitatory", "inhibitory".
-        parameters: Dictionary of parameters for the synapse
     """
     id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
     neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
     lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
     pynn_synapse_type: str = field(default=None, validator=optional(in_(["curr_exp", "curr_alpha", "cond_exp", "cond_alpha"])))
     pynn_receptor_type: str = field(default=None, validator=optional(in_(["excitatory", "inhibitory"])))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
 @modelspec.define
@@ -97,16 +97,16 @@ class InputSource(NMLBase):
 
     Args:
         id: Unique identifier for this InputSource
+        parameters: Dictionary of parameters for the InputSource
         neuroml2_source_file: File name of NeuroML2 file defining the input source
         lems_source_file: File name of LEMS file defining the input source
         pynn_input: Name of PyNN input
-        parameters: Dictionary of parameters for the InputSource
     """
     id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
     neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
     lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
     pynn_input: str = field(default=None, validator=optional(instance_of(str)))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
 
 @modelspec.define
@@ -348,7 +348,7 @@ class Simulation(NMLBase):
         plots3D: Work in progress...
     """
     id: str = field(validator=instance_of(str))
-    version: str = field(default=f"NeuroMLlite v{__version__}", validator=optional(instance_of(str)))
+    version: str = field(default=f"NeuroMLlite v{__version__}", validator=optional(instance_of(str)), metadata={"omit_if_default": False})
     network: str = field(default=None, validator=optional(instance_of(str)))
     duration: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
     dt: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
@@ -368,6 +368,7 @@ class Network(NMLBase):
 
     Args:
         id: Unique identifier for the Network
+        parameters: Dictionary of global parameters for the network
         cells: The Cells which can be present in Populations
         synapses: The Synapse definitions which are used in Projections
         input_sources: The InputSource definitions which define the types of stimulus which can be applied in Inputs
@@ -378,12 +379,12 @@ class Network(NMLBase):
         version: Information on verson of NeuroMLlite
         seed: Seed for random number generator used when building network
         temperature: Temperature at which to run network (float in deg C)
-        parameters: Dictionary of global parameters for the network
         network_reader: A class which can read in a network (e.g. from a structured format)
         notes: Human readable notes about the network
     """
 
     id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
     cells: List[Cell] = field(factory=list, validator=instance_of(list))
     synapses: List[Synapse] = field(factory=list, validator=instance_of(list))
     input_sources: List[InputSource] = field(factory=list, validator=instance_of(list))
@@ -394,7 +395,6 @@ class Network(NMLBase):
     version: str = field(default=f"NeuroMLlite v{__version__}", validator=instance_of(str), metadata={"omit_if_default": False})
     seed: int = field(default=None, validator=optional(instance_of(int)))
     temperature: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
     network_reader: NetworkReader = field(default=None)
 
 

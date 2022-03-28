@@ -1,10 +1,10 @@
 {
     "SimExample9": {
-        "version": "NeuroMLlite v0.4.4",
+        "version": "NeuroMLlite v0.5.0",
         "network": "Example9_HindmarshRose.json",
         "duration": 1000000.0,
         "dt": 25.0,
-        "recordVariables": {
+        "record_variables": {
             "x": {
                 "all": "*"
             },

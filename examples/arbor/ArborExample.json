@@ -2,34 +2,41 @@
     "ArborExample": {
         "version": "NeuroMLlite v0.5.0",
         "notes": "Example for testing Arbor",
+        "parameters": {
+            "v_init": -50,
+            "scale": 3,
+            "input_amp": 0.01,
+            "input_del": 50,
+            "input_dur": 5
+        },
         "cells": {
             "test_arbor_cell": {
-                "arbor_cell": "cable_cell",
                 "parameters": {
                     "v_init": "v_init",
                     "radius": 3,
                     "mechanism": "hh"
-                }
+                },
+                "arbor_cell": "cable_cell"
             }
         },
         "synapses": {
             "ampaSyn": {
-                "pynn_synapse_type": "cond_alpha",
-                "pynn_receptor_type": "excitatory",
                 "parameters": {
                     "e_rev": -10,
                     "tau_syn": 2
-                }
+                },
+                "pynn_synapse_type": "cond_alpha",
+                "pynn_receptor_type": "excitatory"
             }
         },
         "input_sources": {
             "i_clamp": {
-                "pynn_input": "DCSource",
                 "parameters": {
                     "amplitude": "input_amp",
                     "start": "input_del",
                     "stop": "input_del+input_dur"
-                }
+                },
+                "pynn_input": "DCSource"
             }
         },
         "regions": {
@@ -93,13 +100,6 @@
                     2
                 ]
             }
-        },
-        "parameters": {
-            "v_init": -50,
-            "scale": 3,
-            "input_amp": 0.01,
-            "input_del": 50,
-            "input_dur": 5
         }
     }
 }

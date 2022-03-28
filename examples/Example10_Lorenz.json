@@ -2,9 +2,17 @@
     "Example10_Lorenz": {
         "version": "NeuroMLlite v0.5.0",
         "notes": "Example 10: Lorenz",
+        "parameters": {
+            "N": 1,
+            "sigma": 10,
+            "b": 2.67,
+            "r": 28,
+            "x0": 1.0,
+            "y0": 1.0,
+            "z0": 1.0
+        },
         "cells": {
             "lorenzCell": {
-                "lems_source_file": "test_files/Lorenz1963.xml",
                 "parameters": {
                     "sigma": "sigma",
                     "b": "b",
@@ -12,7 +20,8 @@
                     "x0": "x0",
                     "y0": "y0",
                     "z0": "z0"
-                }
+                },
+                "lems_source_file": "test_files/Lorenz1963.xml"
             }
         },
         "populations": {
@@ -23,15 +32,6 @@
                     "color": ".7 0 0"
                 }
             }
-        },
-        "parameters": {
-            "N": 1,
-            "sigma": 10,
-            "b": 2.67,
-            "r": 28,
-            "x0": 1.0,
-            "y0": 1.0,
-            "z0": 1.0
         }
     }
 }

@@ -37,12 +37,12 @@ Example10_Lorenz:
                             value: y
                         z:
                             value: z
-                    notes: "Cell: [Cell(notes=None, id='lorenzCell', neuroml2_source_file=None,\
-                        \ lems_source_file='test_files/Lorenz1963.xml', neuroml2_cell=None,\
-                        \ pynn_cell=None, arbor_cell=None, bindsnet_node=None, parameters={'sigma':\
+                    notes: "Cell: [Cell(notes=None, id='lorenzCell', parameters={'sigma':\
                         \ 'sigma', 'b': 'b', 'r': 'r', 'x0': 'x0', 'y0': 'y0', 'z0':\
-                        \ 'z0'})] is defined in test_files/Lorenz1963.xml and in Lems\
-                        \ is: Component, id: lorenzCell, type: lorenz,\n   parameters:\
+                        \ 'z0'}, neuroml2_source_file=None, lems_source_file='test_files/Lorenz1963.xml',\
+                        \ neuroml2_cell=None, pynn_cell=None, arbor_cell=None, bindsnet_node=None)]\
+                        \ is defined in test_files/Lorenz1963.xml and in Lems is:\
+                        \ Component, id: lorenzCell, type: lorenz,\n   parameters:\
                         \ {'sigma': '10', 'b': '2.67', 'r': '28', 'x0': '1.0', 'y0':\
                         \ '1.0', 'z0': '1.0'}\n   parent: None\n"
             edges: {}
