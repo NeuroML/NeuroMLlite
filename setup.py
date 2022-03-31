@@ -24,7 +24,7 @@ setup(
         "pyyaml",
         "numpy",
         "pyparsing<3",
-        "modelspec>=0.2.0",
+        "modelspec>=0.2.2",
     ],
     classifiers=[
         "Intended Audience :: Science/Research",
