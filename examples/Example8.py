@@ -9,7 +9,7 @@ net = Network(id="Example8_Extension")
 net.notes = "Example 8: general testing..."
 
 net.seed = 7890
-net.temperature = 32
+net.temperature = 32.0
 
 net.parameters = {"N": 10, "fractionE": 0.8, "weightInput": 1}
 
@@ -22,8 +22,8 @@ input_source = InputSource(
 )
 net.input_sources.append(input_source)
 """
-input_source = InputSource(id='iclamp0', 
-                           pynn_input='DCSource', 
+input_source = InputSource(id='iclamp0',
+                           pynn_input='DCSource',
                            parameters={'amplitude':0.2, 'start':100., 'stop':900.})"""
 
 net.input_sources.append(input_source)
@@ -90,7 +90,7 @@ sim = Simulation(
     duration="1000",
     seed="1111",
     dt="0.025",
-    recordTraces={"all": "*"},
+    record_traces={"all": "*"},
 )
 
 sim.to_json_file()

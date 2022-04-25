@@ -119,13 +119,13 @@ sim = Simulation(
     network=net_json_file,
     duration="1000",
     dt="0.01",
-    recordTraces={"all": "*"},
-    recordSpikes={"pop0": "*"},
+    record_traces={"all": "*"},
+    record_spikes={"pop0": "*"},
 )
 
 sim.to_json_file()
 sim.network = net_yaml_file
-sim.to_yaml_file()
+sim.to_yaml_file('%s.yaml'%sim.id)
 
 sim.network = net_json_file  # reverting, for call below...
 

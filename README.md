@@ -10,7 +10,7 @@
 [![Twitter Follow](https://img.shields.io/twitter/follow/NeuroML?style=social)](https://twitter.com/NeuroML)
 
 
-Work in progress. This will develop in to a framework for more portable, concise network specifications which will form an important part of [NeuroML v3](https://docs.neuroml.org/NeuroMLOrg/History.html#the-future).
+NeuroMLlite is in active development. This will evolve into a framework for more portable, concise network specifications which will form an important part of [NeuroML v3](https://docs.neuroml.org/NeuroMLOrg/History.html#the-future).
 
 For some more background to this package see here: https://github.com/NeuroML/NetworkShorthand.
 

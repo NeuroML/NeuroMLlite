@@ -1,11 +1,11 @@
 {
     "Example11_Synapses": {
-        "version": "NeuroMLlite v0.4.4",
+        "version": "NeuroMLlite v0.5.0",
+        "notes": "Example 11: synaptic properties",
         "parameters": {
             "input_amp": 0.23,
             "weight": 1.01
         },
-        "notes": "Example 11: synaptic properties",
         "cells": {
             "iafCell0": {
                 "neuroml2_source_file": "test_files/iaf.cell.nml"
@@ -21,12 +21,12 @@
         },
         "input_sources": {
             "i_clamp": {
-                "pynn_input": "DCSource",
                 "parameters": {
                     "amplitude": "input_amp",
                     "start": 200.0,
                     "stop": 800.0
-                }
+                },
+                "pynn_input": "DCSource"
             }
         },
         "regions": {

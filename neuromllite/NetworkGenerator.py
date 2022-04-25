@@ -18,6 +18,15 @@ DEFAULT_NET_GENERATION_SEED = 1234
 DEFAULT_SIMULATION_SEED = 5678
 
 
+
+def __TEMP_CHECK_IF_SET(value):
+    """
+    Should just be a check for None! Update in modelspec...
+    """
+    if value is None: return False
+    if value == '': return False
+    return True
+
 def _get_rng_for_network(nl_model):
     """
     Get a random number generator and the seed used to generate it
@@ -81,7 +90,7 @@ def generate_network(
                 if not p == "__builtins__":
                     notes += "\n        %s = %s" % (p, nl_model.parameters[p])
         handler.handle_document_start(nl_model.id, notes)
-        temperature = "%sdegC" % nl_model.temperature if nl_model.temperature else None
+        temperature = "%sdegC" % nl_model.temperature if nl_model.temperature is not None else None
         handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
 
     nml2_doc_temp = _extract_pynn_components_to_neuroml(nl_model)
@@ -108,7 +117,7 @@ def generate_network(
             )
             synapse_objects[s.id] = nml2_doc.get_by_id(s.id)
 
-        if s.pynn_synapse:
+        if hasattr(s, 'pynn_synapse') and s.pynn_synapse is not None:
             synapse_objects[s.id] = nml2_doc_temp.get_by_id(s.id)
 
     for p in nl_model.populations:
@@ -349,10 +358,10 @@ def generate_network(
 
             input_count = 0
 
-            if input.cell_ids is not None:
-                if input.percentage is not None:
+            if __TEMP_CHECK_IF_SET(input.cell_ids):
+                if __TEMP_CHECK_IF_SET(input.percentage):
                     raise Exception(
-                        "On input: %s, only one of percentage or cell_ids is allowed"
+                        "On the input: %s, only one of percentage or cell_ids is allowed"
                         % input
                     )
                 for i in input.cell_ids:
@@ -384,8 +393,8 @@ def generate_network(
                         )
                         input_count += 1
 
-            if input.percentage is not None:
-                if input.cell_ids is not None:
+            if __TEMP_CHECK_IF_SET(input.percentage):
+                if __TEMP_CHECK_IF_SET(input.cell_ids):
                     raise Exception(
                         "On input: %s, only one of percentage or cell_ids is allowed"
                         % input
@@ -674,7 +683,7 @@ def generate_neuroml2_from_network(
             for comp in model.components:
                 if i.id == comp.id:
                     print_v("Found a component: %s in %s" % (comp, fname))
-                    if i.parameters is not None and len(i.parameters) > 0:
+                    if hasattr(i, 'parameters') and len(i.parameters) > 0:
                         for p in i.parameters:
                             comp.set_parameter(
                                 p, evaluate(i.parameters[p], nl_model.parameters)
@@ -708,7 +717,7 @@ def generate_neuroml2_from_network(
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
-            if i.neuroml2_input:
+            if hasattr(i, 'neuroml2_input') and i.neuroml2_input is not None:
                 input_params = i.parameters if i.parameters else {}
 
                 # TODO make more generic...
@@ -1438,10 +1447,10 @@ plt.show()
             arbor_recipe = arbor_handler.neuroML_arbor_recipe
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
             spike_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordSpikes, network
+                simulation.record_spikes, network
             )
             """
             for pop_id in arbor_handler.populations:
@@ -1630,10 +1639,10 @@ plt.show()
             )
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
             spike_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordSpikes, network
+                simulation.record_spikes, network
             )
 
             for pop_id in pynn_handler.populations:
@@ -1790,7 +1799,7 @@ plt.show()
             simConfig.recordTraces = {}
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
 
             for pop_id in trace_pop_indices_seg_ids:
@@ -1920,7 +1929,7 @@ plt.show()
 
             for pop_id in trace_pop_indices_seg_ids:
                 indices_segids = trace_pop_indices_seg_ids[pop_id]
-                print("Saving in pop %s: %s" % (pop_id, indices_segids))
+                print("Saving in population %s: %s" % (pop_id, indices_segids))
                 save_ref = "%s.%s.v.dat" % (simulation.id, pop_id)
                 pop_v_file = open(save_ref, "w")
                 all_v = []
@@ -1970,7 +1979,7 @@ plt.show()
 
             spike_pop_indices = sorted(
                 get_pops_vs_cell_indices_seg_ids(
-                    simulation.recordSpikes, network
+                    simulation.record_spikes, network
                 ).keys()
             )
 
@@ -2020,13 +2029,13 @@ plt.show()
             gen_spike_saves_for_cells = {}
 
             trace_pop_indices_seg_ids = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordTraces, network
+                simulation.record_traces, network
             )
             spike_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordSpikes, network
+                simulation.record_spikes, network
             )
             rate_pop_indices = get_pops_vs_cell_indices_seg_ids(
-                simulation.recordRates, network
+                simulation.record_rates, network
             )
 
             pops = network.populations
@@ -2091,9 +2100,9 @@ plt.show()
                         gen_plots_for_quantities[plot_ref].append(quantity)
                         gen_saves_for_quantities[save_ref].append(quantity)
 
-                if simulation.recordVariables:
-                    for var in simulation.recordVariables:
-                        to_rec = simulation.recordVariables[var]
+                if simulation.record_variables:
+                    for var in simulation.record_variables:
+                        to_rec = simulation.record_variables[var]
                         if "all" in to_rec or p.id in to_rec:
                             size = evaluate(p.size, network.parameters)
                             for i in range(size):
@@ -2195,9 +2204,10 @@ plt.show()
                 _print_result_info(traces, events)
                 return results  # traces, events =
     except Exception as e:
+        raise e
         raise Exception(
             "Exception while trying to run in simulator %s:\n%s" % (simulator, e)
-        )
+        ) from e
 
 
 def _print_info(l):

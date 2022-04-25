@@ -52,7 +52,7 @@ sim = Simulation(
     network=new_file,
     duration="1000000",
     dt="25",
-    recordVariables={"x": {"all": "*"}, "y": {"all": "*"}, "z": {"all": "*"}},
+    record_variables={"x": {"all": "*"}, "y": {"all": "*"}, "z": {"all": "*"}},
     plots2D={
         "X-Y": {"x_axis": "hrPop[0]/x", "y_axis": "hrPop[0]/y"},
         "Y-Z": {"x_axis": "hrPop[0]/y", "y_axis": "hrPop[0]/z"},

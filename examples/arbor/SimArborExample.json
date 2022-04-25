@@ -1,13 +1,13 @@
 {
     "SimArborExample": {
-        "version": "NeuroMLlite v0.4.4",
+        "version": "NeuroMLlite v0.5.0",
         "network": "ArborExample.json",
         "duration": 100.0,
         "dt": 0.01,
-        "recordTraces": {
+        "record_traces": {
             "all": "*"
         },
-        "recordSpikes": {
+        "record_spikes": {
             "pop0": "*"
         }
     }

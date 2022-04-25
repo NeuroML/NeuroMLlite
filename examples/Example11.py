@@ -98,12 +98,12 @@ sim = Simulation(
     network=new_file,
     duration="1000",
     dt="0.01",
-    recordTraces={"all": "*"},
-    recordVariables={
+    record_traces={"all": "*"},
+    record_variables={
         "synapses:%s:0/g" % ampaSyn.id: {"pop1": "*"},
         "synapses:%s:0/g" % nmdaSyn.id: {"pop1": "*"},
     },
-    recordSpikes={"pop0": "*"},
+    record_spikes={"pop0": "*"},
 )
 
 sim.to_json_file()
