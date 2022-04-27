@@ -21,11 +21,11 @@ class TestUtils(unittest.TestCase):
 
         network = get_example_network()
         sim = get_example_simulation()
-        sim.recordTraces = {}
-        sim.recordSpikes = {}
-        sim.recordRates = {}
+        sim.record_traces = {}
+        sim.record_spikes = {}
+        sim.record_rates = {}
 
-        for recordSpec in [sim.recordTraces, sim.recordSpikes, sim.recordRates]:
+        for recordSpec in [sim.record_traces, sim.record_spikes, sim.record_rates]:
 
             print("Testing...")
             recordSpec["all"] = "*"

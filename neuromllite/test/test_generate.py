@@ -20,7 +20,7 @@ class TestGenerate(unittest.TestCase):
             network="../../examples/Example4_PyNN.json",
             duration="1000",
             dt="0.01",
-            recordTraces={"all": "*"},
+            record_traces={"all": "*"},
         )
         return sim
 

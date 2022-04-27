@@ -213,8 +213,8 @@ def generate():
         duration=simtime,
         dt=dt,
         seed=123,
-        recordTraces={pE.id: [0, 1], pI.id: [0, 1]},
-        recordSpikes={
+        record_traces={pE.id: [0, 1], pI.id: [0, 1]},
+        record_spikes={
             pE.id: "*",
             pI.id: "*",
             pEpoisson.id: [0, 1, 2, 3, 4],
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         from neuromllite.sweep.ParameterSweep import *
 
         sim, net = generate()
-        sim.recordTraces = {}
+        sim.record_traces = {}
 
         fixed = {"dt": 0.025, "order": 5}
 
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     if "-sweep2" in sys.argv:
 
         sim, net = generate()
-        sim.recordTraces = {}
+        sim.record_traces = {}
 
         fixed = {"dt": 0.025, "order": 5}
 

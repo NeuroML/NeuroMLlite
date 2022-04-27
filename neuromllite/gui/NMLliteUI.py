@@ -570,7 +570,7 @@ class NMLliteUI(QWidget):
 
         for s in svars:
             rows += 1
-            sval = self.simulation.__getattr__(s)
+            sval = self.simulation.__getattribute__(s)
             if sval is not None:
                 label = QLabel("%s" % s)
                 paramLayout.addWidget(label, rows, 0)

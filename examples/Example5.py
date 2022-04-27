@@ -65,8 +65,8 @@ nml_file_name, nml_doc = generate_neuroml2_from_network(
 
 from neuromllite import Simulation
 
-recordTraces = {"all": "*"}
-recordSpikes = {"all": "*"}
+record_traces = {"all": "*"}
+record_spikes = {"all": "*"}
 
 
 sim = Simulation(
@@ -74,8 +74,8 @@ sim = Simulation(
     network=new_file,
     duration=500,
     dt=0.025,
-    recordTraces=recordTraces,
-    recordSpikes=recordSpikes,
+    record_traces=record_traces,
+    record_spikes=record_spikes,
 )
 
 sim.to_json_file()

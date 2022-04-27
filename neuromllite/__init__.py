@@ -1,17 +1,34 @@
 import collections
 
-__version__ = "0.4.4"
+__version__ = "0.5.1"
 
 # import pyNN
 # import nest
 
-from modelspec.BaseTypes import Base
-from modelspec.BaseTypes import BaseWithId
-from modelspec.BaseTypes import EvaluableExpression
+from typing import List, Dict, Any, Optional, Union, Tuple, Callable, TypeVar, Type
+
+import modelspec
+from modelspec import optional, instance_of, in_, has, field, fields
+from modelspec.base_types import Base, ValueExprType, value_expr_types
+
+
+def convert2float(x: Any) -> float:
+    """Convert to float if not None"""
+    if x is not None:
+        return float(x)
+    else:
+        return None
+
+
+def convert2int(x: Any) -> float:
+    """Convert to int if not None"""
+    if x is not None:
+        return int(x)
+    else:
+        return None
 
 
 class NetworkReaderX:
-
     pop_locations = {}
 
     def parse(self, handler):
@@ -21,422 +38,366 @@ class NetworkReaderX:
         return self.pop_locations
 
 
-class Network(BaseWithId):
-
-    _definition = "A Network containing multiple _Population_s, connected by _Projection_s and receiving _Input_s"
-
-    def __init__(self, **kwargs):
-
-        self.allowed_children = collections.OrderedDict(
-            [
-                ("cells", ("The _Cell_s which can be present in _Population_s", Cell)),
-                (
-                    "synapses",
-                    (
-                        "The _Synapse_ definitions which are used in _Projection_s",
-                        Synapse,
-                    ),
-                ),
-                (
-                    "input_sources",
-                    (
-                        "The _InputSource_ definitions which define the types of stimulus which can be applied in _Input_s",
-                        InputSource,
-                    ),
-                ),
-                (
-                    "regions",
-                    (
-                        "The _Regions_ in which _Population_s get placed",
-                        RectangularRegion,
-                    ),
-                ),
-                (
-                    "populations",
-                    (
-                        "The _Population_s of _Cell_s making up this network...",
-                        Population,
-                    ),
-                ),
-                (
-                    "projections",
-                    ("The _Projection_s between _Population_s", Projection),
-                ),
-                (
-                    "inputs",
-                    ("The inputs to apply to the elements of _Population_s", Input),
-                ),
-            ]
-        )
-
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("version", ("Information on verson of NeuroMLlite", str)),
-                (
-                    "seed",
-                    (
-                        "Seed for random number generator used when building network",
-                        int,
-                    ),
-                ),
-                (
-                    "temperature",
-                    ("Temperature at which to run network (float in deg C)", float),
-                ),
-                (
-                    "parameters",
-                    ("Dictionary of global parameters for the network", dict),
-                ),
-                (
-                    "network_reader",
-                    (
-                        "A class which can read in a network (e.g. from a structured format)",
-                        NetworkReader,
-                    ),
-                ),
-            ]
-        )
-
-        super(Network, self).__init__(**kwargs)
-
-        self.version = "NeuroMLlite v%s" % __version__
+@modelspec.define
+class NMLBase(Base):
+    """Base class for NeuroML objects."""
+    notes: str = field(kw_only=True, default=None, validator=optional(instance_of(str)))
 
 
-class Cell(BaseWithId):
-    def __init__(self, **kwargs):
+@modelspec.define
+class Cell(NMLBase):
+    """
+    A Cell definition.
 
-        self.allowed_fields = collections.OrderedDict(
-            [
-                (
-                    "neuroml2_source_file",
-                    ("File name of NeuroML2 file defining the cell", str),
-                ),
-                ("lems_source_file", ("File name of LEMS file defining the cell", str)),
-                ("neuroml2_cell", ("Name of standard NeuroML2 cell type", str)),
-                ("pynn_cell", ("Name of standard PyNN cell type", str)),
-                ("arbor_cell", ("Name of standard Arbor cell type", str)),
-                ("bindsnet_node", ("Name of standard BindsNET node", str)),
-                ("parameters", ("Dictionary of parameters for the cell", dict)),
-            ]
-        )
-
-        super(Cell, self).__init__(**kwargs)
-
-
-class Synapse(BaseWithId):
-    def __init__(self, **kwargs):
-
-        self.allowed_fields = collections.OrderedDict(
-            [
-                (
-                    "neuroml2_source_file",
-                    ("File name of NeuroML2 file defining the synapse", str),
-                ),
-                (
-                    "lems_source_file",
-                    ("File name of LEMS file defining the synapse", str),
-                ),
-                (
-                    "pynn_synapse_type",
-                    (
-                        'Options: "curr_exp", "curr_alpha", "cond_exp", "cond_alpha".',
-                        str,
-                    ),
-                ),
-                ("pynn_receptor_type", ('Either "excitatory" or "inhibitory".', str)),
-                ("parameters", ("Dictionary of parameters for the synapse", dict)),
-            ]
-        )
-
-        super(Synapse, self).__init__(**kwargs)
+    Args:
+        id: Unique identifier for this Cell
+        parameters: Dictionary of parameters for the cell
+        neuroml2_source_file: File name of NeuroML2 file defining the cell
+        lems_source_file: File name of LEMS file defining the cell
+        neuroml2_cell: Name of standard NeuroML2 cell type
+        pynn_cell: Name of standard PyNN cell type
+        arbor_cell: Name of standard Arbor cell type
+        bindsnet_node: Name of standard BindsNET node
+    """
+    id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    neuroml2_cell: str = field(default=None, validator=optional(instance_of(str)))
+    pynn_cell: str = field(default=None, validator=optional(instance_of(str)))
+    arbor_cell: str = field(default=None, validator=optional(instance_of(str)))
+    bindsnet_node: str = field(default=None, validator=optional(instance_of(str)))
 
 
-class InputSource(BaseWithId):
-    def __init__(self, **kwargs):
+@modelspec.define
+class Synapse(NMLBase):
+    """
+    A Synapse definition.
 
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("neuroml2_source_file", ("File name of NeuroML2 file", str)),
-                ("lems_source_file", ("File name of LEMS file", str)),
-                ("neuroml2_input", ("Name of standard NeuroML2 input", str)),
-                ("pynn_input", ("Name of standard PyNN input", str)),
-                ("parameters", ("Dictionary of parameters for the InputSource", dict)),
-            ]
-        )
-
-        super(InputSource, self).__init__(**kwargs)
-
-
-"""
-class Region(BaseWithId):
-
-    def __init__(self, **kwargs):
-
-        super(Region, self).__init__(**kwargs)"""
+    Args:
+        id: Unique identifier for this Synapse
+        parameters: Dictionary of parameters for the synapse
+        neuroml2_source_file: File name of NeuroML2 file defining the synapse
+        lems_source_file: File name of LEMS file defining the synapse
+        pynn_synapse_type: The pynn synapse type. Valid values are: "curr_exp", "curr_alpha", "cond_exp", "cond_alpha".
+        pynn_receptor_type: The pynn receptor type. Valid values are: "excitatory", "inhibitory".
+    """
+    id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    pynn_synapse_type: str = field(default=None, validator=optional(in_(["curr_exp", "curr_alpha", "cond_exp", "cond_alpha"])))
+    pynn_receptor_type: str = field(default=None, validator=optional(in_(["excitatory", "inhibitory"])))
 
 
-class RectangularRegion(BaseWithId):
-    def __init__(self, **kwargs):
+@modelspec.define
+class InputSource(NMLBase):
+    """
+    An InputSource definition.
 
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("x", ("x coordinate of corner", float)),
-                ("y", ("y coordinate of corner", float)),
-                ("z", ("z coordinate of corner", float)),
-                ("width", ("Width of rectangular region", float)),
-                ("height", ("Height of rectangular region", float)),
-                ("depth", ("Depth of rectangular region", float)),
-            ]
-        )
+    Args:
+        id: Unique identifier for this InputSource
+        parameters: Dictionary of parameters for the InputSource
+        neuroml2_source_file: File name of NeuroML2 file defining the input source
+        neuroml2_input: Name of standard NeuroML2 input
+        lems_source_file: File name of LEMS file defining the input source
+        pynn_input: Name of PyNN input
+    """
+    id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    neuroml2_input: str = field(default=None, validator=optional(instance_of(str)))
+    lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    pynn_input: str = field(default=None, validator=optional(instance_of(str)))
 
-        super(RectangularRegion, self).__init__(**kwargs)
+
+@modelspec.define
+class RectangularRegion(NMLBase):
+    """
+    A RectangularRegion definition.
+
+    Args:
+        id: Unique identifier for this rectangular region.
+        x: x coordinate of corner of region
+        y: y coordinate of corner of region
+        z: z coordinate of corner of region
+        width: width of the rectangular region
+        height: height of the rectangular region
+        depth: depth of the rectangular region
+    """
+    id: str = field(validator=instance_of(str))
+    x: float = field(validator=instance_of(float), converter=convert2float)
+    y: float = field(validator=instance_of(float), converter=convert2float)
+    z: float = field(validator=instance_of(float), converter=convert2float)
+    width: float = field(validator=instance_of(float), converter=convert2float)
+    height: float = field(validator=instance_of(float), converter=convert2float)
+    depth: float = field(validator=instance_of(float), converter=convert2float)
 
 
-class Population(BaseWithId):
-    def __init__(self, **kwargs):
+@modelspec.define
+class RandomLayout(NMLBase):
+    """
+    A RandomLayout definition.
 
-        # self.allowed_children = collections.OrderedDict([('positions',('List of explicit positions...',str))])
+    Args:
+        region: Region in which to place population
+    """
+    region: str = field(validator=instance_of(str))
 
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("size", ("Size of population", EvaluableExpression)),
-                ("component", ("Type of _Cell_ to use in population", str)),
-                (
-                    "properties",
-                    ("Dictionary of properties (metadata) for the population", dict),
-                ),
-                ("random_layout", ("Layout in random _Region_", RandomLayout)),
-                ("relative_layout", ("Position relative to _Region_.", RelativeLayout)),
-                (
-                    "single_location",
-                    (
-                        "Explicit location of the one _Cell_ in the population",
-                        SingleLocation,
-                    ),
-                ),
-            ]
-        )
 
-        super(Population, self).__init__(**kwargs)
+@modelspec.define
+class RelativeLayout(NMLBase):
+    """
+    A RelativeLayout definition.
+
+    Args:
+        region: The Region relative to which population should be positioned.
+        x: x position relative to x coordinate of Region
+        y: y position relative to y coordinate of Region
+        z: z position relative to z coordinate of Region
+    """
+    region: str = field(validator=instance_of(str))
+    x: float = field(validator=instance_of(float), converter=convert2float)
+    y: float = field(validator=instance_of(float), converter=convert2float)
+    z: float = field(validator=instance_of(float), converter=convert2float)
+
+
+@modelspec.define
+class Location(NMLBase):
+    """
+    A Location definition.
+
+    Args:
+        x: x coordinate of location
+        y: y coordinate of location
+        z: z coordinate of location
+    """
+    x: float = field(validator=instance_of(float), converter=convert2float)
+    y: float = field(validator=instance_of(float), converter=convert2float)
+    z: float = field(validator=instance_of(float), converter=convert2float)
+
+
+@modelspec.define
+class SingleLocation(NMLBase):
+    """
+    A SingleLocation definition.
+
+    Args:
+        location: Location of the single Cell.
+    """
+    location: Location = field(validator=instance_of(Location))
+
+
+@modelspec.define
+class Population(NMLBase):
+    """
+    A Population definition.
+
+    Args:
+        id: Unique identifier for this Population
+        size: The size of the population.
+        component: The type of Cell to use in this population.
+        properties: A dictionary of properties (metadata) for this population.
+        random_layout: Layout in the random RectangularRegion.
+        relative_layout: Position relative to RectangularRegion.
+        single_location: Explicit location of the one Cell in the population
+    """
+    id: str = field(validator=instance_of(str))
+    size: ValueExprType = field(validator=instance_of(value_expr_types))
+    component: str = field(validator=instance_of(str))
+    properties: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    random_layout: RandomLayout = field(default=None, validator=optional(instance_of(RandomLayout)))
+    relative_layout: RelativeLayout = field(default=None, validator=optional(instance_of(RelativeLayout)))
+    single_location: SingleLocation = field(default=None, validator=optional(instance_of(SingleLocation)))
 
     def has_positions(self):
-        if self.random_layout:
+        """
+        Returns True if the population has a position.
+
+        Returns:
+            True if the population has a position.
+        """
+        if self.random_layout is not None:
             return True
-        elif self.relative_layout:
+        elif self.relative_layout is not None:
             return True
-        elif self.single_location:
+        elif self.single_location is not None:
             return True
         else:
             return False
 
 
-class RandomLayout(Base):
-    def __init__(self, **kwargs):
+@modelspec.define
+class RandomConnectivity(NMLBase):
+    """
+    A RandomConnectivity definition.
 
-        self.allowed_fields = collections.OrderedDict(
-            [("region", ("Region in which to place population", str))]
-        )
-
-        super(RandomLayout, self).__init__(**kwargs)
-
-
-class RelativeLayout(Base):
-    def __init__(self, **kwargs):
-
-        self.allowed_fields = collections.OrderedDict(
-            [
-                (
-                    "region",
-                    (
-                        "The _Region_ relative to which population should be positioned",
-                        str,
-                    ),
-                ),
-                ("x", ("x position relative to x coordinate of _Region_", float)),
-                ("y", ("y position relative to y coordinate of _Region_", float)),
-                ("z", ("z position relative to z coordinate of _Region_", float)),
-            ]
-        )
-
-        super(RelativeLayout, self).__init__(**kwargs)
+    Args:
+        probability: Random probability of connection.
+    """
+    probability: ValueExprType = field(validator=instance_of(value_expr_types))
 
 
-class SingleLocation(Base):
-    def __init__(self, **kwargs):
-
-        # self.allowed_children = collections.OrderedDict([('locations',('The locations...',Location))])
-        self.allowed_fields = collections.OrderedDict(
-            [("location", ("The location of the single _Cell_", Location))]
-        )
-
-        super(SingleLocation, self).__init__(**kwargs)
-
-
-class Location(Base):
-    def __init__(self, **kwargs):
-
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("x", ("x coordinate", float)),
-                ("y", ("y coordinate", float)),
-                ("z", ("z coordinate", float)),
-            ]
-        )
-
-        super(Location, self).__init__(**kwargs)
-
-
-class Projection(BaseWithId):
-    def __init__(self, **kwargs):
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("presynaptic", ("Presynaptic _Population_", str)),
-                ("postsynaptic", ("Postsynaptic _Population_", str)),
-                ("synapse", ("Which _Synapse_ to use", str)),
-                (
-                    "pre_synapse",
-                    (
-                        "For continuous connections, what presynaptic component to use (default: silent analog synapse)",
-                        str,
-                    ),
-                ),
-                (
-                    "type",
-                    (
-                        "type of projection: projection (default; standard chemical, event triggered), electricalProjection (for gap junctions) or continuousProjection (for analogue/graded synapses)",
-                        str,
-                    ),
-                ),
-                ("delay", ("Delay to use (default: 0)", EvaluableExpression)),
-                ("weight", ("Weight to use (default: 1)", EvaluableExpression)),
-                (
-                    "random_connectivity",
-                    ("Use random connectivity", RandomConnectivity),
-                ),
-                (
-                    "convergent_connectivity",
-                    ("Use ConvergentConnectivity", ConvergentConnectivity),
-                ),
-                (
-                    "one_to_one_connector",
-                    (
-                        "Connect cell index i in pre pop to cell index i in post pop for all i",
-                        OneToOneConnector,
-                    ),
-                ),
-            ]
-        )
-
-        super(Projection, self).__init__(**kwargs)
-
-
-class Input(BaseWithId):
-    def __init__(self, **kwargs):
-
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("input_source", ("Type of input to use in population", str)),
-                ("population", ("Population to target", str)),
-                (
-                    "cell_ids",
-                    (
-                        "Specific ids of _Cell_s to apply this input to (cannot be used with percentage)",
-                        EvaluableExpression,
-                    ),
-                ),
-                (
-                    "percentage",
-                    (
-                        "Percentage of _Cell_s to apply this input to (cannot be used with cell_ids)",
-                        float,
-                    ),
-                ),
-                (
-                    "number_per_cell",
-                    (
-                        "Number of individual inputs per selected _Cell_ (default: 1)",
-                        EvaluableExpression,
-                    ),
-                ),
-                (
-                    "segment_ids",
-                    ("Which segments to target (default: [0])", EvaluableExpression),
-                ),
-                ("weight", ("Weight to use (default: 1)", EvaluableExpression)),
-            ]
-        )
-
-        super(Input, self).__init__(**kwargs)
-
-
-class RandomConnectivity(Base):
-    def __init__(self, **kwargs):
-
-        self.allowed_fields = collections.OrderedDict(
-            [("probability", ("Random probability of connection", EvaluableExpression))]
-        )
-
-        super(RandomConnectivity, self).__init__(**kwargs)
-
-
-class OneToOneConnector(Base):
-    def __init__(self, **kwargs):
-
-        super(OneToOneConnector, self).__init__(**kwargs)
+@modelspec.define
+class OneToOneConnector(NMLBase):
+    """
+    A OneToOneConnector definition.
+    """
+    pass
 
 
 # Temp! to redefine more generally!
-class ConvergentConnectivity(Base):
-    def __init__(self, **kwargs):
+@modelspec.define
+class ConvergentConnectivity(NMLBase):
+    """
+    A ConvergentConnectivity definition.
 
-        self.allowed_fields = collections.OrderedDict(
-            [("num_per_post", ("Number per post synaptic neuron", float))]
-        )
-
-        super(ConvergentConnectivity, self).__init__(**kwargs)
-
-
-class NetworkReader(Base):
-    def __init__(self, **kwargs):
-
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("type", ("The type of NetworkReader", str)),
-                (
-                    "parameters",
-                    ("Dictionary of parameters for the NetworkReader", dict),
-                ),
-            ]
-        )
-
-        super(NetworkReader, self).__init__(**kwargs)
+    Args:
+        num_per_post: Number per post-synaptic neuron.
+    """
+    num_per_post: float = field(validator=instance_of(float), converter=convert2float)
 
 
-class Simulation(BaseWithId):
-    def __init__(self, **kwargs):
+@modelspec.define
+class Projection(NMLBase):
+    """
+    A Projection definition.
 
-        self.allowed_fields = collections.OrderedDict(
-            [
-                ("version", ("Information on verson of NeuroMLlite", str)),
-                ("network", ("File name of network to simulate", str)),
-                ("duration", ("Duration of simulation (ms)", float)),
-                ("dt", ("Timestep of simulation (ms)", float)),
-                (
-                    "seed",
-                    ("Seed for stochastic elements os the simulation (integer)", int),
-                ),
-                ("recordTraces", ("Record traces?", dict)),
-                ("recordSpikes", ("Record spikes?", dict)),
-                ("recordRates", ("Record rates?", dict)),
-                ("recordVariables", ("Record named variables?", dict)),
-                ("plots2D", ("Work in progress...", dict)),
-                ("plots3D", ("Work in progress...", dict)),
-            ]
-        )
+    Args:
+        id: Unique identifier for this Projection
+        presynaptic: Presynaptic Population
+        postsynaptic: Postsynaptic Population
+        synapse: Which Synapse to use
+        pre_synapse: For continuous connections, what presynaptic component to use (default: silent analog synapse)
+        type: type of projection: projection (default; standard chemical, event triggered), electricalProjection
+            (for gap junctions) or continuousProjection (for analogue/graded synapses)
+        delay: Delay to use (default: 0)
+        weight: Weight to use (default: 1)
+        random_connectivity: Use random connectivity
+        convergent_connectivity: Use convergent connectivity
+        one_to_one_connector: Connect cell index i in pre pop to cell index i in post pop for all i
 
-        super(Simulation, self).__init__(**kwargs)
+    """
+    id: str = field(validator=instance_of(str))
+    presynaptic: str = field(validator=optional(instance_of(str)))
+    postsynaptic: str = field(validator=optional(instance_of(str)))
+    synapse: str = field(validator=optional(instance_of(str)))
+    pre_synapse: str = field(default=None, validator=optional(instance_of(str)))
+    type: str = field(default="projection", validator=optional(instance_of(str)))
+    delay: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+    weight: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+    random_connectivity: RandomConnectivity = field(default=None, validator=optional(instance_of(RandomConnectivity)))
+    convergent_connectivity: ConvergentConnectivity = field(default=None, validator=optional(instance_of(ConvergentConnectivity)))
+    one_to_one_connector: OneToOneConnector = field(default=None, validator=optional(instance_of(OneToOneConnector)))
 
-        self.version = "NeuroMLlite v%s" % __version__
+
+@modelspec.define
+class Input(NMLBase):
+    """
+    An Input definition.
+
+    Args:
+        id: Unique identifier for this Input
+        input_source: Type of input to use in population
+        population: Population to target
+        percentage: Percentage of Cells to apply input to
+        cell_ids: Specific ids of _Cell_s to apply this input to (cannot be used with percentage
+        number_per_cell: Number of individual inputs per selected Cell (default: 1)
+        segment_ids: Which segments to target (default: [0])
+        weight: Weight to use (default: 1)
+    """
+
+    id: str = field(validator=instance_of(str))
+    input_source: str = field(default=None, validator=optional(instance_of(str)))
+    population: str = field(default=None, validator=optional(instance_of(str)))
+    cell_ids: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
+    percentage: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
+    number_per_cell: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
+    segment_ids: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
+    weight: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+
+
+@modelspec.define
+class NetworkReader(NMLBase):
+    """
+    A NetworkReader definition.
+
+    Args:
+        type: The type of NetworkReader
+        parameters: Dictionary of parameters for the NetworkReader
+    """
+    type: str = field(default=None, validator=optional(instance_of(str)))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+
+
+@modelspec.define
+class Simulation(NMLBase):
+    """
+    A Simulation definition.
+
+    Args:
+        id: Unique identifier for this Simulation
+        version: Information on verson of NeuroMLlite
+        network: File name of network to simulate
+        duration: Duration of simulation (ms)
+        dt: Timestep of simulation (ms)
+        seed: Seed for stochastic elements os the simulation
+        record_traces: Record traces?
+        record_spikes: Record spikes?
+        record_rates: Record rates?
+        record_variables: Record named variables?
+        plots2D: Work in progress...
+        plots3D: Work in progress...
+    """
+    id: str = field(validator=instance_of(str))
+    version: str = field(default=f"NeuroMLlite v{__version__}", validator=optional(instance_of(str)), metadata={"omit_if_default": False})
+    network: str = field(default=None, validator=optional(instance_of(str)))
+    duration: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
+    dt: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
+    seed: int = field(default=None, validator=optional(instance_of(int)), converter=convert2int)
+    record_traces: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    record_spikes: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    record_rates: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    record_variables: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    plots2D: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    plots3D: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+
+
+@modelspec.define
+class Network(NMLBase):
+    """
+    A Network containing multiple Population's, connected by Projection's and receiving Input's
+
+    Args:
+        id: Unique identifier for the Network
+        parameters: Dictionary of global parameters for the network
+        cells: The Cells which can be present in Populations
+        synapses: The Synapse definitions which are used in Projections
+        input_sources: The InputSource definitions which define the types of stimulus which can be applied in Inputs
+        regions: The Regions in which Populations get placed.
+        populations: The Populations of Cells making up this network ...
+        projections: The Projections between Populations
+        inputs: The inputs to apply to the elements of Populations
+        version: Information on verson of NeuroMLlite
+        seed: Seed for random number generator used when building network
+        temperature: Temperature at which to run network (float in deg C)
+        network_reader: A class which can read in a network (e.g. from a structured format)
+        notes: Human readable notes about the network
+    """
+
+    id: str = field(validator=instance_of(str))
+    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    cells: List[Cell] = field(factory=list, validator=instance_of(list))
+    synapses: List[Synapse] = field(factory=list, validator=instance_of(list))
+    input_sources: List[InputSource] = field(factory=list, validator=instance_of(list))
+    regions: List[RectangularRegion] = field(factory=list, validator=instance_of(list))
+    populations: List[Population] = field(factory=list, validator=instance_of(list))
+    projections: List[Projection] = field(factory=list, validator=instance_of(list))
+    inputs: List[Input] = field(factory=list, validator=instance_of(list))
+    version: str = field(default=f"NeuroMLlite v{__version__}", validator=instance_of(str), metadata={"omit_if_default": False})
+    seed: int = field(default=None, validator=optional(instance_of(int)))
+    temperature: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
+    network_reader: NetworkReader = field(default=None)
 
 
 if __name__ == "__main__":

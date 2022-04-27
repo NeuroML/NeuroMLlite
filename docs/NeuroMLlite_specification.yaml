@@ -1,9 +1,18 @@
-version: NeuroMLlite v0.4.4
+version: NeuroMLlite v0.5.1
 specification:
     Network:
-        definition: A Network containing multiple _Population_s, connected by _Projection_s
-            and receiving _Input_s
+        definition: A Network containing multiple Population's, connected by Projection's
+            and receiving Input's
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for the Network
+            parameters:
+                type: Any
+                description: Dictionary of global parameters for the network
             version:
                 type: str
                 description: Information on verson of NeuroMLlite
@@ -13,52 +22,57 @@ specification:
             temperature:
                 type: float
                 description: Temperature at which to run network (float in deg C)
-            parameters:
-                type: dict
-                description: Dictionary of global parameters for the network
             network_reader:
                 type: NetworkReader
                 description: A class which can read in a network (e.g. from a structured
                     format)
-            id:
-                type: str
-                description: Unique ID of element
-            notes:
-                type: str
-                description: Human readable notes
         allowed_children:
             cells:
                 type: Cell
-                description: The _Cell_s which can be present in _Population_s
+                description: The Cells which can be present in Populations
             synapses:
                 type: Synapse
-                description: The _Synapse_ definitions which are used in _Projection_s
+                description: The Synapse definitions which are used in Projections
             input_sources:
                 type: InputSource
-                description: The _InputSource_ definitions which define the types
-                    of stimulus which can be applied in _Input_s
+                description: The InputSource definitions which define the types of
+                    stimulus which can be applied in Inputs
             regions:
                 type: RectangularRegion
-                description: The _Regions_ in which _Population_s get placed
+                description: The Regions in which Populations get placed.
             populations:
                 type: Population
-                description: The _Population_s of _Cell_s making up this network...
+                description: The Populations of Cells making up this network ...
             projections:
                 type: Projection
-                description: The _Projection_s between _Population_s
+                description: The Projections between Populations
             inputs:
                 type: Input
-                description: The inputs to apply to the elements of _Population_s
+                description: The inputs to apply to the elements of Populations
     NetworkReader:
+        definition: A NetworkReader definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
             type:
                 type: str
                 description: The type of NetworkReader
             parameters:
-                type: dict
+                type: Any
                 description: Dictionary of parameters for the NetworkReader
     Cell:
+        definition: A Cell definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for this Cell
+            parameters:
+                type: Any
+                description: Dictionary of parameters for the cell
             neuroml2_source_file:
                 type: str
                 description: File name of NeuroML2 file defining the cell
@@ -77,17 +91,18 @@ specification:
             bindsnet_node:
                 type: str
                 description: Name of standard BindsNET node
-            parameters:
-                type: dict
-                description: Dictionary of parameters for the cell
-            id:
-                type: str
-                description: Unique ID of element
+    Synapse:
+        definition: A Synapse definition.
+        allowed_parameters:
             notes:
                 type: str
-                description: Human readable notes
-    Synapse:
-        allowed_parameters:
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for this Synapse
+            parameters:
+                type: Any
+                description: Dictionary of parameters for the synapse
             neuroml2_source_file:
                 type: str
                 description: File name of NeuroML2 file defining the synapse
@@ -96,140 +111,159 @@ specification:
                 description: File name of LEMS file defining the synapse
             pynn_synapse_type:
                 type: str
-                description: 'Options: "curr_exp", "curr_alpha", "cond_exp", "cond_alpha".'
+                description: 'The pynn synapse type. Valid values are: "curr_exp",
+                    "curr_alpha", "cond_exp", "cond_alpha".'
             pynn_receptor_type:
                 type: str
-                description: Either "excitatory" or "inhibitory".
-            parameters:
-                type: dict
-                description: Dictionary of parameters for the synapse
-            id:
-                type: str
-                description: Unique ID of element
+                description: 'The pynn receptor type. Valid values are: "excitatory",
+                    "inhibitory".'
+    InputSource:
+        definition: An InputSource definition.
+        allowed_parameters:
             notes:
                 type: str
-                description: Human readable notes
-    InputSource:
-        allowed_parameters:
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for this InputSource
+            parameters:
+                type: Any
+                description: Dictionary of parameters for the InputSource
             neuroml2_source_file:
                 type: str
-                description: File name of NeuroML2 file
-            lems_source_file:
-                type: str
-                description: File name of LEMS file
+                description: File name of NeuroML2 file defining the input source
             neuroml2_input:
                 type: str
                 description: Name of standard NeuroML2 input
+            lems_source_file:
+                type: str
+                description: File name of LEMS file defining the input source
             pynn_input:
                 type: str
-                description: Name of standard PyNN input
-            parameters:
-                type: dict
-                description: Dictionary of parameters for the InputSource
-            id:
-                type: str
-                description: Unique ID of element
+                description: Name of PyNN input
+    RectangularRegion:
+        definition: A RectangularRegion definition.
+        allowed_parameters:
             notes:
                 type: str
-                description: Human readable notes
-    RectangularRegion:
-        allowed_parameters:
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for this rectangular region.
             x:
                 type: float
-                description: x coordinate of corner
+                description: x coordinate of corner of region
             y:
                 type: float
-                description: y coordinate of corner
+                description: y coordinate of corner of region
             z:
                 type: float
-                description: z coordinate of corner
+                description: z coordinate of corner of region
             width:
                 type: float
-                description: Width of rectangular region
+                description: width of the rectangular region
             height:
                 type: float
-                description: Height of rectangular region
+                description: height of the rectangular region
             depth:
                 type: float
-                description: Depth of rectangular region
-            id:
-                type: str
-                description: Unique ID of element
+                description: depth of the rectangular region
+    Population:
+        definition: A Population definition.
+        allowed_parameters:
             notes:
                 type: str
-                description: Human readable notes
-    Population:
-        allowed_parameters:
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for this Population
             size:
-                type: EvaluableExpression
-                description: Size of population
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                description: The size of the population.
             component:
                 type: str
-                description: Type of _Cell_ to use in population
+                description: The type of Cell to use in this population.
             properties:
-                type: dict
-                description: Dictionary of properties (metadata) for the population
+                type: Any
+                description: A dictionary of properties (metadata) for this population.
             random_layout:
                 type: RandomLayout
-                description: Layout in random _Region_
+                description: Layout in the random RectangularRegion.
             relative_layout:
                 type: RelativeLayout
-                description: Position relative to _Region_.
+                description: Position relative to RectangularRegion.
             single_location:
                 type: SingleLocation
-                description: Explicit location of the one _Cell_ in the population
-            id:
-                type: str
-                description: Unique ID of element
+                description: Explicit location of the one Cell in the population
+    RandomLayout:
+        definition: A RandomLayout definition.
+        allowed_parameters:
             notes:
                 type: str
-                description: Human readable notes
-    RandomLayout:
-        allowed_parameters:
+                description: ''
             region:
                 type: str
                 description: Region in which to place population
     RelativeLayout:
+        definition: A RelativeLayout definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
             region:
                 type: str
-                description: The _Region_ relative to which population should be positioned
+                description: The Region relative to which population should be positioned.
             x:
                 type: float
-                description: x position relative to x coordinate of _Region_
+                description: x position relative to x coordinate of Region
             y:
                 type: float
-                description: y position relative to y coordinate of _Region_
+                description: y position relative to y coordinate of Region
             z:
                 type: float
-                description: z position relative to z coordinate of _Region_
+                description: z position relative to z coordinate of Region
     SingleLocation:
+        definition: A SingleLocation definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
             location:
                 type: Location
-                description: The location of the single _Cell_
+                description: Location of the single Cell.
     Location:
+        definition: A Location definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
             x:
                 type: float
-                description: x coordinate
+                description: x coordinate of location
             y:
                 type: float
-                description: y coordinate
+                description: y coordinate of location
             z:
                 type: float
-                description: z coordinate
+                description: z coordinate of location
     Projection:
+        definition: A Projection definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for this Projection
             presynaptic:
                 type: str
-                description: Presynaptic _Population_
+                description: Presynaptic Population
             postsynaptic:
                 type: str
-                description: Postsynaptic _Population_
+                description: Postsynaptic Population
             synapse:
                 type: str
-                description: Which _Synapse_ to use
+                description: Which Synapse to use
             pre_synapse:
                 type: str
                 description: 'For continuous connections, what presynaptic component
@@ -237,44 +271,59 @@ specification:
             type:
                 type: str
                 description: 'type of projection: projection (default; standard chemical,
-                    event triggered), electricalProjection (for gap junctions) or
-                    continuousProjection (for analogue/graded synapses)'
+                    event triggered), electricalProjection
+
+                    (for gap junctions) or continuousProjection (for analogue/graded
+                    synapses)'
             delay:
-                type: EvaluableExpression
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
                 description: 'Delay to use (default: 0)'
             weight:
-                type: EvaluableExpression
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
                 description: 'Weight to use (default: 1)'
             random_connectivity:
                 type: RandomConnectivity
                 description: Use random connectivity
             convergent_connectivity:
                 type: ConvergentConnectivity
-                description: Use ConvergentConnectivity
+                description: Use convergent connectivity
             one_to_one_connector:
                 type: OneToOneConnector
                 description: Connect cell index i in pre pop to cell index i in post
                     pop for all i
-            id:
-                type: str
-                description: Unique ID of element
+    RandomConnectivity:
+        definition: A RandomConnectivity definition.
+        allowed_parameters:
             notes:
                 type: str
-                description: Human readable notes
-    RandomConnectivity:
-        allowed_parameters:
+                description: ''
             probability:
-                type: EvaluableExpression
-                description: Random probability of connection
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                description: Random probability of connection.
     ConvergentConnectivity:
+        definition: A ConvergentConnectivity definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
             num_per_post:
                 type: float
-                description: Number per post synaptic neuron
+                description: Number per post-synaptic neuron.
     OneToOneConnector:
-        allowed_parameters: {}
-    Input:
+        definition: A OneToOneConnector definition.
         allowed_parameters:
+            notes:
+                type: str
+                description: ''
+    Input:
+        definition: An Input definition.
+        allowed_parameters:
+            notes:
+                type: str
+                description: ''
+            id:
+                type: str
+                description: Unique identifier for this Input
             input_source:
                 type: str
                 description: Type of input to use in population
@@ -282,26 +331,19 @@ specification:
                 type: str
                 description: Population to target
             cell_ids:
-                type: EvaluableExpression
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
                 description: Specific ids of _Cell_s to apply this input to (cannot
-                    be used with percentage)
+                    be used with percentage
             percentage:
                 type: float
-                description: Percentage of _Cell_s to apply this input to (cannot
-                    be used with cell_ids)
+                description: Percentage of Cells to apply input to
             number_per_cell:
-                type: EvaluableExpression
-                description: 'Number of individual inputs per selected _Cell_ (default:
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                description: 'Number of individual inputs per selected Cell (default:
                     1)'
             segment_ids:
-                type: EvaluableExpression
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
                 description: 'Which segments to target (default: [0])'
             weight:
-                type: EvaluableExpression
+                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
                 description: 'Weight to use (default: 1)'
-            id:
-                type: str
-                description: Unique ID of element
-            notes:
-                type: str
-                description: Human readable notes

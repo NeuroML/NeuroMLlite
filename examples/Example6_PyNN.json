@@ -1,6 +1,7 @@
 {
     "Example6_PyNN": {
-        "version": "NeuroMLlite v0.4.4",
+        "version": "NeuroMLlite v0.5.1",
+        "notes": "Another network for PyNN - work in progress...",
         "parameters": {
             "N_scaling": 0.005,
             "layer_height": 400,
@@ -8,10 +9,8 @@
             "depth": 100,
             "input_weight": 0.1
         },
-        "notes": "Another network for PyNN - work in progress...",
         "cells": {
             "CorticalCell": {
-                "pynn_cell": "IF_curr_exp",
                 "parameters": {
                     "cm": 0.25,
                     "i_offset": 0.0,
@@ -20,31 +19,32 @@
                     "v_reset": -65.0,
                     "v_rest": -65.0,
                     "v_thresh": -50.0
-                }
+                },
+                "pynn_cell": "IF_curr_exp"
             },
             "InputCell": {
-                "pynn_cell": "SpikeSourcePoisson",
                 "parameters": {
                     "start": 0,
                     "duration": 10000000000,
                     "rate": 150
-                }
+                },
+                "pynn_cell": "SpikeSourcePoisson"
             }
         },
         "synapses": {
             "ampa": {
-                "pynn_synapse_type": "curr_exp",
-                "pynn_receptor_type": "excitatory",
                 "parameters": {
                     "tau_syn": 0.5
-                }
+                },
+                "pynn_synapse_type": "curr_exp",
+                "pynn_receptor_type": "excitatory"
             },
             "gaba": {
-                "pynn_synapse_type": "curr_exp",
-                "pynn_receptor_type": "inhibitory",
                 "parameters": {
                     "tau_syn": 0.5
-                }
+                },
+                "pynn_synapse_type": "curr_exp",
+                "pynn_receptor_type": "inhibitory"
             }
         },
         "regions": {

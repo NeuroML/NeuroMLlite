@@ -1,14 +1,12 @@
 {
     "Example8_Extension": {
-        "version": "NeuroMLlite v0.4.4",
-        "seed": 7890,
-        "temperature": 32.0,
+        "version": "NeuroMLlite v0.5.1",
+        "notes": "Example 8: general testing...",
         "parameters": {
             "N": 10,
             "fractionE": 0.8,
             "weightInput": 1
         },
-        "notes": "Example 8: general testing...",
         "cells": {
             "hhcell": {
                 "neuroml2_source_file": "test_files/hhcell.cell.nml"
@@ -62,6 +60,8 @@
                 "percentage": 50.0,
                 "weight": "weightInput"
             }
-        }
+        },
+        "seed": 7890,
+        "temperature": 32.0
     }
 }

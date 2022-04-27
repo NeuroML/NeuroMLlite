@@ -195,17 +195,17 @@ def generate(ref="Example6_PyNN", add_inputs=True):
     ################################################################################
     ###   Build Simulation object & save as JSON
 
-    recordTraces = {}
-    recordSpikes = {}
+    record_traces = {}
+    record_spikes = {}
 
     from neuromllite.utils import evaluate
 
     for p in pops:
         forecast_size = evaluate(pop_dict[p].size, net.parameters)
-        recordTraces[p] = list(range(min(2, forecast_size)))
-        recordSpikes[p] = "*"
+        record_traces[p] = list(range(min(2, forecast_size)))
+        record_spikes[p] = "*"
     for ip in input_pops:
-        recordSpikes[ip] = "*"
+        record_spikes[ip] = "*"
 
     sim = Simulation(
         id="Sim%s" % net.id,
@@ -213,8 +213,8 @@ def generate(ref="Example6_PyNN", add_inputs=True):
         duration="100",
         dt="0.025",
         seed=1234,
-        recordTraces=recordTraces,
-        recordSpikes=recordSpikes,
+        record_traces=record_traces,
+        record_spikes=record_spikes,
     )
 
     sim.to_json_file()

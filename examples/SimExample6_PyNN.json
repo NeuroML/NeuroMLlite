@@ -1,11 +1,11 @@
 {
     "SimExample6_PyNN": {
-        "version": "NeuroMLlite v0.4.4",
+        "version": "NeuroMLlite v0.5.1",
         "network": "Example6_PyNN.json",
         "duration": 100.0,
         "dt": 0.025,
         "seed": 1234,
-        "recordTraces": {
+        "record_traces": {
             "L23_E": [
                 0,
                 1
@@ -39,7 +39,7 @@
                 1
             ]
         },
-        "recordSpikes": {
+        "record_spikes": {
             "L23_E": "*",
             "L23_I": "*",
             "L4_E": "*",
