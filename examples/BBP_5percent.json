@@ -1,6 +1,6 @@
 {
     "BBP_5percent": {
-        "version": "NeuroMLlite v0.5.0",
+        "version": "NeuroMLlite v0.5.1",
         "notes": "A network with the Blue Brain Project connectivity data (%s% of total cells)",
         "cells": {
             "hhcell": {
