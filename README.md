@@ -166,4 +166,7 @@ NeuroMLlite is being tested/used in the following repositories on OSB:
 - [PsyNeuLink tests](https://github.com/OpenSourceBrain/PsyNeuLinkShowcase/tree/master/NeuroML2)
 - [OpenWorm - c302](https://github.com/openworm/c302/tree/master/examples/parametersweep)
 
+See also:
+- [ModECI MDF](https://github.com/ModECI/MDF)
+
 
