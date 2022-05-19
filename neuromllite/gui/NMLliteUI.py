@@ -58,6 +58,7 @@ class NMLliteUI(QWidget):
         "jNeuroML",
         "jNeuroML_NEURON",
         "jNeuroML_NetPyNE",
+        "EDEN",
         "NetPyNE",
         "PyNN_NEURON",
         "PyNN_NEST",
@@ -839,6 +840,8 @@ class NMLliteUI(QWidget):
 
             self.replotSimResults()
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
             self.dialog_popup("Error: %s" % e)
 
     def _get_sorted_population_ids(self, include_input_pops=True):

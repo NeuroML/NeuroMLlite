@@ -185,3 +185,5 @@ report*.txt
 docs/_build
 /*ken.sh
 /examples/Example10_Lorenz.mdf.json
+*code.gen.c
+*code.gen.so
