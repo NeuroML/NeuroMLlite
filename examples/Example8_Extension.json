@@ -1,6 +1,6 @@
 {
     "Example8_Extension": {
-        "version": "NeuroMLlite v0.5.1",
+        "version": "NeuroMLlite v0.5.2",
         "notes": "Example 8: general testing...",
         "parameters": {
             "N": 10,
