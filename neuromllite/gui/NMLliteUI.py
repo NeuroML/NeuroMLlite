@@ -295,6 +295,11 @@ class NMLliteUI(QWidget):
         if len(self.sim_base_dir) == 0:
             self.sim_base_dir = "."
 
+        if self.simulation.network == None:
+            print_v(f"ERROR: The provided simulation file, {nml_sim_file}, does not refer to a network.")
+            print_v("Please provide a NeuroMLlite simulation file.")
+            sys.exit(-1)
+
         self.network = load_network_json(
             "%s/%s" % (self.sim_base_dir, self.simulation.network)
         )
