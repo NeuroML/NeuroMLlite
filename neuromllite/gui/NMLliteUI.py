@@ -291,9 +291,19 @@ class NMLliteUI(QWidget):
         self.backup_colors = {}  # to ensure consistent random colors for traces...
 
         self.simulation = load_simulation_json(nml_sim_file)
+
+        if self.simulation is None:
+            sys.exit(-1)
+
         self.sim_base_dir = dirname(nml_sim_file)
+
         if len(self.sim_base_dir) == 0:
             self.sim_base_dir = "."
+
+        if self.simulation.network is None:
+            print_v(f"ERROR: The provided simulation file, {nml_sim_file}, does not refer to a network.")
+            print_v("Please provide a NeuroMLlite simulation file.")
+            sys.exit(-1)
 
         self.network = load_network_json(
             "%s/%s" % (self.sim_base_dir, self.simulation.network)
