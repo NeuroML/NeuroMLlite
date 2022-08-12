@@ -189,3 +189,14 @@ docs/_build
 *code.gen.so
 /examples/Example12_MultiComp.net.nml
 /examples/LEMS_SimExample12_MultiComp.xml
+/examples/Ca_conc.nml
+/examples/Ca_pyr.channel.nml
+/examples/Kahp_pyr.channel.nml
+/examples/Kdr_bask.channel.nml
+/examples/Kdr_pyr.channel.nml
+/examples/LeakConductance_bask.channel.nml
+/examples/LeakConductance_pyr.channel.nml
+/examples/Na_bask.channel.nml
+/examples/Na_pyr.channel.nml
+/examples/bask.cell.nml
+/examples/pyr_4_sym.cell.nml

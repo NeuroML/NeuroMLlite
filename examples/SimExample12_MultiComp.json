@@ -9,8 +9,8 @@
             "all": "*"
         },
         "record_spikes": {
-            "popE": "*",
-            "popI": "*"
+            "pop_pyr": "*",
+            "pop_bask": "*"
         }
     }
 }

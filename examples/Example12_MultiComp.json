@@ -3,9 +3,14 @@
         "version": "NeuroMLlite v0.5.2",
         "notes": "Example 12: Multicompartmental cells...",
         "parameters": {
-            "N": 10,
-            "fractionE": 0.8,
-            "weightInput": 1
+            "N": 20,
+            "fractionE": 0.7,
+            "weightInput": 0.7,
+            "prob_e_e": 0.1,
+            "prob_e_i": 0.9,
+            "prob_i_e": 0.8,
+            "prob_i_i": 0.3,
+            "global_delay": 2
         },
         "cells": {
             "pyr_4_sym": {
@@ -16,11 +21,17 @@
             }
         },
         "synapses": {
-            "ampa": {
-                "neuroml2_source_file": "test_files/ampa.synapse.nml"
+            "AMPA_syn": {
+                "neuroml2_source_file": "test_files/acnet2/AMPA_syn.synapse.nml"
             },
-            "gaba": {
-                "neuroml2_source_file": "test_files/gaba.synapse.nml"
+            "AMPA_syn_inh": {
+                "neuroml2_source_file": "test_files/acnet2/AMPA_syn_inh.synapse.nml"
+            },
+            "GABA_syn": {
+                "neuroml2_source_file": "test_files/acnet2/GABA_syn.synapse.nml"
+            },
+            "GABA_syn_inh": {
+                "neuroml2_source_file": "test_files/acnet2/GABA_syn_inh.synapse.nml"
             }
         },
         "input_sources": {
@@ -39,21 +50,21 @@
             }
         },
         "populations": {
-            "popE": {
+            "pop_pyr": {
                 "size": "int(N*fractionE)",
                 "component": "pyr_4_sym",
                 "properties": {
-                    "color": ".7 0 0"
+                    "color": ".8 0 0"
                 },
                 "random_layout": {
                     "region": "region1"
                 }
             },
-            "popI": {
+            "pop_bask": {
                 "size": "N - int(N*fractionE)",
                 "component": "bask",
                 "properties": {
-                    "color": "0 0 .7"
+                    "color": "0 0 .8"
                 },
                 "random_layout": {
                     "region": "region1"
@@ -61,26 +72,52 @@
             }
         },
         "projections": {
-            "projEI": {
-                "presynaptic": "popE",
-                "postsynaptic": "popI",
-                "synapse": "ampa",
-                "delay": 2,
-                "weight": 0.2,
+            "projEE": {
+                "presynaptic": "pop_pyr",
+                "postsynaptic": "pop_pyr",
+                "synapse": "AMPA_syn",
+                "delay": "global_delay",
                 "random_connectivity": {
-                    "probability": 0.8
+                    "probability": "prob_e_e"
+                }
+            },
+            "projEI": {
+                "presynaptic": "pop_pyr",
+                "postsynaptic": "pop_bask",
+                "synapse": "AMPA_syn_inh",
+                "delay": "global_delay",
+                "random_connectivity": {
+                    "probability": "prob_e_i"
+                }
+            },
+            "projIE": {
+                "presynaptic": "pop_bask",
+                "postsynaptic": "pop_pyr",
+                "synapse": "GABA_syn",
+                "delay": "global_delay",
+                "random_connectivity": {
+                    "probability": "prob_i_e"
+                }
+            },
+            "projII": {
+                "presynaptic": "pop_bask",
+                "postsynaptic": "pop_bask",
+                "synapse": "GABA_syn_inh",
+                "delay": "global_delay",
+                "random_connectivity": {
+                    "probability": "prob_i_i"
                 }
             }
         },
         "inputs": {
             "stim": {
                 "input_source": "poissonFiringSyn",
-                "population": "popE",
-                "percentage": 50.0,
+                "population": "pop_pyr",
+                "percentage": 100.0,
                 "weight": "weightInput"
             }
         },
-        "seed": 7890,
+        "seed": 1234,
         "temperature": 32.0
     }
 }
