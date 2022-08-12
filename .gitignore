@@ -187,3 +187,5 @@ docs/_build
 /examples/Example10_Lorenz.mdf.json
 *code.gen.c
 *code.gen.so
+/examples/Example12_MultiComp.net.nml
+/examples/LEMS_SimExample12_MultiComp.xml

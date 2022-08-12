@@ -1,0 +1,86 @@
+{
+    "Example12_MultiComp": {
+        "version": "NeuroMLlite v0.5.2",
+        "notes": "Example 12: Multicompartmental cells...",
+        "parameters": {
+            "N": 10,
+            "fractionE": 0.8,
+            "weightInput": 1
+        },
+        "cells": {
+            "pyr_4_sym": {
+                "neuroml2_source_file": "test_files/acnet2/pyr_4_sym.cell.nml"
+            },
+            "bask": {
+                "neuroml2_source_file": "test_files/acnet2/bask.cell.nml"
+            }
+        },
+        "synapses": {
+            "ampa": {
+                "neuroml2_source_file": "test_files/ampa.synapse.nml"
+            },
+            "gaba": {
+                "neuroml2_source_file": "test_files/gaba.synapse.nml"
+            }
+        },
+        "input_sources": {
+            "poissonFiringSyn": {
+                "neuroml2_source_file": "test_files/inputs.nml"
+            }
+        },
+        "regions": {
+            "region1": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "width": 1000.0,
+                "height": 100.0,
+                "depth": 1000.0
+            }
+        },
+        "populations": {
+            "popE": {
+                "size": "int(N*fractionE)",
+                "component": "pyr_4_sym",
+                "properties": {
+                    "color": ".7 0 0"
+                },
+                "random_layout": {
+                    "region": "region1"
+                }
+            },
+            "popI": {
+                "size": "N - int(N*fractionE)",
+                "component": "bask",
+                "properties": {
+                    "color": "0 0 .7"
+                },
+                "random_layout": {
+                    "region": "region1"
+                }
+            }
+        },
+        "projections": {
+            "projEI": {
+                "presynaptic": "popE",
+                "postsynaptic": "popI",
+                "synapse": "ampa",
+                "delay": 2,
+                "weight": 0.2,
+                "random_connectivity": {
+                    "probability": 0.8
+                }
+            }
+        },
+        "inputs": {
+            "stim": {
+                "input_source": "poissonFiringSyn",
+                "population": "popE",
+                "percentage": 50.0,
+                "weight": "weightInput"
+            }
+        },
+        "seed": 7890,
+        "temperature": 32.0
+    }
+}
