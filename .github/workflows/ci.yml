@@ -50,12 +50,14 @@ jobs:
         echo "JNML_HOME: $JNML_HOME"
         echo "Will use jNeuroML from branches $jnml_branches"
         echo "Will use pyNeuroML from branch $pynml_branch"
+        
         # Install pyNeuroML
         git clone https://github.com/NeuroML/pyNeuroML.git
         cd pyNeuroML
         git checkout $pynml_branch
         python setup.py install
         cd -
+        
         # Install latest jnml...
         git clone https://github.com/NeuroML/jNeuroML.git
         cd jNeuroML
@@ -114,6 +116,7 @@ jobs:
 
     - name: Run OMV tests
       run: |
+        omv all -V --engine=jNeuroML # limited for now, issues with nest...
         omv all -V --engine=jNeuroML_NEURON # limited for now, issues with nest...
 
     - name: OMV final version info
