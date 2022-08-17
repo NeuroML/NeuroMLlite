@@ -91,6 +91,11 @@ python Example11.py
 python Example11.py -jnml
 
 echo
+echo "**** Running Example 12 ****"
+python Example12.py
+python Example12.py -jnmlnrn
+
+echo
 echo "**** Running Arbor Example ****"
 cd arbor
 python ArborExample.py

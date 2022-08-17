@@ -20,11 +20,11 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     install_requires=[
-        "libNeuroML>=0.2.54",
+        "libNeuroML>=0.4.0",
         "pyyaml",
         "numpy",
         "pyparsing<3",
-        "modelspec>=0.2.4",
+        "modelspec>=0.2.6",
     ],
     classifiers=[
         "Intended Audience :: Science/Research",
