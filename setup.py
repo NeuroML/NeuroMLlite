@@ -23,6 +23,7 @@ setup(
         "libNeuroML>=0.4.0",
         "pyyaml",
         "numpy",
+        "tables",
         "pyparsing<3",
         "modelspec>=0.2.6",
     ],

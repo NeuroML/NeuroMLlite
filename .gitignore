@@ -200,3 +200,4 @@ docs/_build
 /examples/Na_pyr.channel.nml
 /examples/bask.cell.nml
 /examples/pyr_4_sym.cell.nml
+*_eden.py

@@ -1,3 +1,4 @@
+#!/bin/bash
 set -ex
 
 # pytest
@@ -26,6 +27,7 @@ python Example3.py
 python Example3.py -netpyne
 python Example3.py -jnmlnrn
 python Example3.py -jnmlnetpyne
+python Example3.py -eden
 #python Example3.py -sonata
 
 echo
