@@ -1,6 +1,6 @@
 {
     "SimExample4": {
-        "version": "NeuroMLlite v0.5.1",
+        "version": "NeuroMLlite v0.5.2",
         "network": "Example4_PyNN.json",
         "duration": 1000.0,
         "dt": 0.01,

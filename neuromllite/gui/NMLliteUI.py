@@ -23,9 +23,31 @@ from functools import partial
 
 class ParameterSpinBox(QDoubleSpinBox):
 
+    value_type=float
+
+    def __init__(self, value, value_type=float):
+
+        super(QDoubleSpinBox, self).__init__()
+        self.value_type = value_type
+        self.setDecimals(18)
+        self.setMaximum(1e16)
+        self.setMinimum(-1e16)
+        if self.value_type==int:
+            self.setSingleStep(1)
+        else:
+            self.setSingleStep(value / 20.0)
+        self.setValue(value_type(value))
+
+
+        #print('ParameterSpinBox: %s/%s (%s/%s), %s'%(value, self.value(), value_type, type(self.value()),self.singleStep()))
+
     # TODO: handle a spinner on values like -60mV etc.
     def textFromValue(self, value):
-        return "%s" % value
+        return "%i" % value if self.value_type==int else "%s" % value
+
+    # TODO: handle a spinner on values like -60mV etc.
+    def final_value(self):
+        return self.value_type(self.value())
 
 
 class NMLliteUI(QWidget):
@@ -36,6 +58,7 @@ class NMLliteUI(QWidget):
         "jNeuroML",
         "jNeuroML_NEURON",
         "jNeuroML_NetPyNE",
+        "EDEN",
         "NetPyNE",
         "PyNN_NEURON",
         "PyNN_NEST",
@@ -208,7 +231,7 @@ class NMLliteUI(QWidget):
 
         label.resize(scaleFactor * label.pixmap().size())
 
-    def get_value_entry(self, name, value, entry_map):
+    def get_value_entry(self, name, value, entry_map, value_type=float):
         """Create a graphical element for displaying/setting values"""
 
         simple = False
@@ -223,13 +246,8 @@ class NMLliteUI(QWidget):
         else:
 
             try:
-                entry = ParameterSpinBox()
+                entry = ParameterSpinBox(value, value_type)
                 entry_map[name] = entry
-                entry.setDecimals(18)
-                entry.setMaximum(1e16)
-                entry.setMinimum(-1e16)
-                entry.setSingleStep(value / 20.0)
-                entry.setValue(float(value))
                 entry.valueChanged.connect(self.updated_param)
 
             except Exception as e:
@@ -273,9 +291,19 @@ class NMLliteUI(QWidget):
         self.backup_colors = {}  # to ensure consistent random colors for traces...
 
         self.simulation = load_simulation_json(nml_sim_file)
+
+        if self.simulation is None:
+            sys.exit(-1)
+
         self.sim_base_dir = dirname(nml_sim_file)
+
         if len(self.sim_base_dir) == 0:
             self.sim_base_dir = "."
+
+        if self.simulation.network is None:
+            print_v(f"ERROR: The provided simulation file, {nml_sim_file}, does not refer to a network.")
+            print_v("Please provide a NeuroMLlite simulation file.")
+            sys.exit(-1)
 
         self.network = load_network_json(
             "%s/%s" % (self.sim_base_dir, self.simulation.network)
@@ -514,7 +542,7 @@ class NMLliteUI(QWidget):
             pval = self.network.seed
             label = QLabel("Net generation seed")
             paramLayout.addWidget(label, rows, 0)
-            entry = self.get_value_entry("seed", pval, self.param_entries)
+            entry = self.get_value_entry("seed", pval, self.param_entries, value_type=int)
             paramLayout.addWidget(entry, rows, 1)
 
         if self.network.temperature is not None:
@@ -574,8 +602,8 @@ class NMLliteUI(QWidget):
             if sval is not None:
                 label = QLabel("%s" % s)
                 paramLayout.addWidget(label, rows, 0)
-
-                entry = self.get_value_entry(s, sval, self.sim_entries)
+                value_type=int if s=='seed' else float
+                entry = self.get_value_entry(s, sval, self.sim_entries,value_type=value_type)
                 paramLayout.addWidget(entry, rows, 1)
 
         rows += 1
@@ -778,14 +806,7 @@ class NMLliteUI(QWidget):
         """Set the parameters in the network/simulation from the GUI values"""
 
         for p in self.param_entries:
-            v = self.param_entries[p].text()
-            try:
-                v = int(v)
-            except:
-                try:
-                    v = float(v)
-                except:
-                    pass  # leave as string...
+            v = self.param_entries[p].final_value()
 
             print_("Setting param %s to %s" % (p, v), self.verbose)
             if p == "seed":
@@ -798,7 +819,7 @@ class NMLliteUI(QWidget):
         print_("All params: %s" % self.network.parameters, self.verbose)
 
         for s in self.sim_entries:
-            v = float(self.sim_entries[s].text())
+            v = self.sim_entries[s].final_value()
             print_("Setting simulation variable %s to %s" % (s, v), self.verbose)
             self.simulation.__setattr__(s, v)
 
@@ -829,6 +850,8 @@ class NMLliteUI(QWidget):
 
             self.replotSimResults()
         except Exception as e:
+            import traceback
+            print(traceback.format_exc())
             self.dialog_popup("Error: %s" % e)
 
     def _get_sorted_population_ids(self, include_input_pops=True):

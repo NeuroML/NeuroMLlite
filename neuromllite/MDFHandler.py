@@ -17,8 +17,11 @@ import lems.api as lems  # from pylems
 
 class MDFHandler(DefaultNetworkHandler):
     def __init__(self, nl_network):
-        print_v("Initiating PsyNeuLink handler")
+        print_v("Initiating MDF handler")
         self.nl_network = nl_network
+
+        self.input_list_vs_comps = {}
+        self.input_list_vs_pops = {}
 
     def handle_document_start(self, id, notes):
 
@@ -96,122 +99,150 @@ class MDFHandler(DefaultNetworkHandler):
         if size >= 0:
             for i in range(size):
                 node_id = "%s_%i" % (population_id, i)
-                node = {}
 
-                comp = self.nl_network.get_child(component, "cells")
-                base_dir = "./"  # for now...
+                cell_comp = self.nl_network.get_child(component, "cells")
 
-                if properties:
-                    node["metadata"] = properties
-
-                node["parameters"] = {}
-                node["input_ports"] = {}
-                node["output_ports"] = {}
-                if comp is not None:
-                    if comp.lems_source_file:
-                        fname = locate_file(comp.lems_source_file, base_dir)
-                        model = MDFHandler._load_lems_file_with_neuroml2_types(fname)
-                        lems_comp = model.components.get(component)
-
-                    if comp.neuroml2_cell:
-                        model = MDFHandler._get_lems_model_with_neuroml2_types()
-                        lems_comp = lems.Component(
-                            id_=comp.id, type_=comp.neuroml2_cell
-                        )
-                        for p in comp.parameters:
-                            lems_comp.set_parameter(
-                                p,
-                                evaluate(
-                                    comp.parameters[p], self.nl_network.parameters
-                                ),
-                            )
-
-                    print_v("All LEMS comps in model: %s" % model.components.keys())
-                    print_v("This comp: %s" % lems_comp)
-                    comp_type_name = lems_comp.type
-                    lems_comp_type = model.component_types.get(comp_type_name)
-                    notes = "Cell: [%s] is defined in %s and in Lems is: %s" % (
-                        comp,
-                        comp.lems_source_file,
-                        lems_comp,
-                    )
-
-                    node["notes"] = notes
-
-                    for p in lems_comp.parameters:
-                        node["parameters"][p] = {
-                            "value": get_value_in_si(evaluate(lems_comp.parameters[p]))
-                        }
-
-                    for c in lems_comp_type.constants:
-                        node["parameters"][c.name] = {"value": get_value_in_si(c.value)}
-
-                    for sv in lems_comp_type.dynamics.state_variables:
-                        node["parameters"][sv.name] = {}
-                        if sv.exposure:
-                            node["output_ports"][sv.exposure] = {"value": sv.name}
-
-                    for dv in lems_comp_type.dynamics.derived_variables:
-
-                        print_v(
-                            "Converting: %s (exp: %s) = [%s] or [%s]"
-                            % (dv.name, dv.exposure, dv.value, dv.select)
-                        )
-                        if dv.name == "INPUT":
-                            node["input_ports"][dv.name] = {}
-                        else:
-                            if dv.value is not None:
-                                node["parameters"][dv.name] = {
-                                    "value": self._convert_value(dv.value)
-                                }
-                                if dv.exposure:
-                                    node["output_ports"][dv.exposure] = {
-                                        "value": dv.name
-                                    }
-                            if dv.select is not None:
-                                in_port = dv.select.replace("[*]/", "_")
-                                node["input_ports"][in_port] = {}
-                                node["parameters"][dv.name] = {"value": in_port}
-
-                    conditions = 0
-                    for eh in lems_comp_type.dynamics.event_handlers:
-
-                        print_v("Converting: %s (type: %s)" % (eh, type(eh)))
-                        if type(eh) == lems.OnStart:
-                            for a in eh.actions:
-                                if type(a) == lems.StateAssignment:
-                                    node["parameters"][a.variable][
-                                        "default_initial_value"
-                                    ] = a.value
-                        if type(eh) == lems.OnCondition:
-                            test = (
-                                eh.test.replace(".gt.", ">")
-                                .replace(".geq.", ">=")
-                                .replace(".lt.", "<")
-                                .replace(".leq.", "<=")
-                                .replace(".eq.", "==")
-                            )
-                            for a in eh.actions:
-                                if type(a) == lems.StateAssignment:
-                                    if (
-                                        not "conditions"
-                                        in node["parameters"][a.variable]
-                                    ):
-                                        node["parameters"][a.variable][
-                                            "conditions"
-                                        ] = {}
-
-                                    node["parameters"][a.variable]["conditions"][
-                                        "condition_%i" % conditions
-                                    ] = {"test": test, "value": a.value}
-                            conditions += 1
-
-                    for td in lems_comp_type.dynamics.time_derivatives:
-                        node["parameters"][td.variable][
-                            "time_derivative"
-                        ] = self._convert_value(td.value)
+                if cell_comp is not None:
+                    node = self._comp_to_mdf_node(cell_comp, component, node_id, properties)
 
                 self.mdf_graph["nodes"][node_id] = node
+
+
+    def _comp_to_mdf_node(self, nmllite_comp, lems_comp_id, node, properties=None):
+
+       base_dir = "./"  # for now...
+
+       node = {}
+       if properties:
+           node["metadata"] = properties
+
+       node["parameters"] = {}
+       node["input_ports"] = {}
+       node["output_ports"] = {}
+
+       if nmllite_comp.lems_source_file:
+           print_v("  It's defined in custom lems..." )
+           fname = locate_file(nmllite_comp.lems_source_file, base_dir)
+           model = MDFHandler._load_lems_file_with_neuroml2_types(fname)
+           lems_comp = model.components.get(lems_comp_id)
+
+       elif hasattr(nmllite_comp,'neuroml2_cell'):
+           print_v("  It's a cell..." )
+           model = MDFHandler._get_lems_model_with_neuroml2_types()
+           lems_comp = lems.Component(
+               id_=nmllite_comp.id, type_=nmllite_comp.neuroml2_cell
+           )
+           for p in nmllite_comp.parameters:
+               lems_comp.set_parameter(
+                   p,
+                   evaluate(
+                       nmllite_comp.parameters[p], self.nl_network.parameters
+                   ),
+               )
+
+       elif hasattr(nmllite_comp,'neuroml2_input'):
+           print_v("  It's an input..." )
+           model = MDFHandler._get_lems_model_with_neuroml2_types()
+           lems_comp = lems.Component(
+               id_=nmllite_comp.id, type_=nmllite_comp.neuroml2_input
+           )
+           for p in nmllite_comp.parameters:
+               lems_comp.set_parameter(
+                   p,
+                   evaluate(
+                       nmllite_comp.parameters[p], self.nl_network.parameters
+                   ),
+               )
+
+       print_v("All LEMS comps in model: %s" % model.components.keys())
+       print_v("This comp: %s" % lems_comp)
+       comp_type_name = lems_comp.type
+       lems_comp_type = model.component_types.get(comp_type_name)
+       print_v("lems_comp_type: %s" % lems_comp_type)
+       notes = "Cell: [%s] is defined in %s and in Lems is: %s" % (
+           nmllite_comp,
+           nmllite_comp.lems_source_file,
+           lems_comp,
+       )
+
+       node["notes"] = notes
+
+       for p in lems_comp.parameters:
+           node["parameters"][p] = {
+               "value": get_value_in_si(evaluate(lems_comp.parameters[p]))
+           }
+
+       for c in lems_comp_type.constants:
+           node["parameters"][c.name] = {"value": get_value_in_si(c.value)}
+
+       for sv in lems_comp_type.dynamics.state_variables:
+           node["parameters"][sv.name] = {}
+           if sv.exposure:
+               node["output_ports"][sv.exposure] = {"value": sv.name}
+
+       for dv in lems_comp_type.dynamics.derived_variables:
+
+           print_v(
+               "Converting: %s (exp: %s) = [%s] or [%s]"
+               % (dv.name, dv.exposure, dv.value, dv.select)
+           )
+           if dv.name == "INPUT":
+               node["input_ports"][dv.name] = {}
+           else:
+               if dv.value is not None:
+                   node["parameters"][dv.name] = {
+                       "value": self._convert_value(dv.value)
+                   }
+                   if dv.exposure:
+                       node["output_ports"][dv.exposure] = {
+                           "value": dv.name
+                       }
+               if dv.select is not None:
+                   in_port = dv.select.replace("[*]/", "_")
+                   node["input_ports"][in_port] = {}
+                   node["parameters"][dv.name] = {"value": in_port}
+
+       conditions = 0
+       for eh in lems_comp_type.dynamics.event_handlers:
+
+           print_v("Converting: %s (type: %s)" % (eh, type(eh)))
+           if type(eh) == lems.OnStart:
+               for a in eh.actions:
+                   if type(a) == lems.StateAssignment:
+                       node["parameters"][a.variable][
+                           "default_initial_value"
+                       ] = a.value
+           if type(eh) == lems.OnCondition:
+               test = (
+                   eh.test.replace(".gt.", ">")
+                   .replace(".geq.", ">=")
+                   .replace(".lt.", "<")
+                   .replace(".leq.", "<=")
+                   .replace(".eq.", "==")
+                   .replace(".and.", "and")
+               )
+               for a in eh.actions:
+                   if type(a) == lems.StateAssignment:
+                       if (
+                           not "conditions"
+                           in node["parameters"][a.variable]
+                       ):
+                           node["parameters"][a.variable][
+                               "conditions"
+                           ] = {}
+
+                       node["parameters"][a.variable]["conditions"][
+                           "condition_%i" % conditions
+                       ] = {"test": test, "value": a.value}
+               conditions += 1
+
+       for td in lems_comp_type.dynamics.time_derivatives:
+           node["parameters"][td.variable][
+               "time_derivative"
+           ] = self._convert_value(td.value)
+
+       return node
+
 
     # TODO: move to pylems!
     @classmethod
@@ -255,6 +286,8 @@ class MDFHandler(DefaultNetworkHandler):
         new_lems = jar.read("NeuroML2CoreTypes/Synapses.xml")
         parser.parse(new_lems)
         new_lems = jar.read("NeuroML2CoreTypes/PyNN.xml")
+        parser.parse(new_lems)
+        new_lems = jar.read("NeuroML2CoreTypes/Inputs.xml")
         parser.parse(new_lems)
 
         return lems_model
@@ -352,7 +385,8 @@ class MDFHandler(DefaultNetworkHandler):
         self, inputListId, population_id, component, size, input_comp_obj=None
     ):
 
-        pass
+        self.input_list_vs_comps[inputListId] = component
+        self.input_list_vs_pops[inputListId] = population_id
 
     #
     #  Should be overridden to to connect each input to the target cell
@@ -360,11 +394,37 @@ class MDFHandler(DefaultNetworkHandler):
     def handle_single_input(
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
-
+        component = self.input_list_vs_comps[inputListId]
         print_v(
-            "Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f"
-            % (inputListId, id, cellId, segId, fract, weight)
+            "Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f, component: %s"
+            % (inputListId, id, cellId, segId, fract, weight, component)
         )
+
+        node_id = "Input_%s_%i" % (inputListId, id)
+
+        comp = self.nl_network.get_child(component, "input_sources")
+
+        node = self._comp_to_mdf_node(comp, component, node_id)
+
+        # TODO: remove when global t available
+        node['parameters']['t']={'default_initial_value': 0, 'time_derivative': '1'}
+
+        self.mdf_graph["nodes"][node_id] = node
+
+        pre_node_id = node_id
+        post_node_id = "%s_%i" % (self.input_list_vs_pops[inputListId], cellId)
+        edge_id = "Edge %s to %s" % (pre_node_id, post_node_id)
+        edge = {}
+        edge["name"] = edge_id
+        edge["sender_port"] = "i"
+        edge["receiver_port"] = "synapses_i"
+        edge["sender"] = pre_node_id
+        edge["receiver"] = post_node_id
+
+        # Weight used inside input
+        node['parameters']['weight']={'value': weight}
+
+        self.mdf_graph["edges"][edge_id] = edge
 
     #
     #  Should be overridden to to connect each input to the target cell
@@ -376,7 +436,7 @@ class MDFHandler(DefaultNetworkHandler):
 if __name__ == "__main__":
 
     lems_model = MDFHandler._load_lems_file_with_neuroml2_types(
-        "../../git/MDFTests/NeuroML/LEMS_SimABCD.xml"
+        "../../git/MDF/examples/NeuroML/LEMS_SimIzhikevichTest.xml"
     )
 
     print(

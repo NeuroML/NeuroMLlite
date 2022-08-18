@@ -1,3 +1,4 @@
+from typing import Optional
 from neuromllite import *
 import sys
 import json
@@ -80,20 +81,29 @@ def load_network_yaml(filename):
     return net
 
 
-def load_simulation_json(filename):
+def load_simulation_json(filename: str) -> Optional[dict]:
     """
     Load a NeuroMLlite simulation JSON file
+
+    :param filename: name of NeuroMLLite simulation JSON file to load
+    :type filename: str
+    :returns: loaded corresponding simulation object
     """
 
+    sim = None
 
-    with open(filename, "r") as f:
-        data = json.load(f, object_hook=ascii_encode_dict)
+    try:
+        with open(filename, "r") as f:
+            data = json.load(f, object_hook=ascii_encode_dict)
 
-    print_v("Loaded simulation specification from %s" % filename)
+        print_v("Loaded simulation specification from %s" % filename)
 
-    sim = Simulation.from_dict(data)
-    # sim = Simulation(id="sim")
-    # sim = _parse_element(data, sim)
+        sim = Simulation.from_dict(data)
+        # sim = Simulation(id="sim")
+        # sim = _parse_element(data, sim)
+
+    except OSError as e:
+        print_v(f"ERROR opening file: {filename}: {e.strerror}")
 
     return sim
 

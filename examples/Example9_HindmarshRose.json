@@ -1,6 +1,6 @@
 {
     "Example9_HindmarshRose": {
-        "version": "NeuroMLlite v0.5.1",
+        "version": "NeuroMLlite v0.5.2",
         "notes": "Example 9: HindmarshRose",
         "parameters": {
             "N": 1,

@@ -465,6 +465,9 @@ def check_to_generate_or_run(argv, sim):
     elif "-pynnbrian" in argv:
         generate_and_run(sim, simulator="PyNN_Brian")
 
+    elif "-eden" in argv:
+        generate_and_run(sim, simulator="EDEN")
+
     elif "-arbor" in argv:
         generate_and_run(sim, simulator="Arbor")
 
@@ -1994,6 +1997,7 @@ plt.show()
             or simulator == "jNeuroML_NEURON"
             or simulator == "jNeuroML_NetPyNE"
             or simulator == "jNeuroML_Brian2"
+            or simulator == "EDEN"
         ):
 
             from pyneuroml.lems import generate_lems_file_for_neuroml
@@ -2182,6 +2186,13 @@ plt.show()
                 results = pynml.run_lems_with_jneuroml_brian2(
                     lems_file_name,
                     nogui=True,
+                    load_saved_data=return_results,
+                    reload_events=return_results,
+                )
+
+            elif simulator == "EDEN":
+                results = pynml.run_lems_with_eden(
+                    lems_file_name,
                     load_saved_data=return_results,
                     reload_events=return_results,
                 )
