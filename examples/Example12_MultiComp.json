@@ -1,0 +1,123 @@
+{
+    "Example12_MultiComp": {
+        "version": "NeuroMLlite v0.5.2",
+        "notes": "Example 12: Multicompartmental cells...",
+        "parameters": {
+            "N": 20,
+            "fractionE": 0.7,
+            "weightInput": 0.7,
+            "prob_e_e": 0.1,
+            "prob_e_i": 0.9,
+            "prob_i_e": 0.8,
+            "prob_i_i": 0.3,
+            "global_delay": 2
+        },
+        "cells": {
+            "pyr_4_sym": {
+                "neuroml2_source_file": "test_files/acnet2/pyr_4_sym.cell.nml"
+            },
+            "bask": {
+                "neuroml2_source_file": "test_files/acnet2/bask.cell.nml"
+            }
+        },
+        "synapses": {
+            "AMPA_syn": {
+                "neuroml2_source_file": "test_files/acnet2/AMPA_syn.synapse.nml"
+            },
+            "AMPA_syn_inh": {
+                "neuroml2_source_file": "test_files/acnet2/AMPA_syn_inh.synapse.nml"
+            },
+            "GABA_syn": {
+                "neuroml2_source_file": "test_files/acnet2/GABA_syn.synapse.nml"
+            },
+            "GABA_syn_inh": {
+                "neuroml2_source_file": "test_files/acnet2/GABA_syn_inh.synapse.nml"
+            }
+        },
+        "input_sources": {
+            "poissonFiringSyn": {
+                "neuroml2_source_file": "test_files/inputs.nml"
+            }
+        },
+        "regions": {
+            "region1": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "width": 1000.0,
+                "height": 100.0,
+                "depth": 1000.0
+            }
+        },
+        "populations": {
+            "pop_pyr": {
+                "size": "int(N*fractionE)",
+                "component": "pyr_4_sym",
+                "properties": {
+                    "color": ".8 0 0"
+                },
+                "random_layout": {
+                    "region": "region1"
+                }
+            },
+            "pop_bask": {
+                "size": "N - int(N*fractionE)",
+                "component": "bask",
+                "properties": {
+                    "color": "0 0 .8"
+                },
+                "random_layout": {
+                    "region": "region1"
+                }
+            }
+        },
+        "projections": {
+            "projEE": {
+                "presynaptic": "pop_pyr",
+                "postsynaptic": "pop_pyr",
+                "synapse": "AMPA_syn",
+                "delay": "global_delay",
+                "random_connectivity": {
+                    "probability": "prob_e_e"
+                }
+            },
+            "projEI": {
+                "presynaptic": "pop_pyr",
+                "postsynaptic": "pop_bask",
+                "synapse": "AMPA_syn_inh",
+                "delay": "global_delay",
+                "random_connectivity": {
+                    "probability": "prob_e_i"
+                }
+            },
+            "projIE": {
+                "presynaptic": "pop_bask",
+                "postsynaptic": "pop_pyr",
+                "synapse": "GABA_syn",
+                "delay": "global_delay",
+                "random_connectivity": {
+                    "probability": "prob_i_e"
+                }
+            },
+            "projII": {
+                "presynaptic": "pop_bask",
+                "postsynaptic": "pop_bask",
+                "synapse": "GABA_syn_inh",
+                "delay": "global_delay",
+                "random_connectivity": {
+                    "probability": "prob_i_i"
+                }
+            }
+        },
+        "inputs": {
+            "stim": {
+                "input_source": "poissonFiringSyn",
+                "population": "pop_pyr",
+                "percentage": 100.0,
+                "weight": "weightInput"
+            }
+        },
+        "seed": 1234,
+        "temperature": 32.0
+    }
+}

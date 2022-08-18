@@ -1,3 +1,4 @@
+#!/bin/bash
 set -ex
 
 # pytest
@@ -26,6 +27,7 @@ python Example3.py
 python Example3.py -netpyne
 python Example3.py -jnmlnrn
 python Example3.py -jnmlnetpyne
+python Example3.py -eden
 #python Example3.py -sonata
 
 echo
@@ -89,6 +91,11 @@ echo
 echo "**** Running Example 11 ****"
 python Example11.py
 python Example11.py -jnml
+
+echo
+echo "**** Running Example 12 ****"
+python Example12.py
+python Example12.py -jnmlnrn
 
 echo
 echo "**** Running Arbor Example ****"
