@@ -9,7 +9,7 @@ from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
 import h5py
 import numpy as np
-from neuromllite.utils import save_to_json_file
+from modelspec.utils import save_to_json_file
 import os
 
 
@@ -81,7 +81,7 @@ class SonataHandler(DefaultNetworkHandler):
             "w",
         )
         header = ""
-        for var in self.node_type_csv_info[self.node_type_csv_info.keys()[0]]:
+        for var in self.node_type_csv_info[list(self.node_type_csv_info.keys())[0]]:
             header += "%s " % var
         node_type_file.write(header + "\n")
 
