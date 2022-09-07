@@ -28,13 +28,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8
-        pip install pyelectro
 
-    #- name: Install modelspec # installed by nmllite dependency
-    #  run: python -m pip install git+https://github.com/ModECI/modelspec.git@main
-
-    - name: Install NeuroMLlite
-      run: pip install .
+    - name: Install NeuroMLlite and extra requirements
+      run: |
+          pip install .
+          pip install -r requirements-extra.txt
 
     - name: Lint with flake8
       run: |
