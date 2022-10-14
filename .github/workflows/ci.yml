@@ -99,7 +99,7 @@ jobs:
         omv install Brian2
         omv install arbor
         omv install eden
-        pip uninstall h5py
+        pip uninstall h5py -y
         pip install h5py # issue when building nest
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv list -V # list installed engines
