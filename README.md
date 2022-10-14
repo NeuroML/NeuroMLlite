@@ -1,4 +1,4 @@
-## NeuroMLlite: a common framework for reading/writing/generating network specifications
+## NeuroMLlite: a common framework for reading/writing/generating network specifications based on NeuroML
 
 [![Continuous builds](https://github.com/NeuroML/NeuroMLlite/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuroML/NeuroMLlite/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/NeuroMLlite)](https://pypi.org/project/NeuroMLlite/)
