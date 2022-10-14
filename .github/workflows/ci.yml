@@ -100,7 +100,7 @@ jobs:
         omv install arbor
         omv install eden
         pip uninstall h5py -y
-        pip install h5py # issue when building nest
+        sudo apt install -y h5py # issue when building nest
         export HDF5_DISABLE_VERSION_CHECK=1
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv list -V # list installed engines
