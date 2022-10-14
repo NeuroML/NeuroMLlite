@@ -55,7 +55,7 @@ jobs:
         git checkout $pynml_branch
         pip install pandas==1.3.5
         pip install NEURON==7.8.2 # Specify version of neuron - 8.2.1 fails
-        pip install -r requirements-dev.txt
+        #pip install -r requirements-dev.txt
         python setup.py install
         cd -
 
@@ -97,6 +97,9 @@ jobs:
         omv install Brian2
         omv install arbor
         omv install eden
+        pip uninstall h5py -y
+        sudo apt install -y python3-h5py # issue when building nest
+        export HDF5_DISABLE_VERSION_CHECK=1
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         omv list -V # list installed engines
 
