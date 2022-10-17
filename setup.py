@@ -24,7 +24,6 @@ setup(
         "pyyaml",
         "numpy",
         "tables",
-        "pyparsing<3",
         "modelspec>=0.2.6",
     ],
     classifiers=[
