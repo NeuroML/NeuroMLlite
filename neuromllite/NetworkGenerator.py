@@ -1254,6 +1254,7 @@ plt.show()
 
             sim_file_info["inputs"] = {}
             for input in sonata_handler.input_info:
+                print('Handling: %s: %s'%(input, sonata_handler.input_info[input]))
                 sim_file_info["inputs"][input] = {}
                 input_comp = sonata_handler.input_info[input][1]
                 c = temp_nml_doc.get_by_id(input_comp)
