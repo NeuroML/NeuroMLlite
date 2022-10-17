@@ -1,6 +1,6 @@
 import collections
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 # import pyNN
 # import nest
