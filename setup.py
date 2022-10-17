@@ -24,6 +24,7 @@ setup(
         "pyyaml",
         "numpy",
         "tables",
+        "h5py",
         "modelspec>=0.2.6",
     ],
     classifiers=[
