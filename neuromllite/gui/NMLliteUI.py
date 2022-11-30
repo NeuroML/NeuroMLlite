@@ -806,7 +806,11 @@ class NMLliteUI(QWidget):
         """Set the parameters in the network/simulation from the GUI values"""
 
         for p in self.param_entries:
-            v = self.param_entries[p].final_value()
+            #print("Updating: %s to %s (%s)" % (p, self.param_entries[p], type(self.param_entries[p])))
+            if type(self.param_entries[p])==QLineEdit:
+                v = self.param_entries[p].text()
+            else:
+                v = self.param_entries[p].final_value()
 
             print_("Setting param %s to %s" % (p, v), self.verbose)
             if p == "seed":
