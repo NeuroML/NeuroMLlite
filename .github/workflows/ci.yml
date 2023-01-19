@@ -34,6 +34,9 @@ jobs:
       run: |
           pip install .
           pip install -r requirements-extra.txt
+                  
+          pip install 'numpy<=1.23.0' # temp fix for https://levelup.gitconnected.com/fix-attributeerror-module-numpy-has-no-attribute-float-d7d68c5a4971
+
 
     - name: Lint with flake8
       run: |
