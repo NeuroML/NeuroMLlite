@@ -1687,6 +1687,13 @@ plt.show()
 
             if not "NeuroML" in simulator:
 
+                # Temp! See https://github.com/NeuralEnsemble/PyNN/pull/762
+                def get_source_id(spiketrain):
+                    if 'source_id' in spiketrain.annotations:
+                        return spiketrain.annotations['source_id']
+                    elif 'channel_id' in spiketrain.annotations: # See https://github.com/NeuralEnsemble/PyNN/pull/762
+                        return spiketrain.annotations['channel_id']
+
                 for pop_id in trace_pop_indices_seg_ids:
                     pynn_pop = pynn_handler.populations[pop_id]
                     indices = trace_pop_indices_seg_ids[pop_id].keys()
@@ -1748,8 +1755,8 @@ plt.show()
                     ff = open(filename, "w")
 
                     for spiketrain in spiketrains:
-                        source_id = spiketrain.annotations["source_id"]
-                        source_index = spiketrain.annotations["source_index"]
+                        source_id = get_source_id(spiketrain)
+                        source_index = pynn_pop.id_to_index(source_id)
                         if source_index in indices:
                             # print_v("Writing spike data for cell %s[%s] (gid: %i): %i spikes "%(pynn_pop.label,source_index, source_id, len(spiketrain)), self.verbose)
                             ref = "%s/%i/???" % (pynn_pop.label, source_index)
