@@ -35,7 +35,7 @@ jobs:
           pip install .
           pip install -r requirements-extra.txt
                   
-          pip install 'numpy<=1.23.0' # temp fix for https://levelup.gitconnected.com/fix-attributeerror-module-numpy-has-no-attribute-float-d7d68c5a4971
+          pip install 'numpy<=1.23.0' # temp fix, see https://github.com/OpenSourceBrain/osb-model-validation/issues/91
 
 
     - name: Lint with flake8
