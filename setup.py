@@ -26,6 +26,7 @@ setup(
         "tables",
         "h5py",
         "modelspec>=0.2.6",
+        "pyneuroml>=1.0.0"
     ],
     classifiers=[
         "Intended Audience :: Science/Research",

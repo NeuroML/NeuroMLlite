@@ -16,7 +16,7 @@ from neuromllite.utils import load_simulation_json
 from neuromllite.utils import evaluate
 from neuromllite.utils import print_v, print_
 from neuromllite.utils import is_spiking_input_population
-from pyneuroml.pynml import get_next_hex_color
+from pyneuroml.utils.plot import get_next_hex_color
 
 from functools import partial
 
