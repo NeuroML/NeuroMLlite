@@ -19,9 +19,9 @@ jobs:
       HDF5_DISABLE_VERSION_CHECK: 1
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python  ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
         python-version:  ${{ matrix.python-version }}
 
@@ -34,6 +34,9 @@ jobs:
       run: |
           pip install .
           pip install -r requirements-extra.txt
+                  
+          pip install 'numpy<=1.23.0' # temp fix, see https://github.com/OpenSourceBrain/osb-model-validation/issues/91
+
 
     - name: Lint with flake8
       run: |
