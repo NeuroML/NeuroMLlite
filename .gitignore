@@ -201,3 +201,4 @@ docs/_build
 /examples/bask.cell.nml
 /examples/pyr_4_sym.cell.nml
 *_eden.py
+arm64
