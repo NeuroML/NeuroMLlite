@@ -237,7 +237,7 @@
                     "description": "Unique identifier for this Population"
                 },
                 "size": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "The size of the population."
                 },
                 "component": {
@@ -366,11 +366,11 @@
                     "description": "type of projection: projection (default; standard chemical, event triggered), electricalProjection\n(for gap junctions) or continuousProjection (for analogue/graded synapses)"
                 },
                 "delay": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Delay to use (default: 0)"
                 },
                 "weight": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Weight to use (default: 1)"
                 },
                 "random_connectivity": {
@@ -395,7 +395,7 @@
                     "description": ""
                 },
                 "probability": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Random probability of connection."
                 }
             }
@@ -442,7 +442,7 @@
                     "description": "Population to target"
                 },
                 "cell_ids": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Specific ids of _Cell_s to apply this input to (cannot be used with percentage"
                 },
                 "percentage": {
@@ -450,15 +450,15 @@
                     "description": "Percentage of Cells to apply input to"
                 },
                 "number_per_cell": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Number of individual inputs per selected Cell (default: 1)"
                 },
                 "segment_ids": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Which segments to target (default: [0])"
                 },
                 "weight": {
-                    "type": "Union[EvaluableExpression, T, VT, ndarray, int, float, str]",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Weight to use (default: 1)"
                 }
             }
