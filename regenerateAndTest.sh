@@ -35,8 +35,8 @@ python Example4.py
 python Example4.py -netpyne
 if [[ "$CI" != "true" ]]; then
     python Example4.py -pynnnest
+    python Example4.py -pynnnrn
 fi
-python Example4.py -pynnnrn
 #python Example4.py -pynnbrian  # Not supported in python 3...
 python Example4.py -jnmlnetpyne
 python Example4.py -jnmlnrn
@@ -64,8 +64,8 @@ python Example7.py -jnmlnrn
 python Example7.py -jnml
 if [[ "$CI" != "true" ]]; then
     python Example7.py -pynnnest
+    python Example7.py -pynnnrn
 fi
-python Example7.py -pynnnrn
 
 echo
 echo "**** Running Example 8 ****"
