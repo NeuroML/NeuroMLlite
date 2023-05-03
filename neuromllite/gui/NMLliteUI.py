@@ -2,8 +2,8 @@ from os.path import dirname
 from os.path import realpath
 import sys
 
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -16,7 +16,7 @@ from neuromllite.utils import load_simulation_json
 from neuromllite.utils import evaluate
 from neuromllite.utils import print_v, print_
 from neuromllite.utils import is_spiking_input_population
-from pyneuroml.pynml import get_next_hex_color
+from pyneuroml.utils.plot import get_next_hex_color
 
 from functools import partial
 
@@ -170,13 +170,13 @@ class NMLliteUI(QWidget):
             label = QLabel(
                 "An image will be generated here. Push the appropriate button on the left"
             )
-            label.setBackgroundRole(QPalette.Base)
-            label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+            #label.setBackgroundRole(QPalette.Base)
+            #label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
             label.setScaledContents(True)
             self.all_image_qlabels[name] = label
 
             scrollArea = QScrollArea()
-            scrollArea.setBackgroundRole(QPalette.Light)
+            #scrollArea.setBackgroundRole(QPalette.Light)
             scrollArea.setWidget(label)
             scrollArea.setVisible(True)
 
@@ -1329,7 +1329,7 @@ def main():
     nmlui = NMLliteUI(nml_sim_file)
     nmlui.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 def usage():
