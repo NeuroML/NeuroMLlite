@@ -13,7 +13,6 @@ net.notes = "Example 3: simple network with 2 populations of NeuroML2 cells, a p
 print(net)
 
 new_json_file = net.to_json_file()
-new_yaml_file = net.to_yaml_file()
 
 ################################################################################
 ###   Build Simulation object & save as JSON
@@ -28,7 +27,6 @@ sim = Simulation(
 )
 
 sim.to_json_file()
-sim.to_yaml_file()
 
 
 ################################################################################
