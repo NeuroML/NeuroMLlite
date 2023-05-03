@@ -1,6 +1,6 @@
 {
     "SimExample12_MultiComp": {
-        "version": "NeuroMLlite v0.5.3",
+        "version": "NeuroMLlite v0.5.4",
         "network": "Example12_MultiComp.json",
         "duration": 1000.0,
         "dt": 0.025,
