@@ -272,7 +272,7 @@ class NMLliteUI(QWidget):
         dialog.setIcon(QMessageBox.Warning)
         dialog.setWindowTitle("Message")
         dialog.setText(message)
-        dialog.exec_()
+        dialog.exec()
 
     def __init__(self, nml_sim_file, parent=None):
         """Constructor for the GUI"""
@@ -896,7 +896,7 @@ class NMLliteUI(QWidget):
         dialog = QDialog(self)
         dialog.setWindowTitle("Select which traces to plot")
 
-        QBtn = QDialogButtonBox.Ok  # | QDialogButtonBox.Cancel
+        QBtn = QDialogButtonBox.StandardButton.Ok  # | QDialogButtonBox.Cancel
 
         buttonBox = QDialogButtonBox(QBtn)
         buttonBox.accepted.connect(dialog.accept)
@@ -926,7 +926,7 @@ class NMLliteUI(QWidget):
                 count += 1
 
         layout.addWidget(buttonBox, count, 1)
-        dialog.exec_()
+        dialog.exec()
         self.replotSimResults()
 
     def traceSelectClicked(self, key):
