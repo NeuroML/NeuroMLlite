@@ -11,7 +11,8 @@ net = load_network_json(filename)
 net.id = "Example3_Network"
 net.notes = "Example 3: simple network with 2 populations of NeuroML2 cells, a projection between them and spiking input."
 print(net)
-new_file = net.to_json_file()
+
+new_json_file = net.to_json_file()
 
 ################################################################################
 ###   Build Simulation object & save as JSON
@@ -19,7 +20,7 @@ new_file = net.to_json_file()
 
 sim = Simulation(
     id="SimExample3",
-    network=new_file,
+    network=new_json_file,
     duration="1000",
     dt="0.025",
     record_traces={"all": "*"},

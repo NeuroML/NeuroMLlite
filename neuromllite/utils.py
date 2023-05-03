@@ -208,7 +208,7 @@ def create_new_model(
     ################################################################################
     ###   Add some regions
 
-    if default_region:
+    if default_region is not None:
         if type(default_region) == str:
             r1 = RectangularRegion(
                 id=default_region, x=0, y=0, z=0, width=1000, height=100, depth=1000
@@ -241,9 +241,7 @@ def create_new_model(
             properties={"color": color_for_default_population},
         )
 
-        if default_region:
-            pop.region = default_region
-
+        if default_region is not None:
             pop.random_layout = RandomLayout(region=default_region.id)
 
         net.populations.append(pop)

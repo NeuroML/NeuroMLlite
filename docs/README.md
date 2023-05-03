@@ -404,7 +404,7 @@ A Population definition.
 
   <tr>
     <td><b>size</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>The size of the population.</i></td>
  </tr>
 
@@ -622,14 +622,14 @@ A Projection definition.
 
   <tr>
     <td><b>delay</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Delay to use (default: 0)</i></td>
  </tr>
 
 
   <tr>
     <td><b>weight</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Weight to use (default: 1)</i></td>
  </tr>
 
@@ -671,7 +671,7 @@ A RandomConnectivity definition.
 
   <tr>
     <td><b>probability</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Random probability of connection.</i></td>
  </tr>
 
@@ -748,7 +748,7 @@ An Input definition.
 
   <tr>
     <td><b>cell_ids</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Specific ids of <a href="#cell">Cell</a>s to apply this input to (cannot be used with percentage</i></td>
  </tr>
 
@@ -762,21 +762,21 @@ An Input definition.
 
   <tr>
     <td><b>number_per_cell</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Number of individual inputs per selected Cell (default: 1)</i></td>
  </tr>
 
 
   <tr>
     <td><b>segment_ids</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Which segments to target (default: [0])</i></td>
  </tr>
 
 
   <tr>
     <td><b>weight</b></td>
-    <td>Union[EvaluableExpression, T, VT, ndarray, int, float, str]</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Weight to use (default: 1)</i></td>
  </tr>
 
