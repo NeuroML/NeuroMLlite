@@ -269,7 +269,7 @@ class NMLliteUI(QWidget):
 
     def dialog_popup(self, message):
         dialog = QMessageBox()
-        dialog.setIcon(QMessageBox.Warning)
+        dialog.setIcon(QMessageBox.Icon.Warning)
         dialog.setWindowTitle("Message")
         dialog.setText(message)
         dialog.exec()
@@ -753,7 +753,7 @@ class NMLliteUI(QWidget):
         self.add_image(nml_view_file, self.IMAGE_3D_TAB)
 
     def showGraph(self):
-        """Generate graph buttom has been pressed"""
+        """Generate graph button has been pressed"""
 
         print_v("Graph button was clicked.")
 
