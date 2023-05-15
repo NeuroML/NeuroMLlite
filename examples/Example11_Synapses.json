@@ -1,6 +1,6 @@
 {
     "Example11_Synapses": {
-        "version": "NeuroMLlite v0.5.4",
+        "version": "NeuroMLlite v0.5.5",
         "notes": "Example 11: synaptic properties",
         "parameters": {
             "input_amp": 0.23,
