@@ -14,7 +14,6 @@ import os
 
 
 class SonataHandler(DefaultNetworkHandler):
-
     positions = {}
     pop_indices = {}
 
@@ -28,7 +27,6 @@ class SonataHandler(DefaultNetworkHandler):
         print_v("Initiating Sonata handler")
 
     def handle_document_start(self, id, notes):
-
         print_v("Parsing for Sonata export: %s" % id)
 
         self.config_file_info = {}
@@ -64,7 +62,6 @@ class SonataHandler(DefaultNetworkHandler):
         self.circuit_file_info["networks"]["nodes"].append({})
 
     def finalise_document(self):
-
         print_v("Writing file...: %s" % id)
         self.sonata_nodes.close()
 
@@ -97,7 +94,6 @@ class SonataHandler(DefaultNetworkHandler):
         save_to_json_file(self.circuit_file_info, "circuit_config.json", indent=2)
 
     def handle_network(self, network_id, notes, temperature=None):
-
         print_v("Network: %s" % network_id)
         self.network_id = network_id
 
@@ -123,7 +119,6 @@ class SonataHandler(DefaultNetworkHandler):
     def handle_population(
         self, population_id, component, size=-1, component_obj=None, properties={}
     ):
-
         sizeInfo = " as yet unspecified size"
         if size >= 0:
             sizeInfo = ", size: " + str(size) + " cells"
@@ -159,7 +154,6 @@ class SonataHandler(DefaultNetworkHandler):
         )
 
     def handle_location(self, id, population_id, component, x, y, z):
-
         if not population_id in self.positions:
             self.positions[population_id] = np.array([[x, y, z]])
             self.pop_indices[population_id] = np.array([id])
@@ -172,7 +166,6 @@ class SonataHandler(DefaultNetworkHandler):
             )
 
     def finalise_population(self, population_id):
-
         self.sonata_nodes.create_dataset(
             "nodes/%s/0/positions" % population_id, data=self.positions[population_id]
         )
@@ -202,7 +195,6 @@ class SonataHandler(DefaultNetworkHandler):
     def handle_input_list(
         self, inputListId, population_id, component, size, input_comp_obj=None
     ):
-
         self.print_input_information(inputListId, population_id, component, size)
 
         if size < 0:
@@ -219,7 +211,6 @@ class SonataHandler(DefaultNetworkHandler):
     def handle_single_input(
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
-
         print_v(
             "Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f"
             % (inputListId, id, cellId, segId, fract, weight)

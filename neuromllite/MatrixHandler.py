@@ -14,13 +14,11 @@ import numpy as np
 
 
 class MatrixHandler(ConnectivityHandler):
-
     colormaps_used = []
 
     weight_arrays_to_show = {}
 
     def __init__(self, level=10, nl_network=None):
-
         self.nl_network = nl_network
         self.level = level
 
@@ -62,7 +60,6 @@ class MatrixHandler(ConnectivityHandler):
         return label
 
     def finalise_document(self):
-
         entries = []
         # print_v('Finals: %s -> %s'%(self.proj_pre_pops, self.proj_post_pops))
         all_pops = []
@@ -144,7 +141,6 @@ class MatrixHandler(ConnectivityHandler):
             ] = "conductance * sign (nS)"
 
         for projName in self.proj_weights:
-
             pre_pop = self.proj_pre_pops[projName]
             post_pop = self.proj_post_pops[projName]
             proj_type = self.proj_types[projName]
@@ -174,7 +170,6 @@ class MatrixHandler(ConnectivityHandler):
             )
 
             if self.is_cell_level():
-
                 for pre_i in range(self.pop_sizes[pre_pop]):
                     for post_i in range(self.pop_sizes[post_pop]):
                         pre_pop_i = entries.index(
@@ -217,7 +212,6 @@ class MatrixHandler(ConnectivityHandler):
                 if abs(self.proj_tot_weight[projName]) != abs(
                     self.proj_weights[projName]
                 ):
-
                     self.weight_arrays_to_show[
                         self._get_conn_label(matrix_single_conns, pclass)
                     ][pre_pop_i][post_pop_i] += (
@@ -250,7 +244,6 @@ class MatrixHandler(ConnectivityHandler):
                 % (proj_type, weight_array.min(), weight_array.max())
             )
             if not (weight_array.max() == 0 and weight_array.min() == 0):
-
                 fig, ax = plt.subplots()
                 title = "%s" % (proj_type)
                 title2 = "%s" % (proj_type)
@@ -445,7 +438,6 @@ class MatrixHandler(ConnectivityHandler):
         synapse_obj=None,
         pre_synapse_obj=None,
     ):
-
         weight = 1.0
         self.proj_pre_pops[projName] = prePop
         self.proj_post_pops[projName] = postPop
@@ -513,7 +505,6 @@ class MatrixHandler(ConnectivityHandler):
     def finalise_projection(
         self, projName, prePop, postPop, synapse=None, type="projection"
     ):
-
         pass
         # print_v("Projection finalising: "+projName+" -> "+prePop+" to "+postPop+" completed (%s; w: %s, conns: %s, tot w: %s)" % \
         #           (self.proj_types[projName], self.proj_weights[projName], self.proj_conns[projName], self.proj_tot_weight[projName]))
@@ -524,5 +515,4 @@ class MatrixHandler(ConnectivityHandler):
     input_comp_obj_ils = {}
 
     def finalise_input_source(self, inputListId):
-
         pass

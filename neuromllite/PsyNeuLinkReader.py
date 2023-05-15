@@ -7,14 +7,12 @@ from neuromllite.utils import print_v, load_json
 
 
 class PsyNeuLinkReader(NetworkReader):
-
     component_objects = {}  # Store cell ids vs objects, e.g. NeuroML2 based object
 
     PRE_SYN = "silentSyn"
     POST_SYN = "rsDL"
 
     def __init__(self, **parameters):
-
         print_v("Creating PsyNeuLinkReader with %s..." % parameters)
         self.parameters = parameters
         self.current_population = None
@@ -27,7 +25,6 @@ class PsyNeuLinkReader(NetworkReader):
         )
 
     def parse(self, handler):
-
         FORMAT = "BIDS-MDF"
         filename = os.path.abspath(self.parameters["filename"])
         id = filename.split("/")[-1].split(".")[0]
@@ -266,7 +263,6 @@ class PsyNeuLinkReader(NetworkReader):
 
 
 if __name__ == "__main__":
-
     test_files = [
         "../../neuroConstruct/osb/showcase/PsyNeuLinkShowcase/PsyNeuLink/model_with_simple_graph.json"
     ]

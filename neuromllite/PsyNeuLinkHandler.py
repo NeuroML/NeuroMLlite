@@ -14,7 +14,6 @@ import lems.api as lems  # from pylems
 
 
 class PsyNeuLinkHandler(DefaultNetworkHandler):
-
     bids_mdf_info = {}
     bids_mdf_info["graphs"] = []
 
@@ -26,19 +25,16 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         self.nl_network = nl_network
 
     def handle_document_start(self, id, notes):
-
         print_v("Parsing for PsyNeuLink export: %s" % id)
         self.id = id
 
     def finalise_document(self):
-
         print_v("Writing file for...: %s" % self.id)
 
         save_to_json_file(self.bids_mdf_info, "%s.bids-mdf.json" % self.id, indent=4)
         """save_to_json_file(self.bids_mdf_info_hl, '%s.bids-mdf.highlevel.json'%self.id, indent=4)"""
 
     def handle_network(self, network_id, notes, temperature=None):
-
         print_v("Network: %s" % network_id)
         self.network_id = network_id
 
@@ -71,7 +67,6 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
     def handle_population(
         self, population_id, component, size=-1, component_obj=None, properties={}
     ):
-
         sizeInfo = " as yet unspecified size"
         if size >= 0:
             sizeInfo = ", size: " + str(size) + " cells"
@@ -172,7 +167,6 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         pass
 
     def finalise_population(self, population_id):
-
         pass
 
     #
@@ -194,7 +188,6 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
         delay=0,
         weight=1,
     ):
-
         # self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
         print_v(
             ">>>>>> Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms"
@@ -235,7 +228,6 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
     def handle_input_list(
         self, inputListId, population_id, component, size, input_comp_obj=None
     ):
-
         pass
 
     #
@@ -244,7 +236,6 @@ class PsyNeuLinkHandler(DefaultNetworkHandler):
     def handle_single_input(
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
-
         print_v(
             "Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f"
             % (inputListId, id, cellId, segId, fract, weight)

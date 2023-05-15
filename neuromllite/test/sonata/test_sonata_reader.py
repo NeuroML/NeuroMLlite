@@ -2,7 +2,6 @@ from neuromllite.SonataReader import get_neuroml_from_sonata
 
 
 def main():
-
     ids = ["5_cells_iclamp", "9_cells", "300_intfire", "300_cells"]
     ids += ["sim_tests/intfire/one_cell_iclamp_nest/input"]
     ids += ["sim_tests/intfire/ten_cells_iclamp_nest/input"]

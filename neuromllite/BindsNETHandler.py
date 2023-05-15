@@ -16,7 +16,6 @@ import bindsnet
 
 
 class BindsNETHandler(DefaultNetworkHandler):
-
     pops_vs_components = {}
     pops_vs_bn_layers = {}
 
@@ -46,7 +45,6 @@ class BindsNETHandler(DefaultNetworkHandler):
         print_v("Document: %s" % id)
 
     def handle_network(self, network_id, notes, temperature=None):
-
         print_v("Network: %s" % network_id)
         if temperature:
             print_v("  Temperature: " + temperature)
@@ -56,7 +54,6 @@ class BindsNETHandler(DefaultNetworkHandler):
     def handle_population(
         self, population_id, component, size=-1, component_obj=None, properties={}
     ):
-
         sizeInfo = " as yet unspecified size"
         if size >= 0:
             sizeInfo = ", size: " + str(size) + " cells"
@@ -103,7 +100,6 @@ class BindsNETHandler(DefaultNetworkHandler):
         synapse_obj=None,
         pre_synapse_obj=None,
     ):
-
         synInfo = ""
         if synapse_obj:
             synInfo += " (syn: %s)" % synapse_obj.__class__.__name__
@@ -160,7 +156,6 @@ class BindsNETHandler(DefaultNetworkHandler):
         delay=0,
         weight=1,
     ):
-
         self.print_connection_information(
             projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight
         )
@@ -187,7 +182,6 @@ class BindsNETHandler(DefaultNetworkHandler):
     def finalise_projection(
         self, projName, prePop, postPop, synapse=None, type="projection"
     ):
-
         print_v(
             "Projection finalising: "
             + projName
@@ -204,7 +198,6 @@ class BindsNETHandler(DefaultNetworkHandler):
     def handle_input_list(
         self, inputListId, population_id, component, size, input_comp_obj=None
     ):
-
         self.print_input_information(inputListId, population_id, component, size)
         if input_comp_obj:
             print("Input comp: %s" % input_comp_obj)
@@ -223,7 +216,6 @@ class BindsNETHandler(DefaultNetworkHandler):
     def handle_single_input(
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
-
         population_id, component = self.input_info[inputListId]
 
         print_v(

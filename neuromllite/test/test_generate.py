@@ -13,7 +13,6 @@ except ImportError:
 
 class TestGenerate(unittest.TestCase):
     def get_example_simulation(self):
-
         id = "Sim3"
         sim = Simulation(
             id=id,
@@ -25,7 +24,6 @@ class TestGenerate(unittest.TestCase):
         return sim
 
     def test_generate_nml(self):
-
         sim = self.get_example_simulation()
         network = load_network_json(sim.network)
 

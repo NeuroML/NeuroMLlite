@@ -8,11 +8,9 @@ from neuromllite.utils import print_v
 
 
 class BBPConnectomeReader(NetworkReaderX):
-
     component_objects = {}  # Store cell ids vs objects, e.g. NeuroML2 based object
 
     def __init__(self, **parameters):
-
         print_v("Creating BBPConnectomeReader with %s..." % parameters)
         self.parameters = parameters
         self.current_population = None
@@ -20,7 +18,6 @@ class BBPConnectomeReader(NetworkReaderX):
         self.post_pop = None
 
     def parse(self, handler):
-
         filename = os.path.abspath(self.parameters["filename"])
         id = filename.split("/")[-1].split(".")[0]
 
@@ -87,7 +84,6 @@ class BBPConnectomeReader(NetworkReaderX):
 
         # Population
         if self.current_population and d.name == "locations":
-
             perc_cells = (
                 self.parameters["percentage_cells_per_pop"]
                 if "percentage_cells_per_pop" in self.parameters
@@ -180,7 +176,6 @@ class BBPConnectomeReader(NetworkReaderX):
                     "   There are %i cells in: %s" % (size, self.current_population)
                 )
                 for i in range(0, d.shape[0]):
-
                     if i < size:
                         row = d[i, :]
                         x = row[0]
@@ -198,7 +193,6 @@ class BBPConnectomeReader(NetworkReaderX):
 
         # Projection
         elif self.pre_pop != None and self.post_pop != None:
-
             proj_id = "Proj__%s__%s" % (self.pre_pop, self.post_pop)
             synapse = "gaba"
             if (
@@ -263,7 +257,6 @@ class BBPConnectomeReader(NetworkReaderX):
 
 
 if __name__ == "__main__":
-
     filename = "test_files/cons_locs_pathways_mc0_Column.h5"
 
     percentage_cells_per_pop = 1

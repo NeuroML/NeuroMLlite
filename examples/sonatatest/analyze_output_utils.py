@@ -16,7 +16,6 @@ def plot_data(reports_file, y_axis, title, show_already=True, max_num_traces=Non
             pop_prefixes = {pop: "/report/%s/" % pop}
 
     for pop in pop_prefixes:
-
         gids = np.array(cellvar_h5["%smapping/gids" % pop_prefixes[pop]])
 
         soma_locs = np.array(

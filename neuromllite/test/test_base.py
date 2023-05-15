@@ -14,7 +14,6 @@ except ImportError:
 
 
 def get_example_network():
-
     net = Network(id="net0", parameters={})
     net.notes = "...."
 
@@ -43,7 +42,6 @@ def get_example_network():
 
 
 def get_example_simulation():
-
     id = "Sim0"
     sim = Simulation(
         id=id,
@@ -57,7 +55,6 @@ def get_example_simulation():
 
 class TestCustomSaveLoad(unittest.TestCase):
     def test_save_load_json(self):
-
         @modelspec.define
         class NewCell(Base):
             """
@@ -67,8 +64,11 @@ class TestCustomSaveLoad(unittest.TestCase):
                 id: the cell id
                 neuroml2_source_file: The path to the source file
             """
+
             id: str = field(validator=instance_of(str))
-            neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+            neuroml2_source_file: str = field(
+                default=None, validator=optional(instance_of(str))
+            )
 
         @modelspec.define
         class NewSynapse(Base):
@@ -80,8 +80,11 @@ class TestCustomSaveLoad(unittest.TestCase):
                 neuroml2_source_file: The path to the source file
                 tested: A boolean attribute
             """
+
             id: str = field(validator=instance_of(str))
-            neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+            neuroml2_source_file: str = field(
+                default=None, validator=optional(instance_of(str))
+            )
             tested: bool = field(default=None, validator=optional(instance_of(bool)))
 
         @modelspec.define
@@ -93,7 +96,10 @@ class TestCustomSaveLoad(unittest.TestCase):
                 probability: Random probability of connection
 
             """
-            probability: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+
+            probability: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
 
         @modelspec.define
         class NewNetwork(Base):
@@ -110,22 +116,40 @@ class TestCustomSaveLoad(unittest.TestCase):
                 parameters: Dictionary of global parameters for the network
                 random_connectivity: Use random connectivity
             """
+
             id: str = field(validator=instance_of(str))
             cells: List[NewCell] = field(factory=list)
             synapses: List[NewSynapse] = field(factory=list)
             version: str = field(default="NeuroMLlite 0.0", validator=instance_of(str))
             seed: int = field(default=None, validator=optional(instance_of(int)))
             stable: bool = field(default=None, validator=optional(instance_of(bool)))
-            parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-            random_connectivity: NewRandomConnectivity = field(default=None, validator=optional(instance_of(NewRandomConnectivity)))
-            ee0: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-            ee1: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-            ee2: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-            ee3: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-            ee4: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-            ee5: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-            ee6: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-
+            parameters: Dict[str, Any] = field(
+                default=None, validator=optional(instance_of(dict))
+            )
+            random_connectivity: NewRandomConnectivity = field(
+                default=None, validator=optional(instance_of(NewRandomConnectivity))
+            )
+            ee0: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
+            ee1: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
+            ee2: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
+            ee3: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
+            ee4: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
+            ee5: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
+            ee6: ValueExprType = field(
+                default=None, validator=optional(instance_of(value_expr_types))
+            )
 
         net = NewNetwork(id="netid", parameters={"size": 3, "name": None})
 
@@ -220,9 +244,7 @@ class TestCustomSaveLoad(unittest.TestCase):
 
 class TestBaseSaveLoad(unittest.TestCase):
     def test_save_load_json(self):
-
         for o in [get_example_simulation(), get_example_network()]:
-
             str0 = str(o)
             json0 = o.to_json()
 
@@ -250,9 +272,7 @@ class TestBaseSaveLoad(unittest.TestCase):
                 self.assertEqual(json0, json1)
 
     def test_save_load_pickle(self):
-
         for o in [get_example_simulation(), get_example_network()]:
-
             str0 = str(o)
             json0 = o.to_json()
 
@@ -272,7 +292,6 @@ class TestBaseSaveLoad(unittest.TestCase):
 
 
 if __name__ == "__main__":
-
     # Some tests
     tc = TestCustomSaveLoad()
     tc.test_save_load_json()

@@ -10,7 +10,6 @@ from pyneuroml.pynml import convert_to_units
 
 
 class ConnectivityHandler(DefaultNetworkHandler):
-
     CUTOFF_INH_SYN_MV = -50  # erev below -50mV => inhibitory, above => excitatory
 
     include_ext_inputs = False
@@ -44,11 +43,9 @@ class ConnectivityHandler(DefaultNetworkHandler):
     input_comp_obj_ils = {}
 
     def handle_document_start(self, id, notes):
-
         print_v("Document: %s" % id)
 
     def handle_network(self, network_id, notes, temperature=None):
-
         print_v("Network: %s" % network_id)
         self.network_id = network_id
 
@@ -88,7 +85,6 @@ class ConnectivityHandler(DefaultNetworkHandler):
         return self.pop_sizes[self.proj_post_pops[projName]]
 
     def get_reversal_potential_mV(self, synapse_obj):
-
         if hasattr(synapse_obj, "erev"):
             return convert_to_units(synapse_obj.erev, "mV")
 
@@ -99,7 +95,6 @@ class ConnectivityHandler(DefaultNetworkHandler):
             return None
 
     def _get_gbase_nS(self, projName, return_orig_string_also=False):
-
         gbase_nS = None
         gbase = "???"
         # print('Getting gbase for %s'%projName)
@@ -123,7 +118,6 @@ class ConnectivityHandler(DefaultNetworkHandler):
         return gbase_nS
 
     def _scale_individual_weight(self, weight, projName):
-
         orig_weight = weight
 
         if self.scale_by_post_pop_cond:
@@ -138,7 +132,6 @@ class ConnectivityHandler(DefaultNetworkHandler):
         return weight
 
     def _scale_population_weight(self, weight, projName):
-
         orig_weight = weight
         if self.scale_by_post_pop_size:
             weight /= self.get_size_post_pop(projName)
@@ -155,7 +148,6 @@ class ConnectivityHandler(DefaultNetworkHandler):
         return weight
 
     def handle_location(self, id, population_id, component, x, y, z):
-
         pass
 
     def handle_connection(
@@ -174,7 +166,6 @@ class ConnectivityHandler(DefaultNetworkHandler):
         delay=0,
         weight=1.0,
     ):
-
         # print_v(" - Connection for %s, cell %i -> %i, w: %s"%(projName, preCellId, postCellId, weight))
         self.proj_conns[projName] += 1
         self.proj_tot_weight[projName] += weight
@@ -194,7 +185,6 @@ class ConnectivityHandler(DefaultNetworkHandler):
     def finalise_projection(
         self, projName, prePop, postPop, synapse=None, type="projection"
     ):
-
         # weight = self.proj_tot_weight[projName]
         # self.max_weight = max(self.max_weight, weight)
         # self.min_weight = min(self.min_weight, weight)

@@ -6,7 +6,6 @@ import sys
 
 
 def generate(ref="Example6_PyNN", add_inputs=True):
-
     ################################################################################
     ###   Build new network
 
@@ -69,7 +68,6 @@ def generate(ref="Example6_PyNN", add_inputs=True):
     layers = ["L23", "L4", "L5", "L6"]
 
     for l in layers:
-
         i = 3 - layers.index(l)
         r = RectangularRegion(
             id=l,
@@ -83,7 +81,6 @@ def generate(ref="Example6_PyNN", add_inputs=True):
         net.regions.append(r)
 
         for t in ["E", "I"]:
-
             try:
                 import opencortex.utils.color as occ
 
@@ -223,7 +220,6 @@ def generate(ref="Example6_PyNN", add_inputs=True):
 
 
 if __name__ == "__main__":
-
     if "-noinputs" in sys.argv:
         sim, net = generate("Example6_PyNN_noinputs", False)
     else:
