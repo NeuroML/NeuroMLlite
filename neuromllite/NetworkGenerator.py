@@ -18,14 +18,16 @@ DEFAULT_NET_GENERATION_SEED = 1234
 DEFAULT_SIMULATION_SEED = 5678
 
 
-
 def __TEMP_CHECK_IF_SET(value):
     """
     Should just be a check for None! Update in modelspec...
     """
-    if value is None: return False
-    if value == '': return False
+    if value is None:
+        return False
+    if value == "":
+        return False
     return True
+
 
 def _get_rng_for_network(nl_model):
     """
@@ -66,7 +68,6 @@ def generate_network(
     rng, seed = _get_rng_for_network(nl_model)
 
     if nl_model.network_reader:
-
         exec(
             "from neuromllite.%s import %s"
             % (nl_model.network_reader.type, nl_model.network_reader.type)
@@ -90,13 +91,16 @@ def generate_network(
                 if not p == "__builtins__":
                     notes += "\n        %s = %s" % (p, nl_model.parameters[p])
         handler.handle_document_start(nl_model.id, notes)
-        temperature = "%sdegC" % nl_model.temperature if nl_model.temperature is not None else None
+        temperature = (
+            "%sdegC" % nl_model.temperature
+            if nl_model.temperature is not None
+            else None
+        )
         handler.handle_network(nl_model.id, nl_model.notes, temperature=temperature)
 
     nml2_doc_temp = _extract_pynn_components_to_neuroml(nl_model)
 
     for c in nl_model.cells:
-
         if c.neuroml2_source_file:
             from pyneuroml import pynml
 
@@ -117,11 +121,10 @@ def generate_network(
             )
             synapse_objects[s.id] = nml2_doc.get_by_id(s.id)
 
-        if hasattr(s, 'pynn_synapse') and s.pynn_synapse is not None:
+        if hasattr(s, "pynn_synapse") and s.pynn_synapse is not None:
             synapse_objects[s.id] = nml2_doc_temp.get_by_id(s.id)
 
     for p in nl_model.populations:
-
         size = evaluate(p.size, nl_model.parameters)
         properties = p.properties if p.properties else {}
 
@@ -136,7 +139,6 @@ def generate_network(
             and not p.relative_layout
             and not always_include_props
         ):
-
             # If there are no positions (abstract network), and <property>
             # is added to <population>, jLems doesn't like it... (it has difficulty
             # interpreting pop0[0]/v, etc.)
@@ -197,7 +199,6 @@ def generate_network(
 
     if include_connections:
         for p in nl_model.projections:
-
             type = p.type if p.type else "projection"
 
             synapse_obj = (
@@ -242,7 +243,6 @@ def generate_network(
                                 nl_model.parameters,
                                 rng,
                             ):
-
                                 delay = (
                                     evaluate(p.delay, nl_model.parameters, rng)
                                     if p.delay
@@ -272,9 +272,7 @@ def generate_network(
                                 conn_count += 1
 
                 if p.convergent_connectivity:
-
                     for post_i in range(len(pop_locations[p.postsynaptic])):
-
                         for count in range(int(p.convergent_connectivity.num_per_post)):
                             found = False
                             while not found:
@@ -322,7 +320,6 @@ def generate_network(
                             len(pop_locations[p.postsynaptic]),
                         )
                     ):
-
                         # print_v("Adding connection %i with weight: %s, delay: %s"%(conn_count, weight, delay))
                         handler.handle_connection(
                             p.id,
@@ -347,7 +344,6 @@ def generate_network(
 
     if include_inputs:
         for input in nl_model.inputs:
-
             handler.handle_input_list(
                 input.id,
                 input.population,
@@ -403,7 +399,6 @@ def generate_network(
                     flip = rng.random()
                     weight = input.weight if input.weight else 1
                     if flip * 100.0 < input.percentage:
-
                         if input.number_per_cell and input.segment_ids:
                             raise Exception(
                                 "On input: %s, only one of number_per_cell or segment_ids is allowed"
@@ -502,12 +497,10 @@ def check_to_generate_or_run(argv, sim):
         generate_and_run(sim, simulator="mdf")
 
     elif "-nml" in argv or "-neuroml" in argv:
-
         network = load_network(sim.network)
         generate_neuroml2_from_network(network, simulation=sim, validate=True)
 
     elif "-nmlh5" in argv or "-neuromlh5" in argv:
-
         network = load_network(sim.network)
         generate_neuroml2_from_network(
             network, simulation=sim, validate=True, format="hdf5"
@@ -515,7 +508,6 @@ def check_to_generate_or_run(argv, sim):
 
     else:
         for a in argv:
-
             if "-jnmlnetpyne" in a:
                 num_processors = 1
                 if len(a) > len("-jnmlnetpyne"):
@@ -527,7 +519,9 @@ def check_to_generate_or_run(argv, sim):
                 show_graph = True
                 if "-nogui" in argv:
                     show_graph = False
-                generate_and_run(sim, simulator=a[1:], nogui= not show_graph)  # Will not "run" obviously...
+                generate_and_run(
+                    sim, simulator=a[1:], nogui=not show_graph
+                )  # Will not "run" obviously...
             elif "matrix" in a:  # e.g. -matrix2
                 generate_and_run(sim, simulator=a[1:])  # Will not "run" obviously...
 
@@ -548,7 +542,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
 
     for c in nl_model.cells:
         if c.pynn_cell:
-
             if nml_doc.get_by_id(c.id) == None:
                 import pyNN.neuroml
 
@@ -556,7 +549,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
                 for p in cell_params:
                     cell_params[p] = evaluate(cell_params[p], nl_model.parameters)
                 for proj in nl_model.projections:
-
                     synapse = nl_model.get_child(proj.synapse, "synapses")
                     post_pop = nl_model.get_child(proj.postsynaptic, "populations")
                     if post_pop.component == c.id:
@@ -583,7 +575,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
 
     for s in nl_model.synapses:
         if nml_doc.get_by_id(s.id) == None:
-
             if s.pynn_synapse_type and s.pynn_receptor_type:
                 import neuroml
 
@@ -606,7 +597,6 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
                     nml_doc.alpha_curr_synapses.append(syn)
 
     for i in nl_model.input_sources:
-
         if i.pynn_input:
             import pyNN.neuroml
 
@@ -673,7 +663,6 @@ def generate_neuroml2_from_network(
             )
 
     for i in nl_model.input_sources:
-
         if i.lems_source_file:
             fname = locate_file(i.lems_source_file, base_dir)
 
@@ -686,7 +675,7 @@ def generate_neuroml2_from_network(
             for comp in model.components:
                 if i.id == comp.id:
                     print_v("Found a component: %s in %s" % (comp, fname))
-                    if hasattr(i, 'parameters') and len(i.parameters) > 0:
+                    if hasattr(i, "parameters") and len(i.parameters) > 0:
                         for p in i.parameters:
                             comp.set_parameter(
                                 p, evaluate(i.parameters[p], nl_model.parameters)
@@ -713,14 +702,13 @@ def generate_neuroml2_from_network(
 
         if nml_doc.get_by_id(i.id) == None:
             if i.neuroml2_source_file:
-
                 incl = neuroml.IncludeType(
                     locate_file(i.neuroml2_source_file, base_dir)
                 )
                 if not incl in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
-            if hasattr(i, 'neuroml2_input') and i.neuroml2_input is not None:
+            if hasattr(i, "neuroml2_input") and i.neuroml2_input is not None:
                 input_params = i.parameters if i.parameters else {}
 
                 # TODO make more generic...
@@ -745,7 +733,6 @@ def generate_neuroml2_from_network(
 
     for c in nl_model.cells:
         if c.neuroml2_source_file:
-
             incl = neuroml.IncludeType(locate_file(c.neuroml2_source_file, base_dir))
             found_cell = False
             for cell in nml_doc.cells:
@@ -802,7 +789,6 @@ def generate_neuroml2_from_network(
                 nml_doc.includes.append(incl)
 
         if c.neuroml2_cell:
-
             cell_params = c.parameters if c.parameters else {}
             # TODO make more generic...
             if c.neuroml2_cell.lower() == "spikegenerator":
@@ -910,7 +896,6 @@ def generate_neuroml2_from_network(
         extra_lems_components.export_to_file(extra_lems_file)
 
     if validate and format == "xml":
-
         from pyneuroml import pynml
 
         success = pynml.validate_neuroml2(nml_file_name, verbose_validate=False)
@@ -998,7 +983,6 @@ def _generate_neuron_files_from_neuroml(network, verbose=False, dir_for_mod_file
                 % (dir_for_mod_files, os.getcwd(), locations_mods_loaded_from)
             )
             try:
-
                 from neuron import load_mechanisms
 
                 if os.getcwd() == dir_for_mod_files:
@@ -1041,7 +1025,6 @@ def generate_and_run(
 
     try:
         if simulator == "NEURON":  # NOT YET WORKING...
-
             _generate_neuron_files_from_neuroml(network, dir_for_mod_files=target_dir)
 
             from neuromllite.NeuronHandler import NeuronHandler
@@ -1060,7 +1043,6 @@ def generate_and_run(
                 )
 
         elif simulator.lower() == "mdf":
-
             from neuromllite.MDFHandler import MDFHandler
 
             mdf_handler = MDFHandler(nl_network=network)
@@ -1068,7 +1050,6 @@ def generate_and_run(
             generate_network(network, mdf_handler)
 
         elif simulator.lower() == "psyneulink":
-
             from neuromllite.PsyNeuLinkHandler import PsyNeuLinkHandler
 
             pnl_handler = PsyNeuLinkHandler(nl_network=network)
@@ -1158,7 +1139,6 @@ plt.show()
             print_v("Done with PsyNeuLink...")
 
         elif simulator.lower() == "sonata":
-
             target_simulator = "NEST"
 
             from neuromllite.SonataHandler import SonataHandler
@@ -1173,7 +1153,6 @@ plt.show()
 
             for c in network.cells:
                 if c.pynn_cell:
-
                     cell_params = {}
                     if c.parameters:
                         for p in c.parameters:
@@ -1254,7 +1233,7 @@ plt.show()
 
             sim_file_info["inputs"] = {}
             for input in sonata_handler.input_info:
-                print('Handling: %s: %s'%(input, sonata_handler.input_info[input]))
+                print("Handling: %s: %s" % (input, sonata_handler.input_info[input]))
                 sim_file_info["inputs"][input] = {}
                 input_comp = sonata_handler.input_info[input][1]
                 c = temp_nml_doc.get_by_id(input_comp)
@@ -1320,12 +1299,10 @@ plt.show()
             print_v("Done with Sonata...")
 
         elif simulator.lower().startswith("graph"):  # Will not "run" obviously...
-
             from neuromllite.GraphVizHandler import GraphVizHandler, engines
 
             try:
                 if simulator[-1].isalpha():
-
                     engine = engines[simulator[-1]]
                     level = int(simulator[5:-1])
                 else:
@@ -1339,7 +1316,9 @@ plt.show()
                 )
                 return
 
-            handler = GraphVizHandler(level, engine=engine, nl_network=network, view_on_render = not nogui)
+            handler = GraphVizHandler(
+                level, engine=engine, nl_network=network, view_on_render=not nogui
+            )
 
             generate_network(
                 network, handler, always_include_props=True, base_dir=base_dir
@@ -1348,7 +1327,6 @@ plt.show()
             print_v("Done with GraphViz...")
 
         elif simulator.lower().startswith("matrix"):  # Will not "run" obviously...
-
             from neuromllite.MatrixHandler import MatrixHandler
 
             try:
@@ -1369,7 +1347,6 @@ plt.show()
             print_v("Done with MatrixHandler...")
 
         elif simulator == "BindsNET":
-
             from neuromllite.BindsNETHandler import BindsNETHandler
             import bindsnet
 
@@ -1434,7 +1411,6 @@ plt.show()
                 return traces, events
 
         elif simulator == "Arbor":
-
             from neuromllite.ArborHandler import ArborHandler
             import arbor
 
@@ -1507,7 +1483,6 @@ plt.show()
             for pop_id in trace_pop_indices_seg_ids:
                 indices = trace_pop_indices_seg_ids[pop_id].keys()
                 for index in indices:
-
                     filename = "%s.%s.%s.v.dat" % (simulation.id, pop_id, index)
                     # all_columns = []
                     gid = arbor_recipe.get_gid(pop_id, index)
@@ -1565,7 +1540,6 @@ plt.show()
                 return traces, events
 
         elif simulator.startswith("PyNN"):
-
             # _generate_neuron_files_from_neuroml(network)
             simulator_name = simulator.split("_")[1].lower()
 
@@ -1575,7 +1549,6 @@ plt.show()
 
             syn_cell_params = {}
             for proj in network.projections:
-
                 synapse = network.get_child(proj.synapse, "synapses")
                 post_pop = network.get_child(proj.postsynaptic, "populations")
 
@@ -1633,7 +1606,6 @@ plt.show()
             pynn_handler.set_receptor_types(receptor_types)
 
             for input_source in network.input_sources:
-
                 # TODO: change this when noisyCurrentSource is integrated into the core of NeuroML
                 if input_source.pynn_input or input_source.lems_source_file:
                     pynn_handler.add_input_source(input_source, network)
@@ -1686,13 +1658,14 @@ plt.show()
             events = {}
 
             if not "NeuroML" in simulator:
-
                 # Temp! See https://github.com/NeuralEnsemble/PyNN/pull/762
                 def get_source_id(spiketrain):
-                    if 'source_id' in spiketrain.annotations:
-                        return spiketrain.annotations['source_id']
-                    elif 'channel_id' in spiketrain.annotations: # See https://github.com/NeuralEnsemble/PyNN/pull/762
-                        return spiketrain.annotations['channel_id']
+                    if "source_id" in spiketrain.annotations:
+                        return spiketrain.annotations["source_id"]
+                    elif (
+                        "channel_id" in spiketrain.annotations
+                    ):  # See https://github.com/NeuralEnsemble/PyNN/pull/762
+                        return spiketrain.annotations["channel_id"]
 
                 for pop_id in trace_pop_indices_seg_ids:
                     pynn_pop = pynn_handler.populations[pop_id]
@@ -1773,7 +1746,6 @@ plt.show()
                 return traces, events
 
         elif simulator == "NetPyNE":
-
             if target_dir == None:
                 target_dir = "./"
 
@@ -1868,7 +1840,6 @@ plt.show()
                 preComp = netpyne_handler.pop_ids_vs_components[prePop]
 
                 for conn in netpyne_handler.connections[projName]:
-
                     (
                         pre_id,
                         pre_seg,
@@ -1890,7 +1861,6 @@ plt.show()
                     }
 
                     if ptype == "electricalProjection":
-
                         if weight != 1:
                             raise Exception(
                                 "Cannot yet support inputs where weight !=1!"
@@ -2007,7 +1977,6 @@ plt.show()
             or simulator == "jNeuroML_Brian2"
             or simulator == "EDEN"
         ):
-
             from pyneuroml.lems import generate_lems_file_for_neuroml
             from pyneuroml import pynml
 
@@ -2053,7 +2022,6 @@ plt.show()
             pops = network.populations
             pops.sort(key=id)
             for p in pops:
-
                 if p.id in spike_pop_indices:
                     pops_spike_save.append(p.id)
 

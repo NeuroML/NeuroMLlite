@@ -19,7 +19,6 @@ REPORT_FILE = "report.txt"
 
 
 def _get_default_nest_syn(nml_doc):
-
     if nml_doc.get_by_id(DEFAULT_NEST_SPIKE_SYN):
         return nml_doc.get_by_id(DEFAULT_NEST_SPIKE_SYN)
 
@@ -90,7 +89,6 @@ class SonataReader(NetworkReader):
     nml_includes = ["PyNN.xml"]
 
     def __init__(self, **parameters):
-
         print_v("Creating SonataReader with %s..." % parameters)
         self.parameters = parameters
 
@@ -361,11 +359,9 @@ class SonataReader(NetworkReader):
 
                 properties["color"] = color
                 if True or not "locations" in self.cell_info[sonata_pop]["0"]:
-
                     properties = {}  #############  temp for LEMS...
 
                 if model_type != "virtual":
-
                     self.handler.handle_population(
                         nml_pop_id,
                         pop_comp,
@@ -379,7 +375,6 @@ class SonataReader(NetworkReader):
             self.cell_info[sonata_pop]["pop_map"] = {}
 
             for i in self.cell_info[sonata_pop]["types"]:
-
                 pop = types_vs_pops[self.cell_info[sonata_pop]["types"][i]]
 
                 if not pop in self.cell_info[sonata_pop]["pop_count"]:
@@ -412,7 +407,6 @@ class SonataReader(NetworkReader):
         #  Load simulation info into self.simulation_config
 
         if self.simulation_config:
-
             if self.simulation_config:
                 for m in self.simulation_config["manifest"]:
                     path = self.subs(self.simulation_config["manifest"][m])
@@ -505,7 +499,6 @@ class SonataReader(NetworkReader):
             node_set = info["node_set"]
 
             if info["input_type"] == "current_clamp":
-
                 comp = "PG_%s" % input
                 self.input_comp_info[input][info["input_type"]][comp] = {
                     "amp": info["amp"],
@@ -514,7 +507,6 @@ class SonataReader(NetworkReader):
                 }
 
                 for nml_pop_id in self.node_set_mappings[node_set]:
-
                     input_list_id = "il_%s_%s" % (input, nml_pop_id)
                     indices = self.node_set_mappings[node_set][nml_pop_id]
 
@@ -579,7 +571,6 @@ class SonataReader(NetworkReader):
 
         projections_created = []
         for conn in self.conn_info:
-
             pre_node = self.conn_info[conn]["pre_node"]
             post_node = self.conn_info[conn]["post_node"]
 
@@ -663,7 +654,6 @@ class SonataReader(NetworkReader):
 
                 if not pop_type_pre == "virtual":
                     if not proj_id in projections_created:
-
                         self.handler.handle_projection(
                             proj_id, pre_pop, post_pop, synapse
                         )
@@ -743,7 +733,6 @@ class SonataReader(NetworkReader):
                     self.conn_info[self.current_edge] = {}
 
                 if g._v_name == self.current_edge:
-
                     self.current_pre_node = g._v_name.split("_to_")[0]
                     self.current_post_node = g._v_name.split("_to_")[1]
                     # print('  Found edge %s -> %s'%(self.current_pre_node, self.current_post_node))
@@ -785,7 +774,6 @@ class SonataReader(NetworkReader):
         elif (
             self.current_sonata_pop
         ):  # e.g. parent group is cortex with child datasets node_id etc.
-
             if d.name == "node_group_id":
                 for i in range(0, d.shape[0]):
                     if not d[i] == 0:
@@ -857,7 +845,6 @@ class SonataReader(NetworkReader):
                 info["model_type"] == "point_process"
                 and model_template == "nest:iaf_psc_alpha"
             ):
-
                 is_nest = True
                 from neuroml import IF_curr_alpha
 
@@ -881,7 +868,6 @@ class SonataReader(NetworkReader):
                 info["model_type"] == "point_process"
                 and model_template == "NEURON_IntFire1"
             ):
-
                 contents = """<Lems>
     <intFire1Cell id="%s" thresh="1mV" reset="0mV" tau="%sms" refract="%sms"/>
 </Lems>""" % (
@@ -901,7 +887,6 @@ class SonataReader(NetworkReader):
                 )
 
             else:
-
                 from neuroml import IafRefCell
 
                 IafRefCell0 = IafRefCell(
@@ -947,7 +932,6 @@ class SonataReader(NetworkReader):
                 "level_of_detail" in dyn_params
                 and dyn_params["level_of_detail"] == "instanteneous"
             ):
-
                 contents = """<Lems>
     <impulseSynapse id="%s"/>
 </Lems>""" % (
@@ -1164,7 +1148,6 @@ def process_args():
 
 
 def _get_nml_pop_id(quantity):
-
     if "[" in quantity:
         nml_pop = quantity.split("[")[0]
         nml_index = int(quantity.split("[")[1].split("]")[0])
@@ -1177,7 +1160,6 @@ def _get_nml_pop_id(quantity):
 
 
 def run(args):
-
     print_v(
         "Reading Sonata file: %s and generating network: %s"
         % (args.sonata_config_file, args.network_reference)
@@ -1197,12 +1179,10 @@ def run(args):
     print_v("Generated LEMS file to run network: %s" % (lems_file_name))
 
     if args.jnml or args.neuron:
-
         traces = None
         events = None
 
         if args.jnml:
-
             from pyneuroml import pynml
 
             traces, events = pynml.run_lems_with_jneuroml(
@@ -1213,7 +1193,6 @@ def run(args):
                 reload_events=True,
             )
         if args.neuron:
-
             from pyneuroml import pynml
 
             traces, events = pynml.run_lems_with_jneuroml_neuron(
@@ -1245,7 +1224,6 @@ def run(args):
             nml_q_vs_node_id = {}
 
             for nml_q in traces.keys():
-
                 if nml_q != "t":
                     nml_pop, nml_index = _get_nml_pop_id(nml_q)
                     (sonata_node, sonata_node_id) = sr.nml_ids_vs_gids[nml_pop][
@@ -1256,7 +1234,6 @@ def run(args):
             ordered = sorted(nml_q_vs_node_id, key=nml_q_vs_node_id.get)
 
             for nml_q in ordered:
-
                 if nml_q != "t":
                     v = traces[nml_q]
                     nml_pop, nml_index = _get_nml_pop_id(nml_q)
@@ -1273,7 +1250,6 @@ def run(args):
                     node_info[sonata_node]["gids"].append(sonata_node_id)
 
             for sonata_node in node_info:
-
                 node_grp = h5file.create_group(report_grp, sonata_node)
                 mapping_grp = h5file.create_group(node_grp, "mapping")
 
@@ -1334,7 +1310,6 @@ def run(args):
 
 
 def main(args=None):
-
     if "-test" in sys.argv:
         id = "9_cells"
         id = "300_cells"
@@ -1368,7 +1343,6 @@ def main(args=None):
         NeuroMLHdf5Writer.write(nml_doc,nml_file_name)
         print('Written to: %s'%nml_file_name) """
     else:
-
         if args is None:
             args = process_args()
         run(args=args)

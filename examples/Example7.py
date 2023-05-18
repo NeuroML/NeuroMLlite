@@ -14,7 +14,6 @@ import sys
 
 
 def generate():
-
     dt = 0.025
     simtime = 1000
 
@@ -228,9 +227,7 @@ def generate():
 
 
 if __name__ == "__main__":
-
     if "-sweep" in sys.argv:
-
         from neuromllite.sweep.ParameterSweep import *
 
         sim, net = generate()
@@ -298,7 +295,6 @@ if __name__ == "__main__":
         plt.show()
 
     if "-sweep2" in sys.argv:
-
         sim, net = generate()
         sim.record_traces = {}
 
@@ -372,7 +368,6 @@ if __name__ == "__main__":
         plt.show()
 
     else:
-
         sim, net = generate()
 
         ################################################################################

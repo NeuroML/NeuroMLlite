@@ -109,7 +109,6 @@ def load_simulation_json(filename: str) -> Optional[dict]:
 
 
 def get_pops_vs_cell_indices_seg_ids(recordSpec, network):
-
     pvc = {}
     if recordSpec is not None:
         for p in recordSpec:
@@ -132,7 +131,6 @@ def get_pops_vs_cell_indices_seg_ids(recordSpec, network):
 
 
 def _generate_cell_indices_seg_ids(pop_id, indices_segids, network):
-
     a = {}
     pop = network.get_child(pop_id, "populations")
 
@@ -159,7 +157,6 @@ def _generate_cell_indices_seg_ids(pop_id, indices_segids, network):
 
 
 def is_spiking_input_population(population, network):
-
     cell = network.get_child(population.component, "cells")
 
     return is_spiking_input_cell(cell)
@@ -195,7 +192,6 @@ def create_new_model(
     network_filename=None,
     simulation_filename=None,
 ):
-
     ################################################################################
     ###   Build a new network
 
@@ -261,7 +257,6 @@ def create_new_model(
     ###   Add some inputs
 
     if input_for_default_population:
-
         net.input_sources.append(input_for_default_population)
 
         net.inputs.append(

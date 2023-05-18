@@ -4,7 +4,6 @@ import sys
 
 
 def run(config_file, simulator):
-
     if simulator == "NEURON":
         from bmtk.simulator import bionet
 
@@ -25,5 +24,4 @@ def run(config_file, simulator):
 
 
 if __name__ == "__main__":
-
     run("config.json", "NEST")

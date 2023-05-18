@@ -5,7 +5,6 @@ import sys
 
 
 if __name__ == "__main__":
-
     hhcell = Cell(
         id="hhcell", neuroml2_source_file="../../examples/test_files/hhcell.cell.nml"
     )

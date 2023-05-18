@@ -1,6 +1,6 @@
 import collections
 
-__version__ = "0.5.4"
+__version__ = "0.5.5"
 
 # import pyNN
 # import nest
@@ -41,6 +41,7 @@ class NetworkReaderX:
 @modelspec.define
 class NMLBase(Base):
     """Base class for NeuroML objects."""
+
     notes: str = field(kw_only=True, default=None, validator=optional(instance_of(str)))
 
 
@@ -59,9 +60,14 @@ class Cell(NMLBase):
         arbor_cell: Name of standard Arbor cell type
         bindsnet_node: Name of standard BindsNET node
     """
+
     id: str = field(validator=instance_of(str))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-    neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    parameters: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
+    neuroml2_source_file: str = field(
+        default=None, validator=optional(instance_of(str))
+    )
     lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
     neuroml2_cell: str = field(default=None, validator=optional(instance_of(str)))
     pynn_cell: str = field(default=None, validator=optional(instance_of(str)))
@@ -82,12 +88,22 @@ class Synapse(NMLBase):
         pynn_synapse_type: The pynn synapse type. Valid values are: "curr_exp", "curr_alpha", "cond_exp", "cond_alpha".
         pynn_receptor_type: The pynn receptor type. Valid values are: "excitatory", "inhibitory".
     """
+
     id: str = field(validator=instance_of(str))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-    neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    parameters: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
+    neuroml2_source_file: str = field(
+        default=None, validator=optional(instance_of(str))
+    )
     lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
-    pynn_synapse_type: str = field(default=None, validator=optional(in_(["curr_exp", "curr_alpha", "cond_exp", "cond_alpha"])))
-    pynn_receptor_type: str = field(default=None, validator=optional(in_(["excitatory", "inhibitory"])))
+    pynn_synapse_type: str = field(
+        default=None,
+        validator=optional(in_(["curr_exp", "curr_alpha", "cond_exp", "cond_alpha"])),
+    )
+    pynn_receptor_type: str = field(
+        default=None, validator=optional(in_(["excitatory", "inhibitory"]))
+    )
 
 
 @modelspec.define
@@ -103,9 +119,14 @@ class InputSource(NMLBase):
         lems_source_file: File name of LEMS file defining the input source
         pynn_input: Name of PyNN input
     """
+
     id: str = field(validator=instance_of(str))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-    neuroml2_source_file: str = field(default=None, validator=optional(instance_of(str)))
+    parameters: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
+    neuroml2_source_file: str = field(
+        default=None, validator=optional(instance_of(str))
+    )
     neuroml2_input: str = field(default=None, validator=optional(instance_of(str)))
     lems_source_file: str = field(default=None, validator=optional(instance_of(str)))
     pynn_input: str = field(default=None, validator=optional(instance_of(str)))
@@ -125,6 +146,7 @@ class RectangularRegion(NMLBase):
         height: height of the rectangular region
         depth: depth of the rectangular region
     """
+
     id: str = field(validator=instance_of(str))
     x: float = field(validator=instance_of(float), converter=convert2float)
     y: float = field(validator=instance_of(float), converter=convert2float)
@@ -142,6 +164,7 @@ class RandomLayout(NMLBase):
     Args:
         region: Region in which to place population
     """
+
     region: str = field(validator=instance_of(str))
 
 
@@ -156,6 +179,7 @@ class RelativeLayout(NMLBase):
         y: y position relative to y coordinate of Region
         z: z position relative to z coordinate of Region
     """
+
     region: str = field(validator=instance_of(str))
     x: float = field(validator=instance_of(float), converter=convert2float)
     y: float = field(validator=instance_of(float), converter=convert2float)
@@ -172,6 +196,7 @@ class Location(NMLBase):
         y: y coordinate of location
         z: z coordinate of location
     """
+
     x: float = field(validator=instance_of(float), converter=convert2float)
     y: float = field(validator=instance_of(float), converter=convert2float)
     z: float = field(validator=instance_of(float), converter=convert2float)
@@ -185,6 +210,7 @@ class SingleLocation(NMLBase):
     Args:
         location: Location of the single Cell.
     """
+
     location: Location = field(validator=instance_of(Location))
 
 
@@ -202,13 +228,22 @@ class Population(NMLBase):
         relative_layout: Position relative to RectangularRegion.
         single_location: Explicit location of the one Cell in the population
     """
+
     id: str = field(validator=instance_of(str))
     size: ValueExprType = field(validator=instance_of(value_expr_types))
     component: str = field(validator=instance_of(str))
-    properties: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-    random_layout: RandomLayout = field(default=None, validator=optional(instance_of(RandomLayout)))
-    relative_layout: RelativeLayout = field(default=None, validator=optional(instance_of(RelativeLayout)))
-    single_location: SingleLocation = field(default=None, validator=optional(instance_of(SingleLocation)))
+    properties: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
+    random_layout: RandomLayout = field(
+        default=None, validator=optional(instance_of(RandomLayout))
+    )
+    relative_layout: RelativeLayout = field(
+        default=None, validator=optional(instance_of(RelativeLayout))
+    )
+    single_location: SingleLocation = field(
+        default=None, validator=optional(instance_of(SingleLocation))
+    )
 
     def has_positions(self):
         """
@@ -235,6 +270,7 @@ class RandomConnectivity(NMLBase):
     Args:
         probability: Random probability of connection.
     """
+
     probability: ValueExprType = field(validator=instance_of(value_expr_types))
 
 
@@ -243,6 +279,7 @@ class OneToOneConnector(NMLBase):
     """
     A OneToOneConnector definition.
     """
+
     pass
 
 
@@ -255,6 +292,7 @@ class ConvergentConnectivity(NMLBase):
     Args:
         num_per_post: Number per post-synaptic neuron.
     """
+
     num_per_post: float = field(validator=instance_of(float), converter=convert2float)
 
 
@@ -278,17 +316,28 @@ class Projection(NMLBase):
         one_to_one_connector: Connect cell index i in pre pop to cell index i in post pop for all i
 
     """
+
     id: str = field(validator=instance_of(str))
     presynaptic: str = field(validator=optional(instance_of(str)))
     postsynaptic: str = field(validator=optional(instance_of(str)))
     synapse: str = field(validator=optional(instance_of(str)))
     pre_synapse: str = field(default=None, validator=optional(instance_of(str)))
     type: str = field(default="projection", validator=optional(instance_of(str)))
-    delay: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-    weight: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
-    random_connectivity: RandomConnectivity = field(default=None, validator=optional(instance_of(RandomConnectivity)))
-    convergent_connectivity: ConvergentConnectivity = field(default=None, validator=optional(instance_of(ConvergentConnectivity)))
-    one_to_one_connector: OneToOneConnector = field(default=None, validator=optional(instance_of(OneToOneConnector)))
+    delay: ValueExprType = field(
+        default=None, validator=optional(instance_of(value_expr_types))
+    )
+    weight: ValueExprType = field(
+        default=None, validator=optional(instance_of(value_expr_types))
+    )
+    random_connectivity: RandomConnectivity = field(
+        default=None, validator=optional(instance_of(RandomConnectivity))
+    )
+    convergent_connectivity: ConvergentConnectivity = field(
+        default=None, validator=optional(instance_of(ConvergentConnectivity))
+    )
+    one_to_one_connector: OneToOneConnector = field(
+        default=None, validator=optional(instance_of(OneToOneConnector))
+    )
 
 
 @modelspec.define
@@ -310,11 +359,21 @@ class Input(NMLBase):
     id: str = field(validator=instance_of(str))
     input_source: str = field(default=None, validator=optional(instance_of(str)))
     population: str = field(default=None, validator=optional(instance_of(str)))
-    cell_ids: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
-    percentage: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
-    number_per_cell: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
-    segment_ids: ValueExprType = field(default="", validator=optional(instance_of(value_expr_types)))
-    weight: ValueExprType = field(default=None, validator=optional(instance_of(value_expr_types)))
+    cell_ids: ValueExprType = field(
+        default="", validator=optional(instance_of(value_expr_types))
+    )
+    percentage: float = field(
+        default=None, validator=optional(instance_of(float)), converter=convert2float
+    )
+    number_per_cell: ValueExprType = field(
+        default="", validator=optional(instance_of(value_expr_types))
+    )
+    segment_ids: ValueExprType = field(
+        default="", validator=optional(instance_of(value_expr_types))
+    )
+    weight: ValueExprType = field(
+        default=None, validator=optional(instance_of(value_expr_types))
+    )
 
 
 @modelspec.define
@@ -326,8 +385,11 @@ class NetworkReader(NMLBase):
         type: The type of NetworkReader
         parameters: Dictionary of parameters for the NetworkReader
     """
+
     type: str = field(default=None, validator=optional(instance_of(str)))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    parameters: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
 
 
 @modelspec.define
@@ -349,16 +411,35 @@ class Simulation(NMLBase):
         plots2D: Work in progress...
         plots3D: Work in progress...
     """
+
     id: str = field(validator=instance_of(str))
-    version: str = field(default=f"NeuroMLlite v{__version__}", validator=optional(instance_of(str)), metadata={"omit_if_default": False})
+    version: str = field(
+        default=f"NeuroMLlite v{__version__}",
+        validator=optional(instance_of(str)),
+        metadata={"omit_if_default": False},
+    )
     network: str = field(default=None, validator=optional(instance_of(str)))
-    duration: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
-    dt: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
-    seed: int = field(default=None, validator=optional(instance_of(int)), converter=convert2int)
-    record_traces: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-    record_spikes: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-    record_rates: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
-    record_variables: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    duration: float = field(
+        default=None, validator=optional(instance_of(float)), converter=convert2float
+    )
+    dt: float = field(
+        default=None, validator=optional(instance_of(float)), converter=convert2float
+    )
+    seed: int = field(
+        default=None, validator=optional(instance_of(int)), converter=convert2int
+    )
+    record_traces: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
+    record_spikes: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
+    record_rates: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
+    record_variables: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
     plots2D: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
     plots3D: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
 
@@ -386,7 +467,9 @@ class Network(NMLBase):
     """
 
     id: str = field(validator=instance_of(str))
-    parameters: Dict[str, Any] = field(default=None, validator=optional(instance_of(dict)))
+    parameters: Dict[str, Any] = field(
+        default=None, validator=optional(instance_of(dict))
+    )
     cells: List[Cell] = field(factory=list, validator=instance_of(list))
     synapses: List[Synapse] = field(factory=list, validator=instance_of(list))
     input_sources: List[InputSource] = field(factory=list, validator=instance_of(list))
@@ -394,14 +477,19 @@ class Network(NMLBase):
     populations: List[Population] = field(factory=list, validator=instance_of(list))
     projections: List[Projection] = field(factory=list, validator=instance_of(list))
     inputs: List[Input] = field(factory=list, validator=instance_of(list))
-    version: str = field(default=f"NeuroMLlite v{__version__}", validator=instance_of(str), metadata={"omit_if_default": False})
+    version: str = field(
+        default=f"NeuroMLlite v{__version__}",
+        validator=instance_of(str),
+        metadata={"omit_if_default": False},
+    )
     seed: int = field(default=None, validator=optional(instance_of(int)))
-    temperature: float = field(default=None, validator=optional(instance_of(float)), converter=convert2float)
+    temperature: float = field(
+        default=None, validator=optional(instance_of(float)), converter=convert2float
+    )
     network_reader: NetworkReader = field(default=None)
 
 
 if __name__ == "__main__":
-
     net = Network(id="net")
     doc = net.generate_documentation(format="markdown")
     print(doc)

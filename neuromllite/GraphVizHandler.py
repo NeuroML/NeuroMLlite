@@ -27,7 +27,6 @@ engines = {
 
 
 class GraphVizHandler(ConnectivityHandler):
-
     DEFAULT_POP_SHAPE = "ellipse"
     EXC_POP_SHAPE = "ellipse"
     INH_POP_SHAPE = "ellipse"
@@ -54,7 +53,6 @@ class GraphVizHandler(ConnectivityHandler):
         output_format="png",
         view_on_render=True,
     ):
-
         self.nl_network = nl_network
         self.level = level
         self.engine = engine
@@ -106,7 +104,6 @@ class GraphVizHandler(ConnectivityHandler):
         print_v("**************************************")
 
     def get_weight_fraction_and_line(self, w, max_w, min_w):
-
         if max_w == min_w:
             return 1.0, 1.0
         # fractional weight, 0->1
@@ -122,7 +119,6 @@ class GraphVizHandler(ConnectivityHandler):
         return fweight, lweight
 
     def finalise_document(self):
-
         max_abs_weight = {}
         min_abs_weight = {}
 
@@ -137,7 +133,6 @@ class GraphVizHandler(ConnectivityHandler):
             min_abs_weight[t] = 1e100
 
         if self.is_cell_level() and self.level <= -1:
-
             for projName in self.proj_weights:
                 # ws = self.proj_individual_weights[projName]
                 ws = self.proj_individual_scaled_weights[projName]
@@ -151,7 +146,6 @@ class GraphVizHandler(ConnectivityHandler):
                     )
 
             for projName in self.proj_weights:
-
                 pre_pop = self.proj_pre_pops[projName]
                 post_pop = self.proj_post_pops[projName]
                 proj_type = self.proj_types[projName]
@@ -209,7 +203,6 @@ class GraphVizHandler(ConnectivityHandler):
                             ][pre_i][post_i]
 
                             if w != 0:
-
                                 weight_used = w
 
                                 cond_scale = None
@@ -279,17 +272,14 @@ class GraphVizHandler(ConnectivityHandler):
                                     self.graph.edge(pre_pop_i, post_pop_i)
 
         else:
-
             for projName in self.proj_tot_weight:
                 t = self.proj_types[projName]
 
                 if self.proj_tot_weight[projName] != 0:
-
                     weight_used = float(self.proj_tot_weight[projName])
                     weight_used = self._scale_population_weight(weight_used, projName)
 
                     if abs(weight_used) >= self.min_weight_to_show:
-
                         max_abs_weight[t] = max(max_abs_weight[t], abs(weight_used))
                         min_abs_weight[t] = min(min_abs_weight[t], abs(weight_used))
                         print_v(
@@ -316,17 +306,14 @@ class GraphVizHandler(ConnectivityHandler):
                         )
 
             for projName in self.proj_tot_weight:
-
                 proj_type = self.proj_types[projName]
 
                 if self.proj_tot_weight[projName] != 0:
-
                     # weight_used = self.proj_weights[projName]
                     weight_used = float(self.proj_tot_weight[projName])
                     weight_used = self._scale_population_weight(weight_used, projName)
 
                     if abs(weight_used) >= self.min_weight_to_show:
-
                         if max_abs_weight[proj_type] == min_abs_weight[proj_type]:
                             fweight = 1
                             lweight = 1
@@ -415,9 +402,7 @@ class GraphVizHandler(ConnectivityHandler):
                                     )
 
                                 if self.level >= 5:
-
                                     if self.proj_conns[projName] > 0:
-
                                         pre_avg = (
                                             float(self.proj_conns[projName])
                                             / self.pop_sizes[
@@ -490,7 +475,6 @@ class GraphVizHandler(ConnectivityHandler):
             )
 
     def handle_network(self, network_id, notes, temperature=None):
-
         print_v("Network: %s" % network_id)
         self.network_id = network_id
 
@@ -570,7 +554,6 @@ class GraphVizHandler(ConnectivityHandler):
         if self.level >= 3:
             label += "<br/><i>%s cell%s</i>" % (size, "" if size == 1 else "s")
         if self.level >= 4:
-
             from neuroml import SpikeSourcePoisson
 
             if component_obj and isinstance(component_obj, SpikeSourcePoisson):
@@ -592,7 +575,6 @@ class GraphVizHandler(ConnectivityHandler):
         label += ">"
 
         if properties and "region" in properties:
-
             with self.graph.subgraph(name="cluster_%s" % properties["region"]) as c:
                 c.attr(color="#444444", fontcolor="#444444")
                 c.attr(label=properties["region"])
@@ -631,7 +613,6 @@ class GraphVizHandler(ConnectivityHandler):
         synapse_obj=None,
         pre_synapse_obj=None,
     ):
-
         shape = self.EXC_CONN_ARROW_SHAPE
         line = "solid"
 
@@ -706,7 +687,6 @@ class GraphVizHandler(ConnectivityHandler):
     def finalise_projection(
         self, projName, prePop, postPop, synapse=None, type="projection"
     ):
-
         # weight = self.proj_tot_weight[projName]
         # self.max_weight = max(self.max_weight, weight)
         # self.min_weight = min(self.min_weight, weight)
@@ -715,19 +695,16 @@ class GraphVizHandler(ConnectivityHandler):
         # print_v("Projection finalising: "+projName+" from "+prePop+" to "+postPop+" completed")
 
     def finalise_input_source(self, inputListId):
-
         if self.include_ext_inputs:
             # self.print_input_information('FINAL: '+inputListId, self.pops_ils[inputListId], '...', self.sizes_ils[inputListId])
 
             if self.level >= 2:
-
                 label = "<%s" % inputListId
                 if self.level >= 3:
                     size = self.sizes_ils[inputListId]
                     label += "<br/><i>%s input%s</i>" % (size, "" if size == 1 else "s")
 
                 if self.level >= 4:
-
                     from neuroml import PulseGenerator
                     from neuroml import TransientPoissonFiringSynapse
                     from neuroml import PoissonFiringSynapse
@@ -755,7 +732,6 @@ class GraphVizHandler(ConnectivityHandler):
                     if input_comp_obj and isinstance(
                         input_comp_obj, PoissonFiringSynapse
                     ):
-
                         average_rate = convert_to_units(
                             input_comp_obj.average_rate, "Hz"
                         )
@@ -770,7 +746,6 @@ class GraphVizHandler(ConnectivityHandler):
                     if input_comp_obj and isinstance(
                         input_comp_obj, TransientPoissonFiringSynapse
                     ):
-
                         start = convert_to_units(input_comp_obj.delay, "ms")
                         if start == int(start):
                             start = int(start)
