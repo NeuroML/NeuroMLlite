@@ -18,6 +18,7 @@ import lems.api as lems  # from pylems
 
 import numpy
 
+DEFAULT_CURRENT_INPUT_PORT = "synapses_i"
 
 class MDFHandler(DefaultNetworkHandler):
     def __init__(self, nl_network):
@@ -26,6 +27,8 @@ class MDFHandler(DefaultNetworkHandler):
 
         self.input_list_vs_comps = {}
         self.input_list_vs_pops = {}
+
+        self.pop_ids_vs_size = {}
 
     def handle_document_start(self, id, notes):
         print_v("Parsing for MDF export: %s" % id)
@@ -85,6 +88,8 @@ class MDFHandler(DefaultNetworkHandler):
         else:
             compInfo = ""
 
+        self.pop_ids_vs_size[population_id] = size
+
         info = (
             "Population: "
             + population_id
@@ -101,17 +106,19 @@ class MDFHandler(DefaultNetworkHandler):
 
         if cell_comp is not None:
             node = self._comp_to_mdf_node(
-                cell_comp, component, node_id, size, properties
+                nmllite_comp=cell_comp,
+                lems_comp_id=component,
+                size=size,
+                properties=properties,
             )
 
         self.mdf_graph["nodes"][node_id] = node
 
-    def _comp_to_mdf_node(
-        self, nmllite_comp, lems_comp_id, node, pop_size, properties=None
-    ):
+    def _comp_to_mdf_node(self, nmllite_comp, lems_comp_id, size=1, properties=None):
         base_dir = "./"  # for now...
 
         node = {}
+
         if properties:
             node["metadata"] = properties
 
@@ -120,7 +127,7 @@ class MDFHandler(DefaultNetworkHandler):
         node["output_ports"] = {}
 
         if nmllite_comp.lems_source_file:
-            print_v("  It's defined in custom lems...")
+            print_v("  It's a component defined in custom lems...")
             fname = locate_file(nmllite_comp.lems_source_file, base_dir)
             model = MDFHandler._load_lems_file_with_neuroml2_types(fname)
             lems_comp = model.components.get(lems_comp_id)
@@ -178,6 +185,21 @@ class MDFHandler(DefaultNetworkHandler):
                     evaluate(nmllite_comp.parameters[p], self.nl_network.parameters),
                 )
 
+        elif hasattr(nmllite_comp, "pynn_synapse_type"):
+            print_v("  It's a PyNN synapse...")
+
+            nml2_doc_temp = _extract_pynn_components_to_neuroml(self.nl_network)
+
+            model = MDFHandler._get_lems_model_with_neuroml2_types(nml2_doc_temp)
+
+            lems_comp = model.components[nmllite_comp.id]
+
+            for p in nmllite_comp.parameters:
+                lems_comp.set_parameter(
+                    p,
+                    evaluate(nmllite_comp.parameters[p], self.nl_network.parameters),
+                )
+
         elif (
             hasattr(nmllite_comp, "neuroml2_input")
             and nmllite_comp.neuroml2_input is not None
@@ -213,6 +235,12 @@ class MDFHandler(DefaultNetworkHandler):
                     ),
                 )"""
 
+        else:
+            raise Exception(
+                "Can't determine the source of the component definition in: %s"
+                % nmllite_comp
+            )
+
         print_v("All LEMS comps in model: %s" % list(model.components.keys()))
         print_v("This comp: %s" % lems_comp)
         comp_type_name = lems_comp.type
@@ -228,22 +256,30 @@ class MDFHandler(DefaultNetworkHandler):
 
         for p in lems_comp.parameters:
             node["parameters"][p] = {
-                "value": [get_value_in_si(evaluate(lems_comp.parameters[p]))] * pop_size
+                "value": [get_value_in_si(evaluate(lems_comp.parameters[p]))] * size
             }
 
-        consts = self._get_all_elements_in_lems(lems_comp_type, model, "constants")
+        consts = self._get_all_elements_in_lems(lems_comp_type, model, "constant")
         for c in consts:
-            node["parameters"][c.name] = {
-                "value": [get_value_in_si(c.value)] * pop_size
-            }
+            node["parameters"][c.name] = {"value": [get_value_in_si(c.value)] * size}
+
+        '''event_ports = self._get_all_elements_in_lems(
+            lems_comp_type, model, "event_port"
+        )
+        for ep in event_ports:
+            if ep.direction == "out":
+                node["parameters"][ep.name] = {"value": [0] * size}
+                node["output_ports"][ep.name] = {"value": ep.name}
+            elif ep.direction == "in":
+                node["input_ports"][ep.name] = {"shape": [size], "reduce": "add"}'''
 
         if hasattr(lems_comp_type, "dynamics"):
             for sv in lems_comp_type.dynamics.state_variables:
                 node["parameters"][sv.name] = {}
 
             for reg in lems_comp_type.dynamics.regimes:
-                node["parameters"]["ACTIVE_REGIME"] = {"value": [1] * pop_size}
-                node["parameters"]["INACTIVE_REGIME"] = {"value": [0] * pop_size}
+                node["parameters"]["ACTIVE_REGIME"] = {"value": [1] * size}
+                node["parameters"]["INACTIVE_REGIME"] = {"value": [0] * size}
 
                 reg_param = "REGIME_%s" % reg.name
                 # node["parameters"][reg_param] = {"value": 'ACTIVE_REGIME' if reg.initial else 'INACTIVE_REGIME'}
@@ -325,7 +361,7 @@ class MDFHandler(DefaultNetworkHandler):
                                                 }
 
             for sv in lems_comp_type.dynamics.state_variables:
-                # node["parameters"][sv.name]["value"] = [0]*pop_size
+                # node["parameters"][sv.name]["value"] = [0]*size
 
                 node["output_ports"][sv.name] = {"value": sv.name}
                 if sv.exposure:
@@ -348,6 +384,9 @@ class MDFHandler(DefaultNetworkHandler):
                     if dv.select is not None:
                         in_port = dv.select.replace("[*]/", "_")
                         node["input_ports"][in_port] = {}
+                        ''' "shape": [size],
+                            "reduce": "add",'''
+                        
                         node["parameters"][dv.name] = {"value": in_port}
 
             conditions = 0
@@ -399,9 +438,12 @@ class MDFHandler(DefaultNetworkHandler):
         if child_type == "exposure":
             for e in component_type.exposures:
                 ee.append(e)
-        if child_type == "constants":
+        if child_type == "constant":
             for c in component_type.constants:
                 ee.append(c)
+        if child_type == "event_port":
+            for e in component_type.event_ports:
+                ee.append(e)
 
         if component_type.extends:
             ect = model.component_types[component_type.extends]
@@ -518,6 +560,24 @@ class MDFHandler(DefaultNetworkHandler):
             + synInfo
         )
 
+        syn_node_id = synapse
+        syn_node = {}
+
+        syn_comp = self.nl_network.get_child(synapse, "synapses")
+
+        print("Converting %s; %s" % (synapse_obj, syn_comp))
+
+        post_pop_size = self.pop_ids_vs_size[postPop]
+
+        syn_node = self._comp_to_mdf_node(
+            nmllite_comp=syn_comp,
+            lems_comp_id=synapse,
+            size=post_pop_size,
+            properties={},
+        )
+
+        ###self.mdf_graph["nodes"][syn_node_id] = syn_node
+
         pre_node_id = "%s" % (prePop)
         post_node_id = "%s" % (postPop)
         edge_id = "Edge %s to %s" % (pre_node_id, post_node_id)
@@ -565,6 +625,15 @@ class MDFHandler(DefaultNetworkHandler):
             )
         )
 
+        if preSegId != 0 or postSegId != 0:
+            raise Exception(
+                "MDF export does not support connections on anything other than segment id = 0"
+            )
+
+    def _get_input_list_node_id(self, inputListId):
+        return "InputList_%s" % (inputListId)
+        #return "%s" % (inputListId)
+
     #
     #  Should be overridden to create input source array
     #
@@ -574,43 +643,58 @@ class MDFHandler(DefaultNetworkHandler):
         self.input_list_vs_comps[inputListId] = component
         self.input_list_vs_pops[inputListId] = population_id
 
+        print_v(
+            "InputList: %s, population_id: %s, component: %s, size: %i, input_comp_obj: %s"
+            % (inputListId, population_id, component, size, input_comp_obj)
+        )
+
+        node_id = self._get_input_list_node_id(inputListId)
+
+        comp = self.nl_network.get_child(component, "input_sources")
+
+        node = self._comp_to_mdf_node(nmllite_comp=comp, lems_comp_id=component, size=1)
+
+        # TODO: remove when global t available
+        node["parameters"]["t"] = {"default_initial_value": 0, "time_derivative": "1"}
+
+        pop_size = self.pop_ids_vs_size[population_id]
+        node["parameters"]["weight"] = {"value": [0.0] * pop_size}
+
+        self.mdf_graph["nodes"][node_id] = node
+
+        pre_node_id = node_id
+        post_node_id = "%s" % population_id
+        edge_id = "Edge %s to %s" % (pre_node_id, post_node_id)
+        edge = {}
+        edge["name"] = edge_id
+        edge["sender_port"] = "i"
+        edge["receiver_port"] = DEFAULT_CURRENT_INPUT_PORT
+        edge["sender"] = pre_node_id
+        edge["receiver"] = post_node_id
+
+        self.mdf_graph["edges"][edge_id] = edge
+
     #
     #  Should be overridden to to connect each input to the target cell
     #
     def handle_single_input(
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
+        if segId != 0:
+            raise Exception(
+                "MDF export does not support inputs on anything other than segment id = 0"
+            )
+
         component = self.input_list_vs_comps[inputListId]
         print_v(
             "Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f, component: %s"
             % (inputListId, id, cellId, segId, fract, weight, component)
         )
 
-        node_id = "Input_%s_%i" % (inputListId, id)
-
-        comp = self.nl_network.get_child(component, "input_sources")
-
-        node = self._comp_to_mdf_node(comp, component, node_id, 1)
-
-        # TODO: remove when global t available
-        node["parameters"]["t"] = {"default_initial_value": 0, "time_derivative": "1"}
-
-        self.mdf_graph["nodes"][node_id] = node
-
-        pre_node_id = node_id
-        post_node_id = "%s" % (self.input_list_vs_pops[inputListId])
-        edge_id = "Edge %s to %s" % (pre_node_id, post_node_id)
-        edge = {}
-        edge["name"] = edge_id
-        edge["sender_port"] = "i"
-        edge["receiver_port"] = "synapses_i"
-        edge["sender"] = pre_node_id
-        edge["receiver"] = post_node_id
+        node = self.mdf_graph["nodes"][self._get_input_list_node_id(inputListId)]
 
         # Weight used inside input
-        node["parameters"]["weight"] = {"value": weight}
-
-        self.mdf_graph["edges"][edge_id] = edge
+        node["parameters"]["weight"]["value"][cellId] = weight
 
     #
     #  Should be overridden to to connect each input to the target cell
