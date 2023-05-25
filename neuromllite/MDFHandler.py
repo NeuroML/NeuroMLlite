@@ -69,7 +69,10 @@ class MDFHandler(DefaultNetworkHandler):
 
         self.mdf_info[self.id]["graphs"][network_id] = self.mdf_graph
 
-
+    def _get_input_port_name(self, name):
+        if name=='in': return 'spike_input'
+        else: return name
+        
 
     def _convert_value(self, val):
         funcs = ["exp"]
@@ -286,7 +289,8 @@ class MDFHandler(DefaultNetworkHandler):
                 node["parameters"][ep.name] = {"value": [0] * size}
                 node["output_ports"][ep.name] = {"value": ep.name}
             elif ep.direction == "in":
-                node["input_ports"][ep.name] = {"shape": [size], "reduce": "add"}
+                ep_name = self._get_input_port_name(ep.name)
+                node["input_ports"][ep_name] = {"shape": [size], "reduce": "add"}
 
         if hasattr(lems_comp_type, "dynamics"):
             for sv in lems_comp_type.dynamics.state_variables:
@@ -314,7 +318,7 @@ class MDFHandler(DefaultNetworkHandler):
                     ] = self._convert_value("%s * (%s)" % (reg_param, td.value))
 
                 for eh in reg.event_handlers:
-                    print_v("Converting event handler: %s (type: %s)" % (eh, type(eh)))
+                    print_v("Converting the event handler: %s (type: %s)" % (eh, type(eh)))
 
                     if type(eh) == lems.OnCondition:
                         # TODO: remove when global t available
@@ -354,7 +358,7 @@ class MDFHandler(DefaultNetworkHandler):
 
                                 for eh in reg_to.event_handlers:
                                     print_v(
-                                        "Converting event handler: %s (type: %s)" % (eh, type(eh))
+                                        "Converting an event handler: %s (type: %s)" % (eh, type(eh))
                                     )
 
                                     if type(eh) == lems.OnEntry:
@@ -374,6 +378,23 @@ class MDFHandler(DefaultNetworkHandler):
                                                     "test": test,
                                                     "value": a.value,
                                                 }
+
+
+                            if type(a) == lems.EventOut: 
+
+                                del node["parameters"][a.port]["value"]
+                                node["parameters"][a.port] = {"default_initial_value": [0] * size}
+
+                                if not "conditions" in node["parameters"][a.port]:
+                                    node["parameters"][a.port]["conditions"] = {}
+
+                                node["parameters"][a.port]["conditions"][
+                                    "condition_%s_on" % a.port
+                                ] = {"test": test, "value": 1}
+                                node["parameters"][a.port]["conditions"][
+                                    "condition_%s_off" % a.port
+                                ] = {"test": "%s > 0"%a.port, "value": 0}
+                        
 
             for sv in lems_comp_type.dynamics.state_variables:
                 # node["parameters"][sv.name]["value"] = [0]*size
@@ -407,7 +428,17 @@ class MDFHandler(DefaultNetworkHandler):
 
             conditions = 0
             for eh in lems_comp_type.dynamics.event_handlers:
-                print_v("Converting event handler: %s (type: %s)" % (eh, type(eh)))
+                print_v("Converting an event handler: %s (type: %s)" % (eh, type(eh)))
+
+                if type(eh) == lems.OnEvent:
+                    ep_name = self._get_input_port_name(eh.port)
+                    for a in eh.actions:
+                        if type(a) == lems.StateAssignment:
+                            if not "conditions" in node["parameters"][a.variable]:
+                                node["parameters"][a.variable]["conditions"] = {}
+                            node["parameters"][a.variable]["conditions"][
+                                "condition_%s_on" % ep_name
+                            ] = {"test": "%s > 0"%ep_name, "value": a.value}
 
                 if type(eh) == lems.OnStart:
                     for a in eh.actions:
@@ -417,6 +448,7 @@ class MDFHandler(DefaultNetworkHandler):
                             ] = a.value
                         if "value" in node["parameters"][a.variable]:
                             node["parameters"][a.variable].pop("value")
+
                 if type(eh) == lems.OnCondition:
                     test = self._replace_in_condition_test(eh.test)
 
@@ -428,6 +460,22 @@ class MDFHandler(DefaultNetworkHandler):
                             node["parameters"][a.variable]["conditions"][
                                 "condition_%i" % conditions
                             ] = {"test": test, "value": a.value}
+
+                        if type(a) == lems.EventOut: 
+
+                            del node["parameters"][a.port]["value"]
+                            node["parameters"][a.port] = {"default_initial_value": [0] * size}
+                            
+                            if not "conditions" in node["parameters"][a.port]:
+                                node["parameters"][a.port]["conditions"] = {}
+
+                            node["parameters"][a.port]["conditions"][
+                                "condition_%i_on" % conditions
+                            ] = {"test": test, "value": 1}
+                            node["parameters"][a.port]["conditions"][
+                                "condition_%i_off" % conditions
+                            ] = {"test": "%s > 0"%a.port, "value": 0}
+                        
                     conditions += 1
 
             for td in lems_comp_type.dynamics.time_derivatives:
