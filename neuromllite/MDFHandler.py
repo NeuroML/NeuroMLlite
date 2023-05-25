@@ -683,10 +683,10 @@ class MDFHandler(DefaultNetworkHandler):
 
         syn_ports = list(syn_node["output_ports"].keys())
 
-        syn_post_edge["sender_port"] = "OUTPUT" if "OUTPUT" in syn_ports else syn_ports[0]
+        syn_post_edge["sender_port"] = "OUTPUT" if "OUTPUT" in syn_ports else ("i" if "i" in syn_ports else syn_ports[0])
 
         post_ports = list(post_node["input_ports"].keys())
-        syn_post_edge["receiver_port"] = "INPUT" if "INPUT" in post_ports else post_ports[0]
+        syn_post_edge["receiver_port"] = "INPUT" if "INPUT" in post_ports else ("synapses_i" if "synapses_i" in post_ports else post_ports[0])
         syn_post_edge["sender"] = syn_node_id
         syn_post_edge["receiver"] = post_node_id
 
@@ -713,14 +713,17 @@ class MDFHandler(DefaultNetworkHandler):
     ):
         # self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
         print_v(
-            ">>>>>> Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms"
+            ">>>>>> Src pop: %s, cell: %d, seg: %f, fract: %f -> Tgt pop %s, cell %d, seg: %f, fract: %f; syn: %s, weight %s, delay: %s ms"
             % (
+                prePop,
                 preCellId,
                 preSegId,
                 preFract,
+                postPop,
                 postCellId,
                 postSegId,
                 postFract,
+                synapseType,
                 weight,
                 delay,
             )
@@ -730,6 +733,12 @@ class MDFHandler(DefaultNetworkHandler):
             raise Exception(
                 "MDF export does not support connections on anything other than segment id = 0"
             )
+        
+        syn_node_id = "%s_%s"%(projName,synapseType)
+        node = self.mdf_graph["nodes"][syn_node_id]
+        # Weight used inside input
+        node["parameters"]["weight"]["value"][postCellId] = weight
+        
 
     def _get_input_list_node_id(self, inputListId):
         return "InputList_%s" % (inputListId)
