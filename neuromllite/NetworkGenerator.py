@@ -361,7 +361,11 @@ def generate_network(
                         % input
                     )
                 for i in input.cell_ids:
-                    weight = input.weight if input.weight else 1
+                    weight = (
+                        evaluate(input.weight, nl_model.parameters, rng)
+                        if input.weight
+                        else 1
+                    )
 
                     if input.number_per_cell and input.segment_ids:
                         raise Exception(
@@ -385,7 +389,11 @@ def generate_network(
                             input_count,
                             i,
                             segId=seg_id,
-                            weight=evaluate(weight, nl_model.parameters),
+                            weight = (
+                                evaluate(input.weight, nl_model.parameters, rng)
+                                if input.weight
+                                else 1
+                            )
                         )
                         input_count += 1
 
@@ -397,7 +405,11 @@ def generate_network(
                     )
                 for i in range(len(pop_locations[input.population])):
                     flip = rng.random()
-                    weight = input.weight if input.weight else 1
+                    weight = (
+                        evaluate(input.weight, nl_model.parameters, rng)
+                        if input.weight
+                        else 1
+                    )
                     if flip * 100.0 < input.percentage:
                         if input.number_per_cell and input.segment_ids:
                             raise Exception(
@@ -421,7 +433,11 @@ def generate_network(
                                 input_count,
                                 i,
                                 segId=seg_id,
-                                weight=evaluate(weight, nl_model.parameters),
+                                weight = (
+                                    evaluate(input.weight, nl_model.parameters, rng)
+                                    if input.weight
+                                    else 1
+                                )
                             )
                             input_count += 1
 
