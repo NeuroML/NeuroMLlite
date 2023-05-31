@@ -1,6 +1,6 @@
 {
     "Example6_PyNN": {
-        "version": "NeuroMLlite v0.5.5",
+        "version": "NeuroMLlite v0.5.6",
         "notes": "Another network for PyNN - work in progress...",
         "parameters": {
             "N_scaling": 0.005,
