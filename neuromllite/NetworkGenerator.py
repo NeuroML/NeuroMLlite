@@ -1477,7 +1477,7 @@ plt.show()
             # (12) Create a default execution context, domain decomposition and simulation
             context = arbor.context()
             decomp = arbor.partition_load_balance(arbor_recipe, context)
-            sim = arbor.simulation(arbor_recipe, decomp, context)
+            sim = arbor.simulation(arbor_recipe, domains=decomp, context=context)
 
             # (13) Set spike generators to record
             sim.record(arbor.spike_recording.all)
