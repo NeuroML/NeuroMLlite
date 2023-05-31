@@ -19,6 +19,8 @@ import lems.api as lems  # from pylems
 import numpy
 
 DEFAULT_CURRENT_INPUT_PORT = "synapses_i"
+SPIKE_INPUT_PORT_ID = 'spike_input'
+WEIGHTED_SPIKE_INPUTS = 'weighted_inputs'
 
 class MDFHandler(DefaultNetworkHandler):
 
@@ -69,8 +71,9 @@ class MDFHandler(DefaultNetworkHandler):
 
         self.mdf_info[self.id]["graphs"][network_id] = self.mdf_graph
 
+
     def _get_input_port_name(self, name):
-        if name=='in': return 'spike_input'
+        if name=='in': return SPIKE_INPUT_PORT_ID
         else: return name
         
 
@@ -436,16 +439,20 @@ class MDFHandler(DefaultNetworkHandler):
                         if type(a) == lems.StateAssignment:
                             if not "conditions" in node["parameters"][a.variable]:
                                 node["parameters"][a.variable]["conditions"] = {}
+
+                            to_check = ep_name
+                            if to_check == SPIKE_INPUT_PORT_ID:
+                                to_check = WEIGHTED_SPIKE_INPUTS
                             node["parameters"][a.variable]["conditions"][
-                                "condition_%s_on" % ep_name
-                            ] = {"test": "%s > 0"%ep_name, "value": a.value}
+                                "condition_%s_on_eh" % ep_name
+                            ] = {"test": "%s > 0"%to_check, "value": a.value}
 
                 if type(eh) == lems.OnStart:
                     for a in eh.actions:
                         if type(a) == lems.StateAssignment:
                             node["parameters"][a.variable][
                                 "default_initial_value"
-                            ] = a.value
+                            ] =  a.value 
                         if "value" in node["parameters"][a.variable]:
                             node["parameters"][a.variable].pop("value")
 
@@ -486,7 +493,7 @@ class MDFHandler(DefaultNetworkHandler):
                 if not "default_initial_value" in node["parameters"][td.variable]:
                     node["parameters"][td.variable][
                     "default_initial_value"
-                ] = 0
+                ] = [0] * size
 
         return node
 
@@ -641,6 +648,7 @@ class MDFHandler(DefaultNetworkHandler):
 
         print("Converting syn %s; %s" % (synapse_obj, syn_comp))
 
+        pre_pop_size = self.pop_ids_vs_size[prePop]
         post_pop_size = self.pop_ids_vs_size[postPop]
 
         syn_node = self._comp_to_mdf_node(
@@ -649,7 +657,13 @@ class MDFHandler(DefaultNetworkHandler):
             size=post_pop_size,
             properties={},
         )
-
+        if SPIKE_INPUT_PORT_ID in syn_node['input_ports']:
+            syn_node['input_ports'][SPIKE_INPUT_PORT_ID]['shape'] = [pre_pop_size]
+            syn_node['parameters'][WEIGHTED_SPIKE_INPUTS] = {'value': numpy.zeros([pre_pop_size, post_pop_size]).tolist() }  
+            syn_node['parameters']['weight'] = {}
+            syn_node['parameters']['weight']['function']="MatMul"
+            syn_node['parameters']['weight']['args']={"A": SPIKE_INPUT_PORT_ID, "B": WEIGHTED_SPIKE_INPUTS}
+ 
         self.mdf_graph["nodes"][syn_node_id] = syn_node
 
         #### Edge pre_node -> syn 
@@ -736,8 +750,10 @@ class MDFHandler(DefaultNetworkHandler):
         
         syn_node_id = "%s_%s"%(projName,synapseType)
         node = self.mdf_graph["nodes"][syn_node_id]
-        # Weight used inside input
-        node["parameters"]["weight"]["value"][postCellId] = weight
+        if WEIGHTED_SPIKE_INPUTS in node["parameters"]:
+            # Weight used inside input
+            node["parameters"][WEIGHTED_SPIKE_INPUTS]["value"][preCellId][postCellId] = weight
+            print(node["parameters"][WEIGHTED_SPIKE_INPUTS]["value"])
         
 
     def _get_input_list_node_id(self, inputListId):
