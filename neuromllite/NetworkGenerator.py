@@ -361,7 +361,11 @@ def generate_network(
                         % input
                     )
                 for i in input.cell_ids:
-                    weight = input.weight if input.weight else 1
+                    weight = (
+                        evaluate(input.weight, nl_model.parameters, rng)
+                        if input.weight
+                        else 1
+                    )
 
                     if input.number_per_cell and input.segment_ids:
                         raise Exception(
@@ -385,7 +389,11 @@ def generate_network(
                             input_count,
                             i,
                             segId=seg_id,
-                            weight=evaluate(weight, nl_model.parameters),
+                            weight = (
+                                evaluate(input.weight, nl_model.parameters, rng)
+                                if input.weight
+                                else 1
+                            )
                         )
                         input_count += 1
 
@@ -397,7 +405,11 @@ def generate_network(
                     )
                 for i in range(len(pop_locations[input.population])):
                     flip = rng.random()
-                    weight = input.weight if input.weight else 1
+                    weight = (
+                        evaluate(input.weight, nl_model.parameters, rng)
+                        if input.weight
+                        else 1
+                    )
                     if flip * 100.0 < input.percentage:
                         if input.number_per_cell and input.segment_ids:
                             raise Exception(
@@ -421,7 +433,11 @@ def generate_network(
                                 input_count,
                                 i,
                                 segId=seg_id,
-                                weight=evaluate(weight, nl_model.parameters),
+                                weight = (
+                                    evaluate(input.weight, nl_model.parameters, rng)
+                                    if input.weight
+                                    else 1
+                                )
                             )
                             input_count += 1
 
@@ -564,7 +580,8 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
                             )
 
                 temp_cell = eval("pyNN.neuroml.%s(**cell_params)" % c.pynn_cell)
-                if c.pynn_cell != "SpikeSourcePoisson":
+                
+                if c.pynn_cell != "SpikeSourcePoisson" and c.pynn_cell != "HH_cond_exp":
                     temp_cell.default_initial_values["v"] = temp_cell.parameter_space[
                         "v_rest"
                     ].base_value
@@ -1460,7 +1477,7 @@ plt.show()
             # (12) Create a default execution context, domain decomposition and simulation
             context = arbor.context()
             decomp = arbor.partition_load_balance(arbor_recipe, context)
-            sim = arbor.simulation(arbor_recipe, decomp, context)
+            sim = arbor.simulation(arbor_recipe, domains=decomp, context=context)
 
             # (13) Set spike generators to record
             sim.record(arbor.spike_recording.all)

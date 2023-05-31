@@ -310,7 +310,7 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
 
             decor.paint('"soma"', arbor.density(cell.parameters["mechanism"]))
 
-            decor.place('"center"', arbor.spike_detector(0), "detector")
+            decor.place('"center"', arbor.threshold_detector(0), "detector")
 
             for ip in self.input_info:
                 if self.input_info[ip][0] == pop_id:
@@ -337,7 +337,7 @@ class NeuroML_Arbor_Recipe(arbor.recipe):
             # (4) Attach a single synapse.
             decor.place('"synapse_site"', arbor.synapse("expsyn"), "syn")
 
-            default_cell = arbor.cable_cell(default_tree, labels, decor)
+            default_cell = arbor.cable_cell(default_tree, labels=labels, decor=decor)
 
             print_v("Created a new cell for gid %i: %s" % (gid, cell))
             print_v("%s" % (default_cell))
