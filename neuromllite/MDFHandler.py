@@ -19,11 +19,11 @@ import lems.api as lems  # from pylems
 import numpy
 
 DEFAULT_CURRENT_INPUT_PORT = "synapses_i"
-SPIKE_INPUT_PORT_ID = 'spike_input'
-WEIGHTED_SPIKE_INPUTS = 'weighted_inputs'
+SPIKE_INPUT_PORT_ID = "spike_input"
+WEIGHTED_SPIKE_INPUTS = "weighted_inputs"
+
 
 class MDFHandler(DefaultNetworkHandler):
-
     def __init__(self, nl_network):
         print_v("Initiating MDF handler")
         self.nl_network = nl_network
@@ -71,11 +71,11 @@ class MDFHandler(DefaultNetworkHandler):
 
         self.mdf_info[self.id]["graphs"][network_id] = self.mdf_graph
 
-
     def _get_input_port_name(self, name):
-        if name=='in': return SPIKE_INPUT_PORT_ID
-        else: return name
-        
+        if name == "in":
+            return SPIKE_INPUT_PORT_ID
+        else:
+            return name
 
     def _convert_value(self, val):
         funcs = ["exp"]
@@ -108,7 +108,7 @@ class MDFHandler(DefaultNetworkHandler):
             + sizeInfo
             + ", properties: %s" % properties
         )
-        print_v("  = %s"%info)
+        print_v("  = %s" % info)
 
         node_id = "%s" % (population_id)
 
@@ -123,7 +123,6 @@ class MDFHandler(DefaultNetworkHandler):
             )
 
         self.mdf_graph["nodes"][node_id] = node
-
 
     def _comp_to_mdf_node(self, nmllite_comp, lems_comp_id, size=1, properties=None):
         base_dir = "./"  # for now...
@@ -252,7 +251,10 @@ class MDFHandler(DefaultNetworkHandler):
                 % nmllite_comp
             )
 
-        print_v("All LEMS Components in known LEMS model: %s" % list(model.components.keys()))
+        print_v(
+            "All LEMS Components in known LEMS model: %s"
+            % list(model.components.keys())
+        )
         print_v("This comp: %s" % lems_comp)
         comp_type_name = lems_comp.type
         lems_comp_type = model.component_types.get(comp_type_name)
@@ -270,15 +272,13 @@ class MDFHandler(DefaultNetworkHandler):
                 "value": [get_value_in_si(evaluate(lems_comp.parameters[p]))] * size
             }
 
-        properties = self._get_all_elements_in_lems(
-            lems_comp_type, model, "properties"
-        )
+        properties = self._get_all_elements_in_lems(lems_comp_type, model, "properties")
         for prop in properties:
             node["parameters"][prop.name] = {
                 "value": [get_value_in_si(evaluate(prop.default_value))] * size
             }
 
-        #if lems_comp_types.is_or_extends()
+        # if lems_comp_types.is_or_extends()
 
         consts = self._get_all_elements_in_lems(lems_comp_type, model, "constant")
         for c in consts:
@@ -321,7 +321,9 @@ class MDFHandler(DefaultNetworkHandler):
                     ] = self._convert_value("%s * (%s)" % (reg_param, td.value))
 
                 for eh in reg.event_handlers:
-                    print_v("Converting the event handler: %s (type: %s)" % (eh, type(eh)))
+                    print_v(
+                        "Converting the event handler: %s (type: %s)" % (eh, type(eh))
+                    )
 
                     if type(eh) == lems.OnCondition:
                         # TODO: remove when global t available
@@ -361,7 +363,8 @@ class MDFHandler(DefaultNetworkHandler):
 
                                 for eh in reg_to.event_handlers:
                                     print_v(
-                                        "Converting an event handler: %s (type: %s)" % (eh, type(eh))
+                                        "Converting an event handler: %s (type: %s)"
+                                        % (eh, type(eh))
                                     )
 
                                     if type(eh) == lems.OnEntry:
@@ -382,11 +385,11 @@ class MDFHandler(DefaultNetworkHandler):
                                                     "value": a.value,
                                                 }
 
-
-                            if type(a) == lems.EventOut: 
-
+                            if type(a) == lems.EventOut:
                                 del node["parameters"][a.port]["value"]
-                                node["parameters"][a.port] = {"default_initial_value": [0] * size}
+                                node["parameters"][a.port] = {
+                                    "default_initial_value": [0] * size
+                                }
 
                                 if not "conditions" in node["parameters"][a.port]:
                                     node["parameters"][a.port]["conditions"] = {}
@@ -396,8 +399,7 @@ class MDFHandler(DefaultNetworkHandler):
                                 ] = {"test": test, "value": 1}
                                 node["parameters"][a.port]["conditions"][
                                     "condition_%s_off" % a.port
-                                ] = {"test": "%s > 0"%a.port, "value": 0}
-                        
+                                ] = {"test": "%s > 0" % a.port, "value": 0}
 
             for sv in lems_comp_type.dynamics.state_variables:
                 # node["parameters"][sv.name]["value"] = [0]*size
@@ -424,9 +426,9 @@ class MDFHandler(DefaultNetworkHandler):
                     if dv.select is not None:
                         in_port = dv.select.replace("[*]/", "_").replace("/", "_")
                         node["input_ports"][in_port] = {}
-                        ''' "shape": [size],
-                            "reduce": "add",'''
-                        
+                        """ "shape": [size],
+                            "reduce": "add","""
+
                         node["parameters"][dv.name] = {"value": in_port}
 
             conditions = 0
@@ -445,14 +447,14 @@ class MDFHandler(DefaultNetworkHandler):
                                 to_check = WEIGHTED_SPIKE_INPUTS
                             node["parameters"][a.variable]["conditions"][
                                 "condition_%s_on_eh" % ep_name
-                            ] = {"test": "%s > 0"%to_check, "value": a.value}
+                            ] = {"test": "%s > 0" % to_check, "value": a.value}
 
                 if type(eh) == lems.OnStart:
                     for a in eh.actions:
                         if type(a) == lems.StateAssignment:
                             node["parameters"][a.variable][
                                 "default_initial_value"
-                            ] =  a.value 
+                            ] = a.value
                         if "value" in node["parameters"][a.variable]:
                             node["parameters"][a.variable].pop("value")
 
@@ -468,11 +470,12 @@ class MDFHandler(DefaultNetworkHandler):
                                 "condition_%i" % conditions
                             ] = {"test": test, "value": a.value}
 
-                        if type(a) == lems.EventOut: 
-
+                        if type(a) == lems.EventOut:
                             del node["parameters"][a.port]["value"]
-                            node["parameters"][a.port] = {"default_initial_value": [0] * size}
-                            
+                            node["parameters"][a.port] = {
+                                "default_initial_value": [0] * size
+                            }
+
                             if not "conditions" in node["parameters"][a.port]:
                                 node["parameters"][a.port]["conditions"] = {}
 
@@ -481,8 +484,8 @@ class MDFHandler(DefaultNetworkHandler):
                             ] = {"test": test, "value": 1}
                             node["parameters"][a.port]["conditions"][
                                 "condition_%i_off" % conditions
-                            ] = {"test": "%s > 0"%a.port, "value": 0}
-                        
+                            ] = {"test": "%s > 0" % a.port, "value": 0}
+
                     conditions += 1
 
             for td in lems_comp_type.dynamics.time_derivatives:
@@ -491,9 +494,9 @@ class MDFHandler(DefaultNetworkHandler):
                 ] = self._convert_value(td.value)
 
                 if not "default_initial_value" in node["parameters"][td.variable]:
-                    node["parameters"][td.variable][
-                    "default_initial_value"
-                ] = [0] * size
+                    node["parameters"][td.variable]["default_initial_value"] = [
+                        0
+                    ] * size
 
         return node
 
@@ -524,7 +527,7 @@ class MDFHandler(DefaultNetworkHandler):
             for p in component_type.properties:
                 ee.append(p)
         else:
-            raise Exception("Cannot get child of type: %s in LEMS model"%child_type)
+            raise Exception("Cannot get child of type: %s in LEMS model" % child_type)
 
         if component_type.extends:
             ect = model.component_types[component_type.extends]
@@ -641,7 +644,7 @@ class MDFHandler(DefaultNetworkHandler):
             + synInfo
         )
 
-        syn_node_id = "%s_%s"%(projName,synapse)
+        syn_node_id = "%s_%s" % (projName, synapse)
         syn_node = {}
 
         syn_comp = self.nl_network.get_child(synapse, "synapses")
@@ -657,17 +660,22 @@ class MDFHandler(DefaultNetworkHandler):
             size=post_pop_size,
             properties={},
         )
-        if SPIKE_INPUT_PORT_ID in syn_node['input_ports']:
-            syn_node['input_ports'][SPIKE_INPUT_PORT_ID]['shape'] = [pre_pop_size]
-            syn_node['parameters'][WEIGHTED_SPIKE_INPUTS] = {'value': numpy.zeros([pre_pop_size, post_pop_size]).tolist() }  
-            syn_node['parameters']['weight'] = {}
-            syn_node['parameters']['weight']['function']="MatMul"
-            syn_node['parameters']['weight']['args']={"A": SPIKE_INPUT_PORT_ID, "B": WEIGHTED_SPIKE_INPUTS}
- 
+        if SPIKE_INPUT_PORT_ID in syn_node["input_ports"]:
+            syn_node["input_ports"][SPIKE_INPUT_PORT_ID]["shape"] = [pre_pop_size]
+            syn_node["parameters"][WEIGHTED_SPIKE_INPUTS] = {
+                "value": numpy.zeros([pre_pop_size, post_pop_size]).tolist()
+            }
+            syn_node["parameters"]["weight"] = {}
+            syn_node["parameters"]["weight"]["function"] = "MatMul"
+            syn_node["parameters"]["weight"]["args"] = {
+                "A": SPIKE_INPUT_PORT_ID,
+                "B": WEIGHTED_SPIKE_INPUTS,
+            }
+
         self.mdf_graph["nodes"][syn_node_id] = syn_node
 
-        #### Edge pre_node -> syn 
-        
+        #### Edge pre_node -> syn
+
         pre_node_id = prePop
         pre_node = self.mdf_graph["nodes"][pre_node_id]
 
@@ -676,31 +684,42 @@ class MDFHandler(DefaultNetworkHandler):
         pre_syn_edge["name"] = pre_syn_edge_id
 
         pre_ports = list(pre_node["output_ports"].keys())
-        pre_syn_edge["sender_port"] = "OUTPUT" if "OUTPUT" in pre_ports else pre_ports[0]
+        pre_syn_edge["sender_port"] = (
+            "OUTPUT" if "OUTPUT" in pre_ports else pre_ports[0]
+        )
 
         post_ports = list(syn_node["input_ports"].keys())
-        pre_syn_edge["receiver_port"] = "INPUT" if "INPUT" in post_ports else post_ports[0]
+        pre_syn_edge["receiver_port"] = (
+            "INPUT" if "INPUT" in post_ports else post_ports[0]
+        )
         pre_syn_edge["sender"] = pre_node_id
         pre_syn_edge["receiver"] = syn_node_id
 
         self.mdf_graph["edges"][pre_syn_edge_id] = pre_syn_edge
 
-
         #### Edge syn -> post_node
-        
+
         post_node_id = postPop
         post_node = self.mdf_graph["nodes"][post_node_id]
 
-        syn_post_edge_id = "%s_TO_%s" % (syn_node_id,post_node_id)
+        syn_post_edge_id = "%s_TO_%s" % (syn_node_id, post_node_id)
         syn_post_edge = {}
         syn_post_edge["name"] = syn_post_edge_id
 
         syn_ports = list(syn_node["output_ports"].keys())
 
-        syn_post_edge["sender_port"] = "OUTPUT" if "OUTPUT" in syn_ports else ("i" if "i" in syn_ports else syn_ports[0])
+        syn_post_edge["sender_port"] = (
+            "OUTPUT"
+            if "OUTPUT" in syn_ports
+            else ("i" if "i" in syn_ports else syn_ports[0])
+        )
 
         post_ports = list(post_node["input_ports"].keys())
-        syn_post_edge["receiver_port"] = "INPUT" if "INPUT" in post_ports else ("synapses_i" if "synapses_i" in post_ports else post_ports[0])
+        syn_post_edge["receiver_port"] = (
+            "INPUT"
+            if "INPUT" in post_ports
+            else ("synapses_i" if "synapses_i" in post_ports else post_ports[0])
+        )
         syn_post_edge["sender"] = syn_node_id
         syn_post_edge["receiver"] = post_node_id
 
@@ -747,18 +766,19 @@ class MDFHandler(DefaultNetworkHandler):
             raise Exception(
                 "MDF export does not support connections on anything other than segment id = 0"
             )
-        
-        syn_node_id = "%s_%s"%(projName,synapseType)
+
+        syn_node_id = "%s_%s" % (projName, synapseType)
         node = self.mdf_graph["nodes"][syn_node_id]
         if WEIGHTED_SPIKE_INPUTS in node["parameters"]:
             # Weight used inside input
-            node["parameters"][WEIGHTED_SPIKE_INPUTS]["value"][preCellId][postCellId] = weight
+            node["parameters"][WEIGHTED_SPIKE_INPUTS]["value"][preCellId][
+                postCellId
+            ] = weight
             print(node["parameters"][WEIGHTED_SPIKE_INPUTS]["value"])
-        
 
     def _get_input_list_node_id(self, inputListId):
         return "InputList_%s" % (inputListId)
-        #return "%s" % (inputListId)
+        # return "%s" % (inputListId)
 
     #
     #  Should be overridden to create input source array
