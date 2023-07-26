@@ -389,11 +389,11 @@ def generate_network(
                             input_count,
                             i,
                             segId=seg_id,
-                            weight = (
+                            weight=(
                                 evaluate(input.weight, nl_model.parameters, rng)
                                 if input.weight
                                 else 1
-                            )
+                            ),
                         )
                         input_count += 1
 
@@ -433,11 +433,11 @@ def generate_network(
                                 input_count,
                                 i,
                                 segId=seg_id,
-                                weight = (
+                                weight=(
                                     evaluate(input.weight, nl_model.parameters, rng)
                                     if input.weight
                                     else 1
-                                )
+                                ),
                             )
                             input_count += 1
 
@@ -580,7 +580,7 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
                             )
 
                 temp_cell = eval("pyNN.neuroml.%s(**cell_params)" % c.pynn_cell)
-                
+
                 if c.pynn_cell != "SpikeSourcePoisson" and c.pynn_cell != "HH_cond_exp":
                     temp_cell.default_initial_values["v"] = temp_cell.parameter_space[
                         "v_rest"
