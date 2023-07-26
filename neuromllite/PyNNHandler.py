@@ -14,7 +14,6 @@ from importlib import import_module
 
 
 class PyNNHandler(DefaultNetworkHandler):
-
     populations = {}
     projections = {}
     input_sources = {}
@@ -80,11 +79,9 @@ class PyNNHandler(DefaultNetworkHandler):
         # print(['%s (%s): %s'%(i, type(self.input_sources[i]),self.input_sources[i].simple_parameters()) for i in self.input_sources])
 
     def handle_document_start(self, id, notes):
-
         print_v("Document: %s" % id)
 
     def handle_network(self, network_id, notes, temperature=None):
-
         print_v("Network: %s" % network_id)
         if temperature:
             print_v("  Temperature: " + temperature)
@@ -94,7 +91,6 @@ class PyNNHandler(DefaultNetworkHandler):
     def handle_population(
         self, population_id, component, size=-1, component_obj=None, properties={}
     ):
-
         sizeInfo = " as yet unspecified size"
         if size >= 0:
             sizeInfo = ", size: " + str(size) + " cells"
@@ -141,7 +137,6 @@ class PyNNHandler(DefaultNetworkHandler):
         synapse_obj=None,
         pre_synapse_obj=None,
     ):
-
         synInfo = ""
         if synapse_obj:
             synInfo += " (syn: %s)" % synapse_obj.__class__.__name__
@@ -184,7 +179,6 @@ class PyNNHandler(DefaultNetworkHandler):
         delay=0,
         weight=1,
     ):
-
         # self.print_connection_information(projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight)
         # print_v("Src cell: %d, seg: %f, fract: %f -> Tgt cell %d, seg: %f, fract: %f; weight %s, delay: %s ms" % (preCellId,preSegId,preFract,postCellId,postSegId,postFract, weight, delay))
 
@@ -199,7 +193,6 @@ class PyNNHandler(DefaultNetworkHandler):
     def finalise_projection(
         self, projName, prePop, postPop, synapse=None, type="projection"
     ):
-
         print_v(
             "Projection finalising: "
             + projName
@@ -233,7 +226,6 @@ class PyNNHandler(DefaultNetworkHandler):
     def handle_input_list(
         self, inputListId, population_id, component, size, input_comp_obj=None
     ):
-
         self.print_input_information(inputListId, population_id, component, size)
 
         if size < 0:
@@ -250,7 +242,6 @@ class PyNNHandler(DefaultNetworkHandler):
     def handle_single_input(
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
-
         # print_v("Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f" % (inputListId,id,cellId,segId,fract,weight))
 
         population_id, component = self.input_info[inputListId]

@@ -1,4 +1,4 @@
-version: NeuroMLlite v0.5.3
+version: NeuroMLlite v0.5.6
 specification:
     Network:
         definition: A Network containing multiple Population's, connected by Projection's
@@ -178,7 +178,8 @@ specification:
                 type: str
                 description: Unique identifier for this Population
             size:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: The size of the population.
             component:
                 type: str
@@ -276,10 +277,12 @@ specification:
                     (for gap junctions) or continuousProjection (for analogue/graded
                     synapses)'
             delay:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: 'Delay to use (default: 0)'
             weight:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: 'Weight to use (default: 1)'
             random_connectivity:
                 type: RandomConnectivity
@@ -298,7 +301,8 @@ specification:
                 type: str
                 description: ''
             probability:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: Random probability of connection.
     ConvergentConnectivity:
         definition: A ConvergentConnectivity definition.
@@ -331,19 +335,23 @@ specification:
                 type: str
                 description: Population to target
             cell_ids:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: Specific ids of _Cell_s to apply this input to (cannot
                     be used with percentage
             percentage:
                 type: float
                 description: Percentage of Cells to apply input to
             number_per_cell:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: 'Number of individual inputs per selected Cell (default:
                     1)'
             segment_ids:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: 'Which segments to target (default: [0])'
             weight:
-                type: Union[EvaluableExpression, T, VT, ndarray, int, float, str]
+                type: Union[EvaluableExpression, List, Dict, ndarray, int, float,
+                    str]
                 description: 'Weight to use (default: 1)'

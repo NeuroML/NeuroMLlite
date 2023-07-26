@@ -15,7 +15,6 @@ from neuron import hoc
 
 
 class NeuronHandler(DefaultNetworkHandler):
-
     h = hoc.HocObject()
 
     globalPreSynId = 10000000
@@ -26,7 +25,6 @@ class NeuronHandler(DefaultNetworkHandler):
     #   Helper function for printing hoc before executing it
     #
     def executeHoc(self, command):
-
         cmdPrefix = "hoc >>>>>>>>>>: "
 
         if len(command) > 0:
@@ -37,7 +35,6 @@ class NeuronHandler(DefaultNetworkHandler):
     #  Overridden from NetworkHandler
     #
     def handlePopulation(self, population_id, component, size=-1, component_obj=None):
-
         if size >= 0:
             sizeInfo = ", size " + str(size) + " cells"
 
@@ -56,7 +53,6 @@ class NeuronHandler(DefaultNetworkHandler):
             )
 
         else:
-
             print_v(
                 "Population: "
                 + population_id
@@ -136,7 +132,6 @@ class NeuronHandler(DefaultNetworkHandler):
         synapse_obj=None,
         pre_synapse_obj=None,
     ):
-
         print_v("Projection: " + projName + " from " + prePop + " to " + postPop)
 
     #
@@ -158,7 +153,6 @@ class NeuronHandler(DefaultNetworkHandler):
         delay=0,
         weight=1,
     ):
-
         # self.printConnectionInformation(projName, id, prePop, postPop, synapseType, preCellId, postCellId, localWeight)
 
         print_v(

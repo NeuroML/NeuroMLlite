@@ -2,8 +2,8 @@ from os.path import dirname
 from os.path import realpath
 import sys
 
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
@@ -16,34 +16,31 @@ from neuromllite.utils import load_simulation_json
 from neuromllite.utils import evaluate
 from neuromllite.utils import print_v, print_
 from neuromllite.utils import is_spiking_input_population
-from pyneuroml.pynml import get_next_hex_color
+from pyneuroml.utils.plot import get_next_hex_color
 
 from functools import partial
 
 
 class ParameterSpinBox(QDoubleSpinBox):
-
-    value_type=float
+    value_type = float
 
     def __init__(self, value, value_type=float):
-
         super(QDoubleSpinBox, self).__init__()
         self.value_type = value_type
         self.setDecimals(18)
         self.setMaximum(1e16)
         self.setMinimum(-1e16)
-        if self.value_type==int:
+        if self.value_type == int:
             self.setSingleStep(1)
         else:
             self.setSingleStep(value / 20.0)
         self.setValue(value_type(value))
 
-
-        #print('ParameterSpinBox: %s/%s (%s/%s), %s'%(value, self.value(), value_type, type(self.value()),self.singleStep()))
+        # print('ParameterSpinBox: %s/%s (%s/%s), %s'%(value, self.value(), value_type, type(self.value()),self.singleStep()))
 
     # TODO: handle a spinner on values like -60mV etc.
     def textFromValue(self, value):
-        return "%i" % value if self.value_type==int else "%s" % value
+        return "%i" % value if self.value_type == int else "%s" % value
 
     # TODO: handle a spinner on values like -60mV etc.
     def final_value(self):
@@ -51,7 +48,6 @@ class ParameterSpinBox(QDoubleSpinBox):
 
 
 class NMLliteUI(QWidget):
-
     default_vals = {}
 
     simulators = [
@@ -90,7 +86,6 @@ class NMLliteUI(QWidget):
             self.update_simulation_json()
 
     def update_network_json(self):
-
         self.nmlliteNetText.clear()
         try:
             j = self.network.to_json()
@@ -99,7 +94,6 @@ class NMLliteUI(QWidget):
             self.nmlliteNetText.insertPlainText("Error parsing model: %s" % e)
 
     def update_simulation_json(self):
-
         self.nmlliteSimText.clear()
         try:
             j = self.simulation.to_json()
@@ -129,7 +123,6 @@ class NMLliteUI(QWidget):
         toolbar=False,
         options=False,
     ):
-
         if name in self.all_tabs:
             raise Exception("The name for a tab: %s is already taken!" % name)
 
@@ -170,13 +163,13 @@ class NMLliteUI(QWidget):
             label = QLabel(
                 "An image will be generated here. Push the appropriate button on the left"
             )
-            label.setBackgroundRole(QPalette.Base)
-            label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+            # label.setBackgroundRole(QPalette.Base)
+            # label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
             label.setScaledContents(True)
             self.all_image_qlabels[name] = label
 
             scrollArea = QScrollArea()
-            scrollArea.setBackgroundRole(QPalette.Light)
+            # scrollArea.setBackgroundRole(QPalette.Light)
             scrollArea.setWidget(label)
             scrollArea.setVisible(True)
 
@@ -244,7 +237,6 @@ class NMLliteUI(QWidget):
             entry.textChanged.connect(self.updated_param)
 
         else:
-
             try:
                 entry = ParameterSpinBox(value, value_type)
                 entry_map[name] = entry
@@ -269,10 +261,10 @@ class NMLliteUI(QWidget):
 
     def dialog_popup(self, message):
         dialog = QMessageBox()
-        dialog.setIcon(QMessageBox.Warning)
+        dialog.setIcon(QMessageBox.Icon.Warning)
         dialog.setWindowTitle("Message")
         dialog.setText(message)
-        dialog.exec_()
+        dialog.exec()
 
     def __init__(self, nml_sim_file, parent=None):
         """Constructor for the GUI"""
@@ -301,7 +293,9 @@ class NMLliteUI(QWidget):
             self.sim_base_dir = "."
 
         if self.simulation.network is None:
-            print_v(f"ERROR: The provided simulation file, {nml_sim_file}, does not refer to a network.")
+            print_v(
+                f"ERROR: The provided simulation file, {nml_sim_file}, does not refer to a network."
+            )
             print_v("Please provide a NeuroMLlite simulation file.")
             sys.exit(-1)
 
@@ -338,7 +332,6 @@ class NMLliteUI(QWidget):
         self.plotTabs.addTab(self.heatmapTab, "Heatmap")
 
         if self.simulation.plots2D is not None:
-
             self.plot2DTab = QTabWidget()
             self.plotTabs.addTab(self.plot2DTab, "2D plots")
 
@@ -352,7 +345,6 @@ class NMLliteUI(QWidget):
                 )
 
         if self.simulation.plots3D is not None:
-
             self.plot3DTab = QTabWidget()
             self.plotTabs.addTab(self.plot3DTab, "3D plots")
 
@@ -542,7 +534,9 @@ class NMLliteUI(QWidget):
             pval = self.network.seed
             label = QLabel("Net generation seed")
             paramLayout.addWidget(label, rows, 0)
-            entry = self.get_value_entry("seed", pval, self.param_entries, value_type=int)
+            entry = self.get_value_entry(
+                "seed", pval, self.param_entries, value_type=int
+            )
             paramLayout.addWidget(entry, rows, 1)
 
         if self.network.temperature is not None:
@@ -602,8 +596,10 @@ class NMLliteUI(QWidget):
             if sval is not None:
                 label = QLabel("%s" % s)
                 paramLayout.addWidget(label, rows, 0)
-                value_type=int if s=='seed' else float
-                entry = self.get_value_entry(s, sval, self.sim_entries,value_type=value_type)
+                value_type = int if s == "seed" else float
+                entry = self.get_value_entry(
+                    s, sval, self.sim_entries, value_type=value_type
+                )
                 paramLayout.addWidget(entry, rows, 1)
 
         rows += 1
@@ -753,7 +749,7 @@ class NMLliteUI(QWidget):
         self.add_image(nml_view_file, self.IMAGE_3D_TAB)
 
     def showGraph(self):
-        """Generate graph buttom has been pressed"""
+        """Generate graph button has been pressed"""
 
         print_v("Graph button was clicked.")
 
@@ -806,8 +802,8 @@ class NMLliteUI(QWidget):
         """Set the parameters in the network/simulation from the GUI values"""
 
         for p in self.param_entries:
-            #print("Updating: %s to %s (%s)" % (p, self.param_entries[p], type(self.param_entries[p])))
-            if type(self.param_entries[p])==QLineEdit:
+            # print("Updating: %s to %s (%s)" % (p, self.param_entries[p], type(self.param_entries[p])))
+            if type(self.param_entries[p]) == QLineEdit:
                 v = self.param_entries[p].text()
             else:
                 v = self.param_entries[p].final_value()
@@ -855,6 +851,7 @@ class NMLliteUI(QWidget):
             self.replotSimResults()
         except Exception as e:
             import traceback
+
             print(traceback.format_exc())
             self.dialog_popup("Error: %s" % e)
 
@@ -874,7 +871,6 @@ class NMLliteUI(QWidget):
         return evaluate(pop.size, self.network.parameters)
 
     def _get_pop_id_cell_id(self, quantity):
-
         if "[" in quantity:
             # e.g. Epop[5]/v
             pop_id = quantity.split("[")[0]
@@ -887,7 +883,6 @@ class NMLliteUI(QWidget):
         return pop_id, cell_id
 
     def traceSelect(self):
-
         print_v(
             "traceSelect button was clicked. Traces shown: %s; colours: %s"
             % (self.current_traces_shown, self.current_traces_colours)
@@ -896,7 +891,7 @@ class NMLliteUI(QWidget):
         dialog = QDialog(self)
         dialog.setWindowTitle("Select which traces to plot")
 
-        QBtn = QDialogButtonBox.Ok  # | QDialogButtonBox.Cancel
+        QBtn = QDialogButtonBox.StandardButton.Ok  # | QDialogButtonBox.Cancel
 
         buttonBox = QDialogButtonBox(QBtn)
         buttonBox.accepted.connect(dialog.accept)
@@ -926,11 +921,10 @@ class NMLliteUI(QWidget):
                 count += 1
 
         layout.addWidget(buttonBox, count, 1)
-        dialog.exec_()
+        dialog.exec()
         self.replotSimResults()
 
     def traceSelectClicked(self, key):
-
         cb = self.all_cbs[key]
         # print('Clicked: %s, %s, key: %s'%(cb.text(),cb.isChecked(), key))
         self.current_traces_shown[key] = cb.isChecked()
@@ -965,7 +959,6 @@ class NMLliteUI(QWidget):
         return ret_val
 
     def replotSimResults(self):
-
         simulator = str(self.simulatorComboBox.currentText())
         self.traceSelectButton.setEnabled(True)
 
@@ -995,7 +988,6 @@ class NMLliteUI(QWidget):
         heat_array = []
 
         for key in sorted(self.current_traces.keys()):
-
             if not key in self.current_traces_shown:
                 self.current_traces_shown[key] = True
 
@@ -1065,7 +1057,6 @@ class NMLliteUI(QWidget):
         ## Plot 2D
 
         if self.simulation.plots2D is not None:
-
             for plot2D in self.simulation.plots2D:
                 info = self.simulation.plots2D[plot2D]
                 fig = self.all_figures[plot2D]
@@ -1130,7 +1121,6 @@ class NMLliteUI(QWidget):
         ## Plot 3D
 
         if self.simulation.plots3D is not None:
-
             for plot3D in self.simulation.plots3D:
                 info = self.simulation.plots3D[plot3D]
                 fig = self.all_figures[plot3D]
@@ -1204,7 +1194,6 @@ class NMLliteUI(QWidget):
         max_id = 0
 
         for pop_id in sorted(ids_for_pop.keys()):
-
             if pop_id in pop_colors:
                 c = pop_colors[pop_id]
             else:
@@ -1329,11 +1318,10 @@ def main():
     nmlui = NMLliteUI(nml_sim_file)
     nmlui.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 def usage():
-
     from neuromllite import __version__ as version
 
     MAIN_CLA = "nmllite-ui"

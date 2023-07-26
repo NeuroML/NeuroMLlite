@@ -1,5 +1,5 @@
 SimArborExample:
-    version: NeuroMLlite v0.5.3
+    version: NeuroMLlite v0.5.6
     network: ArborExample.yaml
     duration: 100.0
     dt: 0.01

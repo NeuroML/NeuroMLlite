@@ -1,5 +1,12 @@
 from neuromllite import Network, Cell, InputSource, Population, Synapse
-from neuromllite import Projection, RandomConnectivity, Input, Simulation, RectangularRegion, RandomLayout
+from neuromllite import (
+    Projection,
+    RandomConnectivity,
+    Input,
+    Simulation,
+    RectangularRegion,
+    RandomLayout,
+)
 import sys
 
 ################################################################################
@@ -11,21 +18,23 @@ net.notes = "Example 12: Multicompartmental cells..."
 net.seed = 1234
 net.temperature = 32.0
 
-net.parameters = {"N": 20,
-                  "fractionE": 0.7,
-                  "weightInput": 0.7,
-                  "prob_e_e": 0.1,
-                  "prob_e_i": 0.9,
-                  "prob_i_e": 0.8,
-                  "prob_i_i": 0.3,
-                  "global_delay": 2}
+net.parameters = {
+    "N": 20,
+    "fractionE": 0.7,
+    "weightInput": 0.7,
+    "prob_e_e": 0.1,
+    "prob_e_i": 0.9,
+    "prob_i_e": 0.8,
+    "prob_i_i": 0.3,
+    "global_delay": 2,
+}
 
-r1 = RectangularRegion(
-    id="region1", x=0, y=0, z=0, width=1000, height=100, depth=1000
-)
+r1 = RectangularRegion(id="region1", x=0, y=0, z=0, width=1000, height=100, depth=1000)
 net.regions.append(r1)
 
-pyr_cell = Cell(id="pyr_4_sym", neuroml2_source_file="test_files/acnet2/pyr_4_sym.cell.nml")
+pyr_cell = Cell(
+    id="pyr_4_sym", neuroml2_source_file="test_files/acnet2/pyr_4_sym.cell.nml"
+)
 net.cells.append(pyr_cell)
 bask_cell = Cell(id="bask", neuroml2_source_file="test_files/acnet2/bask.cell.nml")
 net.cells.append(bask_cell)
@@ -61,15 +70,22 @@ pI = Population(
 net.populations.append(pE)
 net.populations.append(pI)
 
-syn_e_e = Synapse(id="AMPA_syn", neuroml2_source_file="test_files/acnet2/AMPA_syn.synapse.nml")
+syn_e_e = Synapse(
+    id="AMPA_syn", neuroml2_source_file="test_files/acnet2/AMPA_syn.synapse.nml"
+)
 net.synapses.append(syn_e_e)
-syn_e_i = Synapse(id="AMPA_syn_inh", neuroml2_source_file="test_files/acnet2/AMPA_syn_inh.synapse.nml")
+syn_e_i = Synapse(
+    id="AMPA_syn_inh", neuroml2_source_file="test_files/acnet2/AMPA_syn_inh.synapse.nml"
+)
 net.synapses.append(syn_e_i)
-syn_i_e = Synapse(id="GABA_syn", neuroml2_source_file="test_files/acnet2/GABA_syn.synapse.nml")
+syn_i_e = Synapse(
+    id="GABA_syn", neuroml2_source_file="test_files/acnet2/GABA_syn.synapse.nml"
+)
 net.synapses.append(syn_i_e)
-syn_i_i = Synapse(id="GABA_syn_inh", neuroml2_source_file="test_files/acnet2/GABA_syn_inh.synapse.nml")
+syn_i_i = Synapse(
+    id="GABA_syn_inh", neuroml2_source_file="test_files/acnet2/GABA_syn_inh.synapse.nml"
+)
 net.synapses.append(syn_i_i)
-
 
 
 net.projections.append(
@@ -92,7 +108,6 @@ net.projections.append(
         random_connectivity=RandomConnectivity(probability="prob_e_i"),
     )
 )
-
 
 
 net.projections.append(
@@ -136,7 +151,7 @@ new_file = net.to_json_file("%s.json" % net.id)
 ###   Build Simulation object & save as JSON
 
 sim = Simulation(
-    id="Sim%s"%net.id,
+    id="Sim%s" % net.id,
     network=new_file,
     duration="1000",
     seed="1111",
@@ -145,7 +160,7 @@ sim = Simulation(
     record_spikes={
         pE.id: "*",
         pI.id: "*",
-    }
+    },
 )
 
 sim.to_json_file()

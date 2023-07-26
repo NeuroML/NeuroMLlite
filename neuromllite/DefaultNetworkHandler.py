@@ -21,7 +21,6 @@ from neuromllite.utils import print_v
 
 
 class DefaultNetworkHandler:
-
     #
     #  Internal info method, can be reused in overriding classes for debugging
     #
@@ -82,7 +81,6 @@ class DefaultNetworkHandler:
     #  Should be overridden
     #
     def handle_document_start(self, id, notes):
-
         print_v("Document: %s started..." % id)
         if notes:
             print_v("  Notes: " + notes)
@@ -91,14 +89,12 @@ class DefaultNetworkHandler:
     #  Should be overridden
     #
     def finalise_document(self):
-
         print_v("Document ended...")
 
     #
     #  Should be overridden to create network
     #
     def handle_network(self, network_id, notes, temperature=None):
-
         print_v("Network: %s" % network_id)
         if temperature:
             print_v("  Temperature: " + temperature)
@@ -139,7 +135,6 @@ class DefaultNetworkHandler:
         self.print_location_information(id, population_id, component, x, y, z)
 
     def finalise_population(self, population_id):
-
         pass
 
     #
@@ -157,7 +152,6 @@ class DefaultNetworkHandler:
         synapse_obj=None,
         pre_synapse_obj=None,
     ):
-
         synInfo = ""
         if synapse_obj:
             synInfo += " (syn: %s)" % synapse_obj.__class__.__name__
@@ -198,7 +192,6 @@ class DefaultNetworkHandler:
         delay=0,
         weight=1,
     ):
-
         self.print_connection_information(
             projName, id, prePop, postPop, synapseType, preCellId, postCellId, weight
         )
@@ -223,7 +216,6 @@ class DefaultNetworkHandler:
     def finalise_projection(
         self, projName, prePop, postPop, synapse=None, type="projection"
     ):
-
         print_v(
             "Projection: "
             + projName
@@ -240,7 +232,6 @@ class DefaultNetworkHandler:
     def handle_input_list(
         self, inputListId, population_id, component, size, input_comp_obj=None
     ):
-
         self.print_input_information(inputListId, population_id, component, size)
 
         if size < 0:
@@ -255,7 +246,6 @@ class DefaultNetworkHandler:
     def handle_single_input(
         self, inputListId, id, cellId, segId=0, fract=0.5, weight=1
     ):
-
         print_v(
             "  Input: %s[%s], cellId: %i, seg: %i, fract: %f, weight: %f"
             % (inputListId, id, cellId, segId, fract, weight)

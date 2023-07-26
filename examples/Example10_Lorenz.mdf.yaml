@@ -1,25 +1,32 @@
 Example10_Lorenz:
-    format: ModECI MDF v0.3
+    format: ModECI MDF v0.4
     graphs:
         Example10_Lorenz:
             notes: 'Example 10: Lorenz'
             nodes:
-                lorenzPop_0:
+                lorenzPop:
                     parameters:
                         sigma:
-                            value: 10.0
+                            value:
+                            - 10.0
                         b:
-                            value: 2.67
+                            value:
+                            - 2.67
                         r:
-                            value: 28.0
+                            value:
+                            - 28.0
                         x0:
-                            value: 1.0
+                            value:
+                            - 1.0
                         y0:
-                            value: 1.0
+                            value:
+                            - 1.0
                         z0:
-                            value: 1.0
+                            value:
+                            - 1.0
                         sec:
-                            value: 1.0
+                            value:
+                            - 1.0
                         x:
                             default_initial_value: x0
                             time_derivative: ( sigma * (y - x) ) / sec
