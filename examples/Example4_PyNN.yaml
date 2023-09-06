@@ -88,4 +88,4 @@ Example4_PyNN:
         stim:
             input_source: i_clamp
             population: pop0
-            percentage: 50.0
+            percentage: 50

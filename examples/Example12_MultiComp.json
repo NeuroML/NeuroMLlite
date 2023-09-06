@@ -113,7 +113,7 @@
             "stim": {
                 "input_source": "poissonFiringSyn",
                 "population": "pop_pyr",
-                "percentage": 100.0,
+                "percentage": 100,
                 "weight": "weightInput"
             }
         },

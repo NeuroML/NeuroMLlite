@@ -57,7 +57,7 @@
             "stim": {
                 "input_source": "poissonFiringSyn",
                 "population": "Epop",
-                "percentage": 50.0,
+                "percentage": 50,
                 "weight": "weightInput"
             }
         },

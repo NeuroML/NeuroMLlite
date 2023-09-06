@@ -446,7 +446,7 @@
                     "description": "Specific ids of _Cell_s to apply this input to (cannot be used with percentage"
                 },
                 "percentage": {
-                    "type": "float",
+                    "type": "Union[EvaluableExpression, List, Dict, ndarray, int, float, str]",
                     "description": "Percentage of Cells to apply input to"
                 },
                 "number_per_cell": {
