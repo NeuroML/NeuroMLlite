@@ -85,18 +85,18 @@
             "stim0": {
                 "input_source": "poissonFiringSyn",
                 "population": "pop0",
-                "percentage": 50.0,
+                "percentage": 50,
                 "weight": "weightInput"
             },
             "stim1": {
                 "input_source": "iclamp1",
                 "population": "pop1",
-                "percentage": 100.0
+                "percentage": 100
             },
             "stim2": {
                 "input_source": "iclamp1",
                 "population": "pop2",
-                "percentage": 50.0
+                "percentage": 50
             }
         }
     }

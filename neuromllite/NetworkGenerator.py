@@ -410,7 +410,7 @@ def generate_network(
                         if input.weight
                         else 1
                     )
-                    if flip * 100.0 < input.percentage:
+                    if flip * 100.0 < evaluate(input.percentage, nl_model.parameters, rng):
                         if input.number_per_cell and input.segment_ids:
                             raise Exception(
                                 "On input: %s, only one of number_per_cell or segment_ids is allowed"

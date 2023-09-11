@@ -71,7 +71,7 @@
             "stim_pop0": {
                 "input_source": "poissonFiringSyn",
                 "population": "pop0",
-                "percentage": 80.0
+                "percentage": 80
             }
         }
     }

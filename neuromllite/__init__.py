@@ -362,8 +362,8 @@ class Input(NMLBase):
     cell_ids: ValueExprType = field(
         default="", validator=optional(instance_of(value_expr_types))
     )
-    percentage: float = field(
-        default=None, validator=optional(instance_of(float)), converter=convert2float
+    percentage: ValueExprType = field(
+        default=None, validator=optional(instance_of(value_expr_types))
     )
     number_per_cell: ValueExprType = field(
         default="", validator=optional(instance_of(value_expr_types))

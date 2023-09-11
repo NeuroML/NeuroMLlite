@@ -755,7 +755,7 @@ An Input definition.
 
   <tr>
     <td><b>percentage</b></td>
-    <td>float</td>
+    <td>Union[EvaluableExpression, List, Dict, ndarray, int, float, str]</td>
     <td><i>Percentage of Cells to apply input to</i></td>
  </tr>
 
