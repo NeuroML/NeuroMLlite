@@ -253,9 +253,13 @@ class MDFHandler(DefaultNetworkHandler):
 
         print_v(
             "All LEMS Components in known LEMS model: %s"
-            % list(model.components.keys())
+            % sorted(list(model.components.keys()))
         )
-        print_v("This comp: %s" % lems_comp)
+        print_v(
+            "All LEMS ComponentTypes in known LEMS model: %s"
+            % sorted(list(model.component_types.keys()))
+        )
+        print_v("This LEMS comp: %s" % lems_comp)
         comp_type_name = lems_comp.type
         lems_comp_type = model.component_types.get(comp_type_name)
         print_v("lems_comp_type: %s" % lems_comp_type)
@@ -405,6 +409,7 @@ class MDFHandler(DefaultNetworkHandler):
                 # node["parameters"][sv.name]["value"] = [0]*size
 
                 node["output_ports"][sv.name] = {"value": sv.name}
+                print_v("Adding %s as an output port"%sv.name)
                 if sv.exposure:
                     node["output_ports"][sv.exposure] = {"value": sv.name}
 
@@ -515,21 +520,25 @@ class MDFHandler(DefaultNetworkHandler):
     def _get_all_elements_in_lems(cls, component_type, model, child_type):
         ee = []
         if child_type == "exposure":
-            for e in component_type.exposures:
-                ee.append(e)
+            if hasattr(component_type, "exposures"):
+                for e in component_type.exposures:
+                    ee.append(e)
         elif child_type == "constant":
-            for c in component_type.constants:
-                ee.append(c)
+            if hasattr(component_type, "constants"):
+                for c in component_type.constants:
+                    ee.append(c)
         elif child_type == "event_port":
-            for e in component_type.event_ports:
-                ee.append(e)
+            if hasattr(component_type, "event_ports"):
+                for e in component_type.event_ports:
+                    ee.append(e)
         elif child_type == "properties":
-            for p in component_type.properties:
-                ee.append(p)
+            if hasattr(component_type, "properties"):
+                for p in component_type.properties:
+                    ee.append(p)
         else:
             raise Exception("Cannot get child of type: %s in LEMS model" % child_type)
 
-        if component_type.extends:
+        if hasattr(component_type, "extends") and component_type.extends:
             ect = model.component_types[component_type.extends]
             ee.extend(cls._get_all_elements_in_lems(ect, model, child_type))
 
