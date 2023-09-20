@@ -1,6 +1,6 @@
 {
     "Example10_Lorenz": {
-        "version": "NeuroMLlite v0.5.3",
+        "version": "NeuroMLlite v0.5.7",
         "notes": "Example 10: Lorenz",
         "parameters": {
             "N": 1,

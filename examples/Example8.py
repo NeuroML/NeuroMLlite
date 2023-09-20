@@ -9,7 +9,7 @@ net = Network(id="Example8_Extension")
 net.notes = "Example 8: general testing..."
 
 net.seed = 7890
-net.temperature = 32.0
+net.temperature = 32
 
 net.parameters = {"N": 10, "fractionE": 0.8, "weightInput": 1}
 

@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7,3.9]
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
     env:
       JNML_HOME: "/home/runner/work/NeuroMLlite/NeuroMLlite/jNeuroML"
       HDF5_DISABLE_VERSION_CHECK: 1
@@ -58,9 +58,9 @@ jobs:
         cd pyNeuroML
         git checkout $pynml_branch
         pip install pandas==1.3.5
-        pip install NEURON==7.8.2 # Specify version of neuron - 8.2.1 fails
+        pip install NEURON==8.2.2 # Specify version of neuron - 8.2.1 fails
         #pip install -r requirements-dev.txt
-        python setup.py install
+        pip install .
         cd -
 
         # Install latest jnml...

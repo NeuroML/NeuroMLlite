@@ -1,6 +1,6 @@
 {
     "Example2_TestNetwork": {
-        "version": "NeuroMLlite v0.5.3",
+        "version": "NeuroMLlite v0.5.7",
         "notes": "A simple network with 2 populations & projection between them. Cells are specified to be NeuroML 2 HH cell models & pre population is given a spiking input.",
         "cells": {
             "hhcell": {
@@ -71,7 +71,7 @@
             "stim_pop0": {
                 "input_source": "poissonFiringSyn",
                 "population": "pop0",
-                "percentage": 80.0
+                "percentage": 80
             }
         }
     }

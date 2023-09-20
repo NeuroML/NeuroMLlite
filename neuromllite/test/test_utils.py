@@ -16,7 +16,6 @@ except ImportError:
 
 class TestUtils(unittest.TestCase):
     def test_pops_vs_cell_indices(self):
-
         from neuromllite.utils import get_pops_vs_cell_indices_seg_ids
 
         network = get_example_network()
@@ -26,7 +25,6 @@ class TestUtils(unittest.TestCase):
         sim.record_rates = {}
 
         for recordSpec in [sim.record_traces, sim.record_spikes, sim.record_rates]:
-
             print("Testing...")
             recordSpec["all"] = "*"
             pvi = get_pops_vs_cell_indices_seg_ids(recordSpec, network)

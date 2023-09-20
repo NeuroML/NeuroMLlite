@@ -2,7 +2,6 @@ import neuromllite
 
 
 if __name__ == "__main__":
-
     net = neuromllite.Network(id="net")
     doc = net.generate_documentation(format="markdown")
     print(doc)

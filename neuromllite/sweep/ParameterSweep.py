@@ -45,7 +45,6 @@ class ParameterSweep:
         show_plot_already=False,
         peak_threshold=0,
     ):
-
         self.sim = load_simulation_json(runner.nmllite_sim)
 
         self.colormap = "jet"
@@ -119,7 +118,6 @@ class ParameterSweep:
         return r
 
     def _sweep(self, v, f, reference=""):
-
         keys = list(v)
 
         if len(keys) > 1:
@@ -159,7 +157,6 @@ class ParameterSweep:
             return self.sim.duration
 
     def _run_all(self):
-
         import pp
 
         ppservers = ()
@@ -173,7 +170,6 @@ class ParameterSweep:
 
         submitted = 0
         for ref in self.report["Simulations"]:
-
             report_here = self.report["Simulations"][ref]
 
             params = report_here["parameters"]
@@ -333,7 +329,6 @@ class ParameterSweep:
         print_v("-------------------------------------------")
 
     def run(self):
-
         print_v("Running...")
         self._sweep(self.vary, self.fixed)
         self._run_all()
@@ -345,7 +340,6 @@ class ParameterSweep:
             plt.savefig(self.save_plot_all_to, bbox_inches="tight")
 
         if self.heatmap_all:
-
             self.hm_fig, self.hm_ax = plt.subplots()
             z = np.array(self.hm_z)
 
@@ -409,7 +403,6 @@ class ParameterSweep:
         return self.report
 
     def print_report(self):
-
         print_v("--- REPORT:")
         import json
 
@@ -424,7 +417,6 @@ class ParameterSweep:
         logx=False,
         logy=False,
     ):
-
         all_pvals = OrderedDict()
         all_lines = OrderedDict()
 
@@ -490,7 +482,6 @@ class ParameterSweep:
         maxy = -1 * sys.float_info.max
 
         for t in all_traces:
-
             for ref in all_lines[t]:
                 print_v("Add data %s, %s" % (t, ref))
 
@@ -546,7 +537,6 @@ class ParameterSweep:
 
 
 def run_instance(runner, i, total, job_dir, params):
-
     print(
         "============================================================= \n\n"
         + "     Instance (%s of %s): %s\n" % (i, total, params)
@@ -564,7 +554,6 @@ def run_instance(runner, i, total, job_dir, params):
 
 class NeuroMLliteRunner:
     def __init__(self, nmllite_sim, simulator="jNeuroML"):
-
         real_sim = os.path.realpath(nmllite_sim)
         print_v("Created NeuroMLliteRunner to run %s in %s" % (real_sim, simulator))
 
@@ -577,7 +566,6 @@ class NeuroMLliteRunner:
     """
 
     def run_once(self, job_dir, **kwargs):
-
         from neuromllite.utils import print_v
         from neuromllite.utils import load_simulation_json, load_network_json
         from neuromllite.NetworkGenerator import generate_and_run
@@ -621,7 +609,6 @@ class NeuroMLliteRunner:
 
 
 if __name__ == "__main__":
-
     if "-2d" in sys.argv:
         fixed = {"dt": 0.025}
         vary = {
@@ -759,7 +746,6 @@ if __name__ == "__main__":
         plt.show()
 
     elif "-run" in sys.argv:
-
         simulator = "jNeuroML_NetPyNE"
         simulator = "jNeuroML"
         # simulator = 'PyNN_NEST'

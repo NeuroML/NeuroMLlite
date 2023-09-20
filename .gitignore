@@ -202,3 +202,11 @@ docs/_build
 /examples/pyr_4_sym.cell.nml
 *_eden.py
 arm64
+/examples/Example4_PyNN.mdf
+*.mdf.json
+*.mdf.yaml
+/examples/Example6_PyNN.mdf
+/examples/Example7_Brunel2000.mdf
+/examples/Example3_Network.yaml
+/examples/SimExample3.yaml
+/examples/Example4_PyNN.mdf.1

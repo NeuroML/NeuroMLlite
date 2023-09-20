@@ -1,6 +1,6 @@
 {
     "Example8_Extension": {
-        "version": "NeuroMLlite v0.5.3",
+        "version": "NeuroMLlite v0.5.7",
         "notes": "Example 8: general testing...",
         "parameters": {
             "N": 10,
@@ -57,7 +57,7 @@
             "stim": {
                 "input_source": "poissonFiringSyn",
                 "population": "Epop",
-                "percentage": 50.0,
+                "percentage": 50,
                 "weight": "weightInput"
             }
         },
