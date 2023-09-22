@@ -1,6 +1,6 @@
 {
     "Spikers": {
-        "version": "NeuroMLlite v0.5.7",
+        "version": "NeuroMLlite v0.5.8",
         "notes": "Example with spiking entities..",
         "parameters": {
             "N": 10,
