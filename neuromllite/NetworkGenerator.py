@@ -410,7 +410,9 @@ def generate_network(
                         if input.weight
                         else 1
                     )
-                    if flip * 100.0 < evaluate(input.percentage, nl_model.parameters, rng):
+                    if flip * 100.0 < evaluate(
+                        input.percentage, nl_model.parameters, rng
+                    ):
                         if input.number_per_cell and input.segment_ids:
                             raise Exception(
                                 "On input: %s, only one of number_per_cell or segment_ids is allowed"
@@ -1284,17 +1286,17 @@ plt.show()
 
 import sys
 
-def run(config_file, simulator):
 
-    if simulator=='NEURON':
+def run(config_file, simulator):
+    if simulator == "NEURON":
         from bmtk.simulator import bionet
+
         conf = bionet.Config.from_json(config_file, validate=True)
         conf.build_env()
         net = bionet.BioNetwork.from_config(conf)
         sim = bionet.BioSimulator.from_config(conf, network=net)
 
-
-    elif simulator=='NEST':
+    elif simulator == "NEST":
         from bmtk.simulator import pointnet
         conf = pointnet.Config.from_json(config_file)
         conf.build_env()
@@ -1304,11 +1306,8 @@ def run(config_file, simulator):
     sim.run()
 
 
-if __name__ == '__main__':
-
-        run('config.json', '%s')
-
-            """
+if __name__ == "__main__":
+    run("config.json", "%s")"""
 
             run_bmtk_file = open("run_bmtk.py", "w")
             run_bmtk_file.write(run_bmtk_template % (target_simulator))
