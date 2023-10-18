@@ -80,6 +80,7 @@ def load_network_yaml(filename):
 
     return net
 
+
 def load_simulation(filename):
     """
     Load a NeuroMLlite simulation JSON/YAML file
@@ -88,6 +89,7 @@ def load_simulation(filename):
         return load_simulation_yaml(filename)
     else:
         return load_simulation_json(filename)
+
 
 def load_simulation_json(filename: str) -> Optional[dict]:
     """

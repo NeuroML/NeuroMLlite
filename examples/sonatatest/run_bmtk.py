@@ -14,7 +14,6 @@ def run(config_file, simulator):
 
     elif simulator == "NEST":
         from bmtk.simulator import pointnet
-
         conf = pointnet.Config.from_json(config_file)
         conf.build_env()
         net = pointnet.PointNetwork.from_config(conf)

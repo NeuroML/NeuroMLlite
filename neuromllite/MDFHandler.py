@@ -409,7 +409,7 @@ class MDFHandler(DefaultNetworkHandler):
                 # node["parameters"][sv.name]["value"] = [0]*size
 
                 node["output_ports"][sv.name] = {"value": sv.name}
-                print_v("Adding %s as an output port"%sv.name)
+                print_v("Adding %s as an output port" % sv.name)
                 if sv.exposure:
                     node["output_ports"][sv.exposure] = {"value": sv.name}
 
