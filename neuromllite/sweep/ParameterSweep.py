@@ -383,7 +383,7 @@ class ParameterSweep:
             plt.xlim([self.hm_x[0], self.hm_x[-1]])
             plt.ylim([self.hm_y[0], self.hm_y[-1]])
             title = "Values of %s" % self.vary.keys()
-            self.hm_fig.canvas.set_window_title(title)
+            self.hm_fig.canvas.manager.set_window_title(title)
             plt.title(title)
             # plt.axes().set_aspect('equal')
 
