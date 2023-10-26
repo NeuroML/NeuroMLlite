@@ -248,7 +248,7 @@ class MatrixHandler(ConnectivityHandler):
                 title = "%s" % (proj_type)
                 title2 = "%s" % (proj_type)
                 plt.title(title)
-                fig.canvas.set_window_title(title2)
+                fig.canvas.manager.set_window_title(title2)
 
                 max_abs_weight = max(weight_array.max(), -1.0 * (weight_array.min()))
                 min_abs_weight = np.min(abs(weight_array[np.nonzero(weight_array)]))
