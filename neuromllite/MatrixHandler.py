@@ -308,14 +308,33 @@ class MatrixHandler(ConnectivityHandler):
                 ax.set_yticklabels(entries)
                 ax.set_xticklabels(entries)
                 ax.set_ylabel("presynaptic")
-                tick_size = (
-                    10
+
+                # change in relation to default so that users can override
+                default_tick_size_x = matplotlib.rcParams["xtick.labelsize"]
+                tick_size_x = (
+                    default_tick_size_x
                     if weight_array.shape[0] < 20
-                    else (8 if weight_array.shape[0] < 40 else 6)
+                    else (
+                        (default_tick_size_x - 2)
+                        if weight_array.shape[0] < 40
+                        else (default_tick_size_x - 4)
+                    )
                 )
-                ax.tick_params(axis="y", labelsize=tick_size)
+                ax.tick_params(axis="x", labelsize=tick_size_x)
+
+                default_tick_size_y = matplotlib.rcParams["ytick.labelsize"]
+                tick_size_y = (
+                    default_tick_size_y
+                    if weight_array.shape[0] < 20
+                    else (
+                        (default_tick_size_y - 2)
+                        if weight_array.shape[0] < 40
+                        else (default_tick_size_y - 4)
+                    )
+                )
+                ax.tick_params(axis="y", labelsize=tick_size_y)
+
                 ax.set_xlabel("postsynaptic")
-                ax.tick_params(axis="x", labelsize=tick_size)
                 fig.autofmt_xdate()
 
                 for i in range(len(entries)):
