@@ -1,11 +1,11 @@
 <Lems>
-    
+
     <!-- 
 
-        This LEMS file has been automatically generated using PyNeuroML v1.1.1 (libNeuroML v0.5.5)
+        This LEMS file has been automatically generated using PyNeuroML v1.1.10 (libNeuroML v0.5.8)
 
      -->
-    
+
     <!-- Specify which component to run -->
     <Target component="SimExample3" reportFile="report.SimExample3.txt"/>
 
@@ -13,14 +13,13 @@
     <Include file="Cells.xml"/>
     <Include file="Networks.xml"/>
     <Include file="Simulation.xml"/>
-    
+
     <Include file="PyNN.xml"/>
     <Include file="Example3_Network.net.nml"/>
     <Include file="test_files/inputs.nml"/>
     <Include file="test_files/hhcell.cell.nml"/>
-   
+
     <Simulation id="SimExample3" length="1000.0ms" step="0.025ms" target="Example3_Network" seed="5678">  <!-- Note seed: ensures same random numbers used every run -->
-        
         <Display id="pop0_v" title="Plots of pop0_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
             <Line id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v" scale="1mV" color="#d54f33" timeScale="1ms"/>
             <Line id="pop0_1_hhcell_v" quantity="pop0/1/hhcell/v" scale="1mV" color="#0534e4" timeScale="1ms"/>
@@ -28,7 +27,7 @@
             <Line id="pop0_3_hhcell_v" quantity="pop0/3/hhcell/v" scale="1mV" color="#bca074" timeScale="1ms"/>
             <Line id="pop0_4_hhcell_v" quantity="pop0/4/hhcell/v" scale="1mV" color="#632794" timeScale="1ms"/>
         </Display>
-        
+
         <Display id="pop1_v" title="Plots of pop1_v" timeScale="1ms" xmin="-100.0" xmax="1100.0" ymin="-80" ymax="40">
             <Line id="pop1_0_hhcell_v" quantity="pop1/0/hhcell/v" scale="1mV" color="#8a5d88" timeScale="1ms"/>
             <Line id="pop1_1_hhcell_v" quantity="pop1/1/hhcell/v" scale="1mV" color="#df5954" timeScale="1ms"/>
@@ -41,28 +40,28 @@
             <Line id="pop1_8_hhcell_v" quantity="pop1/8/hhcell/v" scale="1mV" color="#5fa56f" timeScale="1ms"/>
             <Line id="pop1_9_hhcell_v" quantity="pop1/9/hhcell/v" scale="1mV" color="#b5b5a2" timeScale="1ms"/>
         </Display>
-        
+
         <OutputFile id="SimExample3_pop0_v_dat" fileName="SimExample3.pop0.v.dat">
-            <OutputColumn id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v"/> 
-            <OutputColumn id="pop0_1_hhcell_v" quantity="pop0/1/hhcell/v"/> 
-            <OutputColumn id="pop0_2_hhcell_v" quantity="pop0/2/hhcell/v"/> 
-            <OutputColumn id="pop0_3_hhcell_v" quantity="pop0/3/hhcell/v"/> 
-            <OutputColumn id="pop0_4_hhcell_v" quantity="pop0/4/hhcell/v"/> 
+            <OutputColumn id="pop0_0_hhcell_v" quantity="pop0/0/hhcell/v"/>
+            <OutputColumn id="pop0_1_hhcell_v" quantity="pop0/1/hhcell/v"/>
+            <OutputColumn id="pop0_2_hhcell_v" quantity="pop0/2/hhcell/v"/>
+            <OutputColumn id="pop0_3_hhcell_v" quantity="pop0/3/hhcell/v"/>
+            <OutputColumn id="pop0_4_hhcell_v" quantity="pop0/4/hhcell/v"/>
         </OutputFile>
-        
+
         <OutputFile id="SimExample3_pop1_v_dat" fileName="SimExample3.pop1.v.dat">
-            <OutputColumn id="pop1_0_hhcell_v" quantity="pop1/0/hhcell/v"/> 
-            <OutputColumn id="pop1_1_hhcell_v" quantity="pop1/1/hhcell/v"/> 
-            <OutputColumn id="pop1_2_hhcell_v" quantity="pop1/2/hhcell/v"/> 
-            <OutputColumn id="pop1_3_hhcell_v" quantity="pop1/3/hhcell/v"/> 
-            <OutputColumn id="pop1_4_hhcell_v" quantity="pop1/4/hhcell/v"/> 
-            <OutputColumn id="pop1_5_hhcell_v" quantity="pop1/5/hhcell/v"/> 
-            <OutputColumn id="pop1_6_hhcell_v" quantity="pop1/6/hhcell/v"/> 
-            <OutputColumn id="pop1_7_hhcell_v" quantity="pop1/7/hhcell/v"/> 
-            <OutputColumn id="pop1_8_hhcell_v" quantity="pop1/8/hhcell/v"/> 
-            <OutputColumn id="pop1_9_hhcell_v" quantity="pop1/9/hhcell/v"/> 
+            <OutputColumn id="pop1_0_hhcell_v" quantity="pop1/0/hhcell/v"/>
+            <OutputColumn id="pop1_1_hhcell_v" quantity="pop1/1/hhcell/v"/>
+            <OutputColumn id="pop1_2_hhcell_v" quantity="pop1/2/hhcell/v"/>
+            <OutputColumn id="pop1_3_hhcell_v" quantity="pop1/3/hhcell/v"/>
+            <OutputColumn id="pop1_4_hhcell_v" quantity="pop1/4/hhcell/v"/>
+            <OutputColumn id="pop1_5_hhcell_v" quantity="pop1/5/hhcell/v"/>
+            <OutputColumn id="pop1_6_hhcell_v" quantity="pop1/6/hhcell/v"/>
+            <OutputColumn id="pop1_7_hhcell_v" quantity="pop1/7/hhcell/v"/>
+            <OutputColumn id="pop1_8_hhcell_v" quantity="pop1/8/hhcell/v"/>
+            <OutputColumn id="pop1_9_hhcell_v" quantity="pop1/9/hhcell/v"/>
         </OutputFile>
-        
+
     </Simulation>
 
 </Lems>

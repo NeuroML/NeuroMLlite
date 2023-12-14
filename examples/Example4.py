@@ -109,6 +109,7 @@ net.inputs.append(
 print(net.to_json())
 net_json_file = net.to_json_file("%s.json" % net.id)
 net_yaml_file = net.to_yaml_file("%s.yaml" % net.id)
+net_xml_file = net.to_xml_file("%s.nmllite.xml" % net.id)
 
 
 ################################################################################
