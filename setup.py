@@ -26,6 +26,7 @@ setup(
         "tables",
         "h5py",
         "modelspec>=0.2.6",
+        "ppft"
     ],
     classifiers=[
         "Intended Audience :: Science/Research",

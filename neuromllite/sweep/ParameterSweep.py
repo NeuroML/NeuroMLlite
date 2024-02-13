@@ -301,7 +301,7 @@ class ParameterSweep:
                                 if i % downscale == 0
                             ]
 
-                            param_name = self.vary.keys()[0]
+                            param_name = list(self.vary.keys())[0]
                             pval = get_value_in_si(params[param_name])
                             if self.hm_x == None:
                                 self.hm_x = tt
@@ -344,7 +344,7 @@ class ParameterSweep:
             z = np.array(self.hm_z)
 
             print_v(
-                "Plotting x: %s->%s (%i), y: %s->%s (%i), z: %s->%s (%i)"
+                "Plotting x: %s->%s (%i), y: %s->%s (%i), z: %s->%s (%s)"
                 % (
                     self.hm_x[0],
                     self.hm_x[-1],
@@ -354,7 +354,7 @@ class ParameterSweep:
                     len(self.hm_y),
                     z.min(),
                     z.max(),
-                    z.size,
+                    z.shape,
                 )
             )
 
@@ -362,6 +362,7 @@ class ParameterSweep:
             # yvals = np.array(self.hm_y)
 
             if not self.heatmap_lims:
+                
                 plot0 = self.hm_ax.pcolormesh(
                     np.array(self.hm_x), np.array(self.hm_y), z, cmap=self.colormap
                 )
@@ -379,7 +380,7 @@ class ParameterSweep:
             # self.hm_ax.set_yticklabels(['ff%s'%i for i in range(len(self.hm_y))])
 
             plt.xlabel("Time (ms)")
-            plt.ylabel("%s " % self.vary.keys()[0])
+            plt.ylabel("%s " % list(self.vary.keys())[0])
             plt.xlim([self.hm_x[0], self.hm_x[-1]])
             plt.ylim([self.hm_y[0], self.hm_y[-1]])
             title = "Values of %s" % self.vary.keys()
@@ -585,7 +586,7 @@ class NeuroMLliteRunner:
             if a in network.parameters:
                 print_v("  Setting %s to %s in network..." % (a, kwargs[a]))
                 network.parameters[a] = kwargs[a]
-            elif a in sim.fields:
+            elif a in sim.allowed_fields:
                 print_v("  Setting %s to %s in simulator..." % (a, kwargs[a]))
                 setattr(sim, a, kwargs[a])
             else:
@@ -612,8 +613,8 @@ if __name__ == "__main__":
     if "-2d" in sys.argv:
         fixed = {"dt": 0.025}
         vary = {
-            "stim_amp": ["%spA" % (i) for i in xrange(-40, 220, 40)],
-            "stim_del": ["%sms" % (i) for i in xrange(10, 40, 10)],
+            "stim_amp": ["%spA" % (i) for i in range(-40, 220, 40)],
+            "stim_del": ["%sms" % (i) for i in range(10, 40, 10)],
         }
 
         vary = {
@@ -622,7 +623,7 @@ if __name__ == "__main__":
         }
 
         vary = {
-            "stim_amp": ["%spA" % (i) for i in xrange(-40, 220, 20)],
+            "stim_amp": ["%spA" % (i) for i in range(-40, 220, 20)],
             "stim_del": ["%sms" % (i) for i in [10, 20]],
         }
 
@@ -671,9 +672,9 @@ if __name__ == "__main__":
     elif "-hh" in sys.argv:
         fixed = {"dt": 0.025}
 
-        vary = {"stim_amp": ["%spA" % (i) for i in xrange(-200, 1500, 10)]}
-        vary = {"stim_amp": ["%spA" % (i) for i in xrange(-100, 1800, 20)]}
-        # vary = {'stim_amp':['%spA'%(i) for i in xrange(-100,500,5)]}
+        vary = {"stim_amp": ["%spA" % (i) for i in range(-200, 1500, 10)]}
+        vary = {"stim_amp": ["%spA" % (i) for i in range(-100, 1800, 20)]}
+        # vary = {'stim_amp':['%spA'%(i) for i in range(-100,500,5)]}
 
         simulator = "jNeuroML_NetPyNE"
         simulator = "NetPyNE"
@@ -707,10 +708,11 @@ if __name__ == "__main__":
         plt.show()
 
     elif "-dt" in sys.argv:
-        fixed = {"stim_amp": "500pA"}
+        fixed = {"stim_amp": "500pA", "duration": 300}
 
         vary = {"dt": [0.025, 0.02, 0.015, 0.01, 0.005, 0.0025]}
         vary = {"dt": [0.1, 0.05, 0.025, 0.01, 0.005, 0.0025, 0.001]}
+        #vary = {"dt": [0.1, 0.05, 0.025]}
 
         simulator = "jNeuroML_NetPyNE"
         simulator = "NetPyNE"
@@ -805,11 +807,11 @@ if __name__ == "__main__":
         quick = False
         # quick=True
 
-        vary = {"stim_amp": ["%spA" % (i / 10.0) for i in xrange(-10, 20, 2)]}
-        vary = {"stim_amp": ["%spA" % (i / 10.0) for i in xrange(-10, 20, 5)]}
+        vary = {"stim_amp": ["%spA" % (i / 10.0) for i in range(-10, 20, 2)]}
+        vary = {"stim_amp": ["%spA" % (i / 10.0) for i in range(-10, 20, 5)]}
         vary = {"weightInput": [1, 2, 5, 10]}
         vary = {"weightInput": [1, 2, 3, 20]}
-        vary = {"eta": [i / 100.0 for i in xrange(0, 200, 20)]}
+        vary = {"eta": [i / 100.0 for i in range(0, 200, 20)]}
         # vary = {'eta':['100Hz']}
         # vary = {'stim_amp':['1.5pA']}
 
