@@ -98,7 +98,7 @@ class ParameterSweep:
                 "Traces generated from %s" % self.sim.id,  # Title
                 labels=[],
                 xaxis="Time (ms)",  # x axis legend
-                yaxis="Membrane potential (mV)",  # y axis legend
+                yaxis="(SI units)",  # y axis legend
                 title_above_plot=True,
                 show_plot_already=False,
             )  # Save figure
@@ -283,7 +283,7 @@ class ParameterSweep:
                             label = "%s (%s)" % (y, params)
                             self.ax.plot(
                                 [t * 1000 for t in traces["t"]],
-                                [v * 1000 for v in traces[y]],
+                                [v for v in traces[y]],
                                 label=label,
                             )
 
@@ -532,7 +532,7 @@ class ParameterSweep:
             logx=logx,
             logy=logy,
             show_plot_already=False,
-            legend_position="right",
+            legend_position="bottom center",
             save_figure_to=save_figure_to,
         )  # Save figure
 
@@ -766,7 +766,7 @@ if __name__ == "__main__":
         vary = {"c": [-3, -1, 1, 3]}
         # vary = {'a':[.8,1,1.2]}
         # vary = {'eta':['100Hz']}
-        # vary = {'stim_amp':['1.5pA']}
+        vary = {'I':[5,5.2]}
 
         simulator = "jNeuroML"
         simulator = "jNeuroML_NEURON"
