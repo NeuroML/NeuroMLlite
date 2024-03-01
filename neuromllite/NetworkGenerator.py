@@ -11,6 +11,7 @@ from neuromllite.utils import get_pops_vs_cell_indices_seg_ids
 import numpy as np
 import os
 import random
+import time
 
 import lems.api as lems  # from pylems
 
@@ -913,6 +914,7 @@ def generate_neuroml2_from_network(
 
     if len(extra_lems_components.components) > 0:
         extra_lems_components.export_to_file(extra_lems_file)
+        time.sleep(0.5)
 
     if validate and format == "xml":
         from pyneuroml import pynml
