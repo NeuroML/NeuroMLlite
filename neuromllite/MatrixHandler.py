@@ -18,6 +18,7 @@ class MatrixHandler(ConnectivityHandler):
     colormaps_used = []
 
     weight_arrays_to_show = {}
+    weight_array_figures = {}
 
     def __init__(self, level=10, nl_network=None, show_already=True, save_figs_to_dir=None):
         self.nl_network = nl_network
@@ -382,6 +383,9 @@ class MatrixHandler(ConnectivityHandler):
                     save_figure_to = os.path.join(self.save_figs_to_dir, '%s_%s.png'%(self.network_id, safe))
                     plt.savefig(save_figure_to, bbox_inches="tight")
                     print_v("Saved image to %s of plot: %s" % (save_figure_to, title))
+                    self.weight_array_figures[title] = save_figure_to
+
+
 
         print_v("Generating matrix for: %s" % self.network_id)
 
