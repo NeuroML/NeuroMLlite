@@ -1,6 +1,6 @@
 {
     "Example7_Brunel2000": {
-        "version": "NeuroMLlite v0.5.9",
+        "version": "NeuroMLlite v0.6.0",
         "notes": "Example 7: based on network of Brunel 2000",
         "parameters": {
             "g": 4,

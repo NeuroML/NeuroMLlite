@@ -1,6 +1,6 @@
 {
     "Example12_MultiComp": {
-        "version": "NeuroMLlite v0.5.9",
+        "version": "NeuroMLlite v0.6.0",
         "notes": "Example 12: Multicompartmental cells...",
         "parameters": {
             "N": 20,

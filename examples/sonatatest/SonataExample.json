@@ -1,6 +1,6 @@
 {
     "SonataExample": {
-        "version": "NeuroMLlite v0.5.8",
+        "version": "NeuroMLlite v0.6.0",
         "notes": "Example for testing Sonata",
         "parameters": {
             "input_amp": 0.19,
