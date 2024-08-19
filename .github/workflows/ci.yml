@@ -35,7 +35,7 @@ jobs:
           pip install .
           pip install -r requirements-extra.txt
                   
-          pip install 'numpy<=1.23.0' # temp fix, see https://github.com/OpenSourceBrain/osb-model-validation/issues/91
+          #pip install 'numpy<=1.23.0' # temp fix, see https://github.com/OpenSourceBrain/osb-model-validation/issues/91
 
 
     - name: Lint with flake8
