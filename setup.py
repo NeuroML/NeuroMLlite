@@ -22,10 +22,11 @@ setup(
     install_requires=[
         "libNeuroML>=0.5.1",
         "pyyaml",
-        "numpy",
+        "numpy<2.0.0",
         "tables",
         "h5py",
         "modelspec>=0.2.6",
+        "ppft"
     ],
     classifiers=[
         "Intended Audience :: Science/Research",

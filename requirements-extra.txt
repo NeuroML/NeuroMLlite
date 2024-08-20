@@ -4,8 +4,6 @@ matplotlib
 PyQt5
 pyneuroml
 pyelectro
-numpy
 neuron
 h5py
 graphviz
-pylems

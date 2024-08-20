@@ -1044,7 +1044,7 @@ class NMLliteUI(QWidget):
         ax_heatmap.clear()
 
         if len(heat_array) > 0:
-            cm = matplotlib.cm.get_cmap("jet")
+            cm = matplotlib.pyplot.get_cmap("jet")
             hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
             # cbar = ax_heatmap.colorbar(im)
 
@@ -1128,7 +1128,7 @@ class NMLliteUI(QWidget):
                 # ax_3d = fig.add_subplot(111)
                 from mpl_toolkits.mplot3d import Axes3D
 
-                ax_3d = fig.gca(projection="3d")
+                ax_3d = fig.add_subplot(projection="3d")
 
                 ax_3d.clear()
                 xs = self.current_traces[info["x_axis"]]

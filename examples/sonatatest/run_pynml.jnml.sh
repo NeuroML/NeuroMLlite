@@ -1,5 +1,4 @@
 #!/bin/bash
-
-set -e
+set -ex
 
 pynml-sonata Back2NML config.json -jnml  

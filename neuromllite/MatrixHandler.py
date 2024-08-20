@@ -11,16 +11,20 @@ from neuromllite.utils import evaluate
 from neuromllite.NetworkGenerator import _get_rng_for_network
 
 import numpy as np
+import os
 
 
 class MatrixHandler(ConnectivityHandler):
     colormaps_used = []
 
     weight_arrays_to_show = {}
+    weight_array_figures = {}
 
-    def __init__(self, level=10, nl_network=None):
+    def __init__(self, level=10, nl_network=None, show_already=True, save_figs_to_dir=None):
         self.nl_network = nl_network
         self.level = level
+        self.show_already = show_already
+        self.save_figs_to_dir=save_figs_to_dir
 
         self.rng, seed = _get_rng_for_network(self.nl_network)
 
@@ -34,11 +38,6 @@ class MatrixHandler(ConnectivityHandler):
         print_v("*    level:                   %s" % self.level)
         print_v("*    is_cell_level:           %s" % self.is_cell_level())
         print_v("*    CUTOFF_INH_SYN_MV:       %s" % self.CUTOFF_INH_SYN_MV)
-        # print_v('*    include_inputs:          %s'%self.include_inputs)
-        # print_v('*    scale_by_post_pop_size:  %s'%self.scale_by_post_pop_size)
-        # print_v('*    scale_by_post_pop_cond:  %s'%self.scale_by_post_pop_cond)
-        # print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
-        # print_v('*    min_weight_to_show:      %s'%self.min_weight_to_show)
         print_v("*")
         print_v("* Used values: ")
         print_v("*    colormaps_used:          %s" % self.colormaps_used)
@@ -67,6 +66,9 @@ class MatrixHandler(ConnectivityHandler):
             all_pops.append(v)
         for v in self.proj_post_pops.values():
             all_pops.append(v)
+
+        self.weight_matrices_generated = {}
+        self.weight_matrices_saved = {}
 
         for pop in all_pops:
             if self.is_cell_level():
@@ -248,7 +250,7 @@ class MatrixHandler(ConnectivityHandler):
                 title = "%s" % (proj_type)
                 title2 = "%s" % (proj_type)
                 plt.title(title)
-                fig.canvas.set_window_title(title2)
+                fig.canvas.manager.set_window_title(title2)
 
                 max_abs_weight = max(weight_array.max(), -1.0 * (weight_array.min()))
                 min_abs_weight = np.min(abs(weight_array[np.nonzero(weight_array)]))
@@ -308,14 +310,33 @@ class MatrixHandler(ConnectivityHandler):
                 ax.set_yticklabels(entries)
                 ax.set_xticklabels(entries)
                 ax.set_ylabel("presynaptic")
-                tick_size = (
-                    10
+
+                # change in relation to default so that users can override
+                default_tick_size_x = matplotlib.rcParams["xtick.labelsize"]
+                tick_size_x = (
+                    default_tick_size_x
                     if weight_array.shape[0] < 20
-                    else (8 if weight_array.shape[0] < 40 else 6)
+                    else (
+                        (default_tick_size_x - 2)
+                        if weight_array.shape[0] < 40
+                        else (default_tick_size_x - 4)
+                    )
                 )
-                ax.tick_params(axis="y", labelsize=tick_size)
+                ax.tick_params(axis="x", labelsize=tick_size_x)
+
+                default_tick_size_y = matplotlib.rcParams["ytick.labelsize"]
+                tick_size_y = (
+                    default_tick_size_y
+                    if weight_array.shape[0] < 20
+                    else (
+                        (default_tick_size_y - 2)
+                        if weight_array.shape[0] < 40
+                        else (default_tick_size_y - 4)
+                    )
+                )
+                ax.tick_params(axis="y", labelsize=tick_size_y)
+
                 ax.set_xlabel("postsynaptic")
-                ax.tick_params(axis="x", labelsize=tick_size)
                 fig.autofmt_xdate()
 
                 for i in range(len(entries)):
@@ -357,10 +378,22 @@ class MatrixHandler(ConnectivityHandler):
                 if proj_type in cbar_labels:
                     cbar.set_label(cbar_labels[proj_type])
 
+                if self.save_figs_to_dir:
+                    safe = proj_type.replace(' ','_').replace('(','-').replace(')','-').replace('*','_').replace('/','_')
+                    save_figure_to = os.path.join(self.save_figs_to_dir, '%s_%s.png'%(self.network_id, safe))
+                    plt.savefig(save_figure_to, bbox_inches="tight")
+                    print_v("Saved image to %s of plot: %s" % (save_figure_to, title))
+                    self.weight_array_figures[title] = save_figure_to
+
+
+
         print_v("Generating matrix for: %s" % self.network_id)
+
+
         self.print_settings()
 
-        plt.show()
+        if self.show_already:
+            plt.show()
 
     def handle_population(
         self,
@@ -516,3 +549,31 @@ class MatrixHandler(ConnectivityHandler):
 
     def finalise_input_source(self, inputListId):
         pass
+
+if __name__ == "__main__":
+
+    from neuromllite.utils import load_network_json
+
+    tests = ['/Users/padraig/neuroConstruct/osb/cerebral_cortex/networks/del-Molino2017/NeuroML/delMolinoEtAl_low_baseline.json',
+    '/Users/padraig/NeuroMLlite/examples/Example12_MultiComp.json']
+
+    for test in tests:
+
+        network = load_network_json(test)
+
+        from neuromllite.NetworkGenerator import generate_network
+
+        level = 1
+        handler = MatrixHandler(level, 
+                                nl_network=network, 
+                                show_already=True,
+                                save_figs_to_dir='.')
+
+        generate_network(
+            network, handler, always_include_props=True, base_dir=os.path.dirname(test)
+        )
+
+        print_v("Done with MatrixHandler...")
+
+        for w in handler.weight_arrays_to_show:
+            print('%s:\n%s'%(w, handler.weight_arrays_to_show[w]))

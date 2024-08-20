@@ -1,45 +1,45 @@
 {
-  "inputs": {
-    "stim": {
-      "input_type": "current_clamp", 
-      "node_set": "inputset_stim_i_clamp", 
-      "module": "IClamp", 
-      "delay": 100.0, 
-      "duration": 800.0, 
-      "amp": 190.00000000000003
-    }
-  }, 
-  "target_simulator": "NEST", 
-  "reports": {
-    "membrane_potential": {
-      "enabled": true, 
-      "cells": "point_nodes", 
-      "sections": "soma", 
-      "module": "multimeter_report", 
-      "variable_name": "V_m"
-    }
-  }, 
-  "manifest": {
-    "$OUTPUT_DIR": "./output", 
-    "$INPUT_DIR": "./"
-  }, 
   "run": {
-    "tstop": 1000.0, 
+    "tstop": 1000.0,
     "dt": 0.01
-  }, 
+  },
+  "target_simulator": "NEST",
+  "manifest": {
+    "$OUTPUT_DIR": "./output",
+    "$INPUT_DIR": "./"
+  },
+  "output": {
+    "output_dir": "$OUTPUT_DIR",
+    "log_file": "log.txt",
+    "spikes_file": "spikes.h5",
+    "spikes_sort_order": "time"
+  },
   "node_sets": {
     "point_nodes": {
       "model_type": "point_process"
-    }, 
+    },
     "inputset_stim_i_clamp": {
-      "model_type": "point_process", 
+      "model_type": "point_process",
       "population": "pop0"
     }
-  }, 
-  "output": {
-    "spikes_sort_order": "time", 
-    "spikes_file": "spikes.h5", 
-    "log_file": "log.txt", 
-    "output_dir": "$OUTPUT_DIR"
+  },
+  "reports": {
+    "membrane_potential": {
+      "cells": "point_nodes",
+      "variable_name": "V_m",
+      "module": "multimeter_report",
+      "sections": "soma",
+      "enabled": true
+    }
+  },
+  "inputs": {
+    "stim": {
+      "input_type": "current_clamp",
+      "module": "IClamp",
+      "amp": 190.00000000000003,
+      "delay": 100.0,
+      "duration": 800.0,
+      "node_set": "inputset_stim_i_clamp"
+    }
   }
 }
