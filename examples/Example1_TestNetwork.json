@@ -1,6 +1,6 @@
 {
     "TestNetwork": {
-        "version": "NeuroMLlite v0.6.0",
+        "version": "NeuroMLlite v0.6.1",
         "notes": "A simple network with 2 populations & projection between them. No info yet on what the cells are so network can't be simulated.",
         "populations": {
             "pop0": {
