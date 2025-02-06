@@ -256,14 +256,14 @@ class MatrixHandler(ConnectivityHandler):
                 min_abs_weight = np.min(abs(weight_array[np.nonzero(weight_array)]))
 
                 if weight_array.min() < 0:
-                    cm = matplotlib.cm.get_cmap("bwr")
+                    cm = matplotlib.pyplot.get_cmap("bwr")
                     self.zero_weight_color = "green"
 
                 else:
-                    # cm = matplotlib.cm.get_cmap('binary')
+                    # cm = matplotlib.pyplot.get_cmap('binary')
 
                     # if 'indiv' in proj_type or 'number' in proj_type:
-                    cm = matplotlib.cm.get_cmap("rainbow")
+                    cm = matplotlib.pyplot.get_cmap("rainbow")
                     self.zero_weight_color = "black"
 
                 if not cm.name in self.colormaps_used:
@@ -313,9 +313,10 @@ class MatrixHandler(ConnectivityHandler):
 
                 # change in relation to default so that users can override
                 default_tick_size_x = matplotlib.rcParams["xtick.labelsize"]
+                print('-------  %s'%default_tick_size_x)
                 tick_size_x = (
                     default_tick_size_x
-                    if weight_array.shape[0] < 20
+                    if weight_array.shape[0] < 20 or type(default_tick_size_x)==str
                     else (
                         (default_tick_size_x - 2)
                         if weight_array.shape[0] < 40
@@ -327,7 +328,7 @@ class MatrixHandler(ConnectivityHandler):
                 default_tick_size_y = matplotlib.rcParams["ytick.labelsize"]
                 tick_size_y = (
                     default_tick_size_y
-                    if weight_array.shape[0] < 20
+                    if weight_array.shape[0] < 20 or type(default_tick_size_x)==str
                     else (
                         (default_tick_size_y - 2)
                         if weight_array.shape[0] < 40
