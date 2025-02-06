@@ -14,6 +14,7 @@ from pyneuroml.pynml import convert_to_units
 
 from graphviz import Digraph
 import numpy as np
+from PIL import ImageColor
 
 engines = {
     "d": "dot",
@@ -526,12 +527,17 @@ class GraphVizHandler(ConnectivityHandler):
         shape = self.DEFAULT_POP_SHAPE
 
         if properties and "color" in properties:
-            rgb = properties["color"].split()
-            color = "#"
-            for a in rgb:
-                color = color + "%02x" % int(float(a) * 255)
+            if properties["color"][0] == "#":
+                color = properties["color"]
+                rgb = ImageColor.getcolor(color, "RGB")
+            else:
+                rgb = properties["color"].split()
+                color = "#"
+                for a in rgb:
+                    color = color + "%02x" % int(float(a) * 255)
 
             # https://stackoverflow.com/questions/3942878
+            # set foreground color depending on background
             if (
                 float(rgb[0]) * 0.299 + float(rgb[1]) * 0.587 + float(rgb[2]) * 0.2
             ) > 0.25:
@@ -539,7 +545,7 @@ class GraphVizHandler(ConnectivityHandler):
             else:
                 fcolor = "#ffffff"
 
-            # print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
+            print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
 
         if properties and "type" in properties:
             self.pop_types[population_id] = properties["type"]

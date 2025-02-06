@@ -2105,12 +2105,13 @@ if __name__ == "__main__":
                             size = evaluate(p.size, network.parameters)
                             for i in range(size):
                                 quantity = "%s/%i/%s/%s" % (p.id, i, p.component, var)
+                                safe_var = var.replace("/", "_")
+
                                 if not p.has_positions():
                                     quantity = "%s[%i]/%s" % (p.id, i, var)
                                 gen_plots_for_quantities[
-                                    "%s_%i_%s" % (p.id, i, var)
+                                    "%s_%i_%s" % (p.id, i, safe_var)
                                 ] = [quantity]
-                                safe_var = var.replace("/", "_")
                                 gen_saves_for_quantities[
                                     "%s_%i.%s.dat" % (p.id, i, safe_var)
                                 ] = [quantity]
