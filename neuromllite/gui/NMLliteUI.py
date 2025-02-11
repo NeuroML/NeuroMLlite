@@ -30,6 +30,8 @@ class ParameterSpinBox(QDoubleSpinBox):
         self.setDecimals(18)
         self.setMaximum(1e16)
         self.setMinimum(-1e16)
+        #print(f'\nSetting spin box params for {value}, {value_type}')
+
         if self.value_type == int:
             self.setSingleStep(1)
         else:
@@ -243,7 +245,7 @@ class NMLliteUI(QWidget):
                 entry.valueChanged.connect(self.updated_param)
 
             except Exception as e:
-                print_v("Error: %s" % e)
+                #print_v("Error: %s" % e)
 
                 entry = QLineEdit()
                 entry_map[name] = entry
@@ -1227,7 +1229,6 @@ class NMLliteUI(QWidget):
 
         ax_spikes.set_xlabel("Time (s)")
         ax_spikes.set_ylabel("Index")
-
         tmax = self.simulation.duration / 1000.0
         ax_spikes.set_xlim(tmax / -20.0, tmax * 1.05)
         ax_spikes.set_ylim(max_id / -20.0, max_id * 1.05)
