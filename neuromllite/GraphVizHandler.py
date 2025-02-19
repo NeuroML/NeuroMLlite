@@ -508,7 +508,7 @@ class GraphVizHandler(ConnectivityHandler):
         self.pop_nml_component_objs[population_id] = component_obj
 
         if not self.include_input_pops and is_spiking_input_nml_cell(component_obj):
-            print("Ignoring %s as it's a spiking input population")
+            print_v("Ignoring %s as it's a spiking input population")
             return
 
         self.pop_sizes[population_id] = size
@@ -545,7 +545,7 @@ class GraphVizHandler(ConnectivityHandler):
             else:
                 fcolor = "#ffffff"
 
-            print('Color %s -> %s -> %s'%(properties['color'], rgb, color))
+            print_v('Color %s -> %s -> %s'%(properties['color'], rgb, color))
 
         if properties and "type" in properties:
             self.pop_types[population_id] = properties["type"]
@@ -634,10 +634,6 @@ class GraphVizHandler(ConnectivityHandler):
         self.proj_post_pops[projName] = postPop
         self.proj_types[projName] = type
 
-        if prePop in self.pop_types:
-            if "I" in self.pop_types[prePop]:
-                shape = self.INH_CONN_ARROW_SHAPE
-
         if type == "electricalProjection":
             shape = self.GAP_CONN_ARROW_SHAPE
             line = "dashed"
@@ -645,6 +641,10 @@ class GraphVizHandler(ConnectivityHandler):
         if type == "continuousProjection":
             shape = self.CONT_CONN_ARROW_SHAPE
             line = "solid"
+
+        if prePop in self.pop_types:
+            if "I" in self.pop_types[prePop]:
+                shape = self.INH_CONN_ARROW_SHAPE
 
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
