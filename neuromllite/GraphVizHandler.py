@@ -634,9 +634,6 @@ class GraphVizHandler(ConnectivityHandler):
         self.proj_post_pops[projName] = postPop
         self.proj_types[projName] = type
 
-        if type == "electricalProjection":
-            shape = self.GAP_CONN_ARROW_SHAPE
-            line = "dashed"
 
         if type == "continuousProjection":
             shape = self.CONT_CONN_ARROW_SHAPE
@@ -646,6 +643,10 @@ class GraphVizHandler(ConnectivityHandler):
             if "I" in self.pop_types[prePop]:
                 shape = self.INH_CONN_ARROW_SHAPE
 
+        if type == "electricalProjection":
+            shape = self.GAP_CONN_ARROW_SHAPE
+            line = "dashed"
+            
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
             erev = self.get_reversal_potential_mV(synapse_obj)
