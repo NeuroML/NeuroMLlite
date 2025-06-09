@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     env:
       JNML_HOME: "/home/runner/work/NeuroMLlite/NeuroMLlite/jNeuroML"
       HDF5_DISABLE_VERSION_CHECK: 1
@@ -33,9 +33,7 @@ jobs:
     - name: Install NeuroMLlite and extra requirements
       run: |
           pip install .
-          pip install -r requirements-extra.txt
-                  
-          #pip install 'numpy<=1.23.0' # temp fix, see https://github.com/OpenSourceBrain/osb-model-validation/issues/91
+          pip install .[dev]
 
 
     - name: Lint with flake8
