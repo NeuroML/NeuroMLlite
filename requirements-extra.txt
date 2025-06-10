@@ -1,9 +1,0 @@
-pyNN
-bmtk
-matplotlib
-PyQt5
-pyneuroml
-pyelectro
-neuron
-h5py
-graphviz

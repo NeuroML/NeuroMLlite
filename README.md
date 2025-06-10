@@ -14,7 +14,7 @@ NeuroMLlite is in active development. This will evolve into a framework for more
 
 For some more background to this package see here: https://github.com/NeuroML/NetworkShorthand.
 
-![Architecture](images/NetworkShorthand.png)
+![Architecture](images/NetworkShorthand.png) 
 
 
 ## Examples
