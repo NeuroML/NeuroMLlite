@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
     env:
       JNML_HOME: "/home/runner/work/NeuroMLlite/NeuroMLlite/jNeuroML"
       HDF5_DISABLE_VERSION_CHECK: 1
@@ -92,7 +92,7 @@ jobs:
 
     - name: Install some simulators for testing
       run: |
-        #pip install cython
+        pip install "cython<3.1.0" # for nest...
         omv install NEURON
         pip install NetPyNE  # strange issues on py3.7 with omv install...
         omv install PyNN
