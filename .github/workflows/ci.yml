@@ -57,7 +57,7 @@ jobs:
         git clone https://github.com/NeuroML/pyNeuroML.git
         cd pyNeuroML
         git checkout $pynml_branch
-        pip install NEURON==8.2.2 # Specify version of neuron - 8.2.1 fails
+        pip install "NEURON>=8.2.2" # Specify version of neuron - 8.2.1 fails
         #pip install -r requirements-dev.txt
         pip install .
         cd -
