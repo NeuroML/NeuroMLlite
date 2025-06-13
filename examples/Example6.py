@@ -111,25 +111,24 @@ def generate(ref="Example6_PyNN", add_inputs=True):
             pop_id = "%s_%s" % (l, t)
             pops.append(pop_id)
             ref = "l%s%s" % (l[1:], t.lower())
-            exec(
-                ref
-                + " = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color, 'type':t})"
-            )
-            exec("%s.random_layout = RandomLayout(region = r.id)" % ref)
-            exec("net.populations.append(%s)" % ref)
-            exec("pop_dict['%s'] = %s" % (pop_id, ref))
+            d = {}
+            d[ref] = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color, 'type':t})
+
+            # Instead of exec, set the attribute directly using locals()
+            d[ref].random_layout = RandomLayout(region=r.id)
+            net.populations.append(d[ref])
+            pop_dict['%s'% (pop_id)] = d[ref]
 
             if add_inputs:
                 color = ".8 .8 .8"
                 input_id = "%s_%s_input" % (l, t)
                 input_pops.append(input_id)
                 input_ref = "l%s%s_i" % (l[1:], t.lower())
-                exec(
-                    input_ref
-                    + " = Population(id=input_id, size='int(%s*N_scaling)'%N_full[l][t], component=input_cell.id, properties={'color':color})"
-                )
-                exec("%s.random_layout = RandomLayout(region = r.id)" % input_ref)
-                exec("net.populations.append(%s)" % input_ref)
+                ir = {}
+                ir[input_ref] = Population(id=input_id, size='int(%s*N_scaling)'%N_full[l][t], component=input_cell.id, properties={'color':color})
+                
+                ir[input_ref].random_layout = RandomLayout(region = r.id)
+                net.populations.append(ir[input_ref])
 
         # l23i = Population(id='L23_I', size=int(100*scale), component=cell.id, properties={'color':})
         # l23ei = Population(id='L23_E_input', size=int(100*scale), component=input_cell.id)
