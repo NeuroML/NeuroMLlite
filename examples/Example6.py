@@ -114,7 +114,6 @@ def generate(ref="Example6_PyNN", add_inputs=True):
             d = {}
             d[ref] = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color, 'type':t})
 
-            # Instead of exec, set the attribute directly using locals()
             d[ref].random_layout = RandomLayout(region=r.id)
             net.populations.append(d[ref])
             pop_dict['%s'% (pop_id)] = d[ref]
