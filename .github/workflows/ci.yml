@@ -34,6 +34,8 @@ jobs:
       run: |
           pip install .
           pip install .[dev]
+          pip install "numpy<2.4" # Issue with numpy 2.4 and quantities, see https://github.com/OpenSourceBrain/osb-model-validation/issues/150
+
 
 
     - name: Lint with flake8
