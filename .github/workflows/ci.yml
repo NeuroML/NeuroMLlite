@@ -34,6 +34,8 @@ jobs:
       run: |
           pip install .
           pip install .[dev]
+          pip install "numpy<2.4" # Issue with numpy 2.4 and quantities, see https://github.com/OpenSourceBrain/osb-model-validation/issues/150
+
 
 
     - name: Lint with flake8
@@ -55,7 +57,7 @@ jobs:
         git clone https://github.com/NeuroML/pyNeuroML.git
         cd pyNeuroML
         git checkout $pynml_branch
-        pip install "NEURON>=8.2.2" # Specify version of neuron - 8.2.1 fails
+        pip install "NEURON>=8.2.2,<9.0.0" # Specify version of neuron - 8.2.1 fails
         #pip install -r requirements-dev.txt
         pip install .
         cd -
@@ -105,6 +107,7 @@ jobs:
         #export HDF5_DISABLE_VERSION_CHECK=1
         if [[ ${{ matrix.python-version }} != 2.7 ]]; then omv install PyNEST; fi
         #pip install h5py
+        
         omv list -V # list installed engines
 
     - name: Run pytest
