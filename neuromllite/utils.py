@@ -1,17 +1,13 @@
 from typing import Optional
 from neuromllite import *
-import sys
 import json
 
-
-from modelspec.base_types import EvaluableExpression
 
 from modelspec.utils import (
     load_json,
     load_yaml,
     evaluate,
     parse_list_like,
-    _parse_element,
     ascii_encode_dict,
 )
 
@@ -144,7 +140,7 @@ def _generate_cell_indices_seg_ids(pop_id, indices_segids, network):
     a = {}
     pop = network.get_child(pop_id, "populations")
 
-    if not isinstance(indices_segids, str) or not ":" in indices_segids:
+    if not isinstance(indices_segids, str) or ":" not in indices_segids:
         seg_ids = None
         indices = indices_segids
     else:

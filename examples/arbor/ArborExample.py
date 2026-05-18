@@ -148,6 +148,5 @@ sim.to_yaml_file("%s.yaml" % sim.id)
 ###   Run in some simulators
 
 from neuromllite.NetworkGenerator import check_to_generate_or_run
-import sys
 
 check_to_generate_or_run(sys.argv, sim)

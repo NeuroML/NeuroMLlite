@@ -717,7 +717,7 @@ def generate_neuroml2_from_network(
                 extra_lems_components.add(inc)
 
             incl = neuroml.IncludeType(extra_lems_file)
-            if not incl in nml_doc.includes:
+            if incl not in nml_doc.includes:
                 nml_doc.includes.append(incl)
 
         if nml_doc.get_by_id(i.id) == None:
@@ -725,7 +725,7 @@ def generate_neuroml2_from_network(
                 incl = neuroml.IncludeType(
                     locate_file(i.neuroml2_source_file, base_dir)
                 )
-                if not incl in nml_doc.includes:
+                if incl not in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
             if hasattr(i, "neuroml2_input") and i.neuroml2_input is not None:
@@ -769,7 +769,7 @@ def generate_neuroml2_from_network(
                         pass
 
             if nml_doc.get_by_id(c.id) == None:  # cell (of any type) is not in nml_doc
-                if not incl in nml_doc.includes:
+                if incl not in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
         if c.lems_source_file:
@@ -805,7 +805,7 @@ def generate_neuroml2_from_network(
                 extra_lems_components.add(inc)
 
             incl = neuroml.IncludeType(extra_lems_file)
-            if not incl in nml_doc.includes:
+            if incl not in nml_doc.includes:
                 nml_doc.includes.append(incl)
 
         if c.neuroml2_cell:
@@ -847,7 +847,7 @@ def generate_neuroml2_from_network(
                 incl = neuroml.IncludeType(
                     locate_file(s.neuroml2_source_file, base_dir)
                 )
-                if not incl in nml_doc.includes:
+                if incl not in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
             if s.lems_source_file:
@@ -883,7 +883,7 @@ def generate_neuroml2_from_network(
                     extra_lems_components.add(inc)
 
                 incl = neuroml.IncludeType(extra_lems_file)
-                if not incl in nml_doc.includes:
+                if incl not in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
     # Look for and add the PyNN based elements to the NeuroMLDocument
@@ -956,21 +956,21 @@ def _generate_neuron_files_from_neuroml(network, verbose=False, dir_for_mod_file
         if c.neuroml2_source_file:
             nml_src_files.append(c.neuroml2_source_file)
             dir_for_mod = os.path.dirname(os.path.abspath(c.neuroml2_source_file))
-            if not dir_for_mod in dirs_for_mod_files:
+            if dir_for_mod not in dirs_for_mod_files:
                 dirs_for_mod_files.append(dir_for_mod)
 
     for s in network.synapses:
         if s.neuroml2_source_file:
             nml_src_files.append(s.neuroml2_source_file)
             dir_for_mod = os.path.dirname(os.path.abspath(s.neuroml2_source_file))
-            if not dir_for_mod in dirs_for_mod_files:
+            if dir_for_mod not in dirs_for_mod_files:
                 dirs_for_mod_files.append(dir_for_mod)
 
     for i in network.input_sources:
         if i.neuroml2_source_file:
             nml_src_files.append(i.neuroml2_source_file)
             dir_for_mod = os.path.dirname(os.path.abspath(i.neuroml2_source_file))
-            if not dir_for_mod in dirs_for_mod_files:
+            if dir_for_mod not in dirs_for_mod_files:
                 dirs_for_mod_files.append(dir_for_mod)
 
     temp_nml_doc = _extract_pynn_components_to_neuroml(network)
@@ -998,7 +998,7 @@ def _generate_neuron_files_from_neuroml(network, verbose=False, dir_for_mod_file
         )
 
     for dir_for_mod_files in dirs_for_mod_files:
-        if not dir_for_mod_files in locations_mods_loaded_from:
+        if dir_for_mod_files not in locations_mods_loaded_from:
             print_v(
                 "Generated NEURON code; loading mechanisms from %s (cwd: %s; already loaded: %s)"
                 % (dir_for_mod_files, os.getcwd(), locations_mods_loaded_from)
@@ -1149,9 +1149,7 @@ print('Data from simulation saved to: %s'%all_data_files)
 plt.show()
 
 #{0}.show_graph()
-            """.format(
-                network.id, nmlliteversion, simulation.dt, simulation.duration
-            )
+            """.format(network.id, nmlliteversion, simulation.dt, simulation.duration)
 
             run_pnl_file = open("run_pnl_%s.py" % network.id, "w")
 
@@ -1239,9 +1237,9 @@ plt.show()
             sim_file_info["reports"]["membrane_potential"] = {}
             sim_file_info["reports"]["membrane_potential"]["cells"] = "point_nodes"
             sim_file_info["reports"]["membrane_potential"]["variable_name"] = "V_m"
-            sim_file_info["reports"]["membrane_potential"][
-                "module"
-            ] = "multimeter_report"
+            sim_file_info["reports"]["membrane_potential"]["module"] = (
+                "multimeter_report"
+            )
             sim_file_info["reports"]["membrane_potential"]["sections"] = "soma"
             sim_file_info["reports"]["membrane_potential"]["enabled"] = True
 
@@ -1277,9 +1275,9 @@ plt.show()
 
                 sim_file_info["node_sets"][ref] = {}
                 sim_file_info["node_sets"][ref]["model_type"] = "point_process"
-                sim_file_info["node_sets"][ref][
-                    "population"
-                ] = sonata_handler.input_info[input][0]
+                sim_file_info["node_sets"][ref]["population"] = (
+                    sonata_handler.input_info[input][0]
+                )
                 # sim_file_info["node_sets"][ref]['node_id'] = sonata_handler.input_info[input][2]
 
             save_to_json_file(sim_file_info, "simulation_config.json", indent=2)
@@ -1570,7 +1568,7 @@ if __name__ == "__main__":
                 synapse = network.get_child(proj.synapse, "synapses")
                 post_pop = network.get_child(proj.postsynaptic, "populations")
 
-                if not post_pop.component in syn_cell_params:
+                if post_pop.component not in syn_cell_params:
                     syn_cell_params[post_pop.component] = {}
                 for p in synapse.parameters:
                     post = ""
@@ -1675,7 +1673,7 @@ if __name__ == "__main__":
             traces = {}
             events = {}
 
-            if not "NeuroML" in simulator:
+            if "NeuroML" not in simulator:
                 # Temp! See https://github.com/NeuralEnsemble/PyNN/pull/762
                 def get_source_id(spiketrain):
                     if "source_id" in spiketrain.annotations:
@@ -1720,7 +1718,7 @@ if __name__ == "__main__":
                         vm_si = np.array(vm / 1000.0)
 
                         traces[ref] = vm_si
-                        if not "t" in traces:
+                        if "t" not in traces:
                             traces["t"] = tt
 
                         all_columns.append(vm_si)

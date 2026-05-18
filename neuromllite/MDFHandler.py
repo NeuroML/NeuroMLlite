@@ -310,7 +310,7 @@ class MDFHandler(DefaultNetworkHandler):
                 reg_param = "REGIME_%s" % reg.name
                 # node["parameters"][reg_param] = {"value": 'ACTIVE_REGIME' if reg.initial else 'INACTIVE_REGIME'}
 
-                if not reg_param in node["parameters"]:
+                if reg_param not in node["parameters"]:
                     node["parameters"][reg_param] = {}
                 node["parameters"][reg_param]["value"] = reg_param
                 node["parameters"][reg_param]["default_initial_value"] = (
@@ -320,9 +320,9 @@ class MDFHandler(DefaultNetworkHandler):
                 node["output_ports"][reg_param] = {"value": reg_param}
 
                 for td in reg.time_derivatives:
-                    node["parameters"][td.variable][
-                        "time_derivative"
-                    ] = self._convert_value("%s * (%s)" % (reg_param, td.value))
+                    node["parameters"][td.variable]["time_derivative"] = (
+                        self._convert_value("%s * (%s)" % (reg_param, td.value))
+                    )
 
                 for eh in reg.event_handlers:
                     print_v(
@@ -341,7 +341,7 @@ class MDFHandler(DefaultNetworkHandler):
                             self._replace_in_condition_test(eh.test),
                         )
                         # test = "%s == ACTIVE_REGIME" % (reg_param)
-                        if not "conditions" in node["parameters"][reg_param]:
+                        if "conditions" not in node["parameters"][reg_param]:
                             node["parameters"][reg_param]["conditions"] = {}
 
                         node["parameters"][reg_param]["conditions"][
@@ -355,10 +355,10 @@ class MDFHandler(DefaultNetworkHandler):
                                     "  Transition: %s -> %s" % (reg_param, reg_to_id)
                                 )
                                 reg_to_param = "REGIME_%s" % reg_to_id
-                                if not reg_to_param in node["parameters"]:
+                                if reg_to_param not in node["parameters"]:
                                     node["parameters"][reg_to_param] = {}
                                 reg_to = lems_comp_type.dynamics.regimes[reg_to_id]
-                                if not "conditions" in node["parameters"][reg_to_param]:
+                                if "conditions" not in node["parameters"][reg_to_param]:
                                     node["parameters"][reg_to_param]["conditions"] = {}
 
                                 node["parameters"][reg_to_param]["conditions"][
@@ -375,8 +375,10 @@ class MDFHandler(DefaultNetworkHandler):
                                         for a in eh.actions:
                                             if type(a) == lems.StateAssignment:
                                                 if (
-                                                    not "conditions"
-                                                    in node["parameters"][a.variable]
+                                                    "conditions"
+                                                    not in node["parameters"][
+                                                        a.variable
+                                                    ]
                                                 ):
                                                     node["parameters"][a.variable][
                                                         "conditions"
@@ -395,7 +397,7 @@ class MDFHandler(DefaultNetworkHandler):
                                     "default_initial_value": [0] * size
                                 }
 
-                                if not "conditions" in node["parameters"][a.port]:
+                                if "conditions" not in node["parameters"][a.port]:
                                     node["parameters"][a.port]["conditions"] = {}
 
                                 node["parameters"][a.port]["conditions"][
@@ -444,7 +446,7 @@ class MDFHandler(DefaultNetworkHandler):
                     ep_name = self._get_input_port_name(eh.port)
                     for a in eh.actions:
                         if type(a) == lems.StateAssignment:
-                            if not "conditions" in node["parameters"][a.variable]:
+                            if "conditions" not in node["parameters"][a.variable]:
                                 node["parameters"][a.variable]["conditions"] = {}
 
                             to_check = ep_name
@@ -457,9 +459,9 @@ class MDFHandler(DefaultNetworkHandler):
                 if type(eh) == lems.OnStart:
                     for a in eh.actions:
                         if type(a) == lems.StateAssignment:
-                            node["parameters"][a.variable][
-                                "default_initial_value"
-                            ] = a.value
+                            node["parameters"][a.variable]["default_initial_value"] = (
+                                a.value
+                            )
                         if "value" in node["parameters"][a.variable]:
                             node["parameters"][a.variable].pop("value")
 
@@ -468,7 +470,7 @@ class MDFHandler(DefaultNetworkHandler):
 
                     for a in eh.actions:
                         if type(a) == lems.StateAssignment:
-                            if not "conditions" in node["parameters"][a.variable]:
+                            if "conditions" not in node["parameters"][a.variable]:
                                 node["parameters"][a.variable]["conditions"] = {}
 
                             node["parameters"][a.variable]["conditions"][
@@ -481,7 +483,7 @@ class MDFHandler(DefaultNetworkHandler):
                                 "default_initial_value": [0] * size
                             }
 
-                            if not "conditions" in node["parameters"][a.port]:
+                            if "conditions" not in node["parameters"][a.port]:
                                 node["parameters"][a.port]["conditions"] = {}
 
                             node["parameters"][a.port]["conditions"][
@@ -494,11 +496,11 @@ class MDFHandler(DefaultNetworkHandler):
                     conditions += 1
 
             for td in lems_comp_type.dynamics.time_derivatives:
-                node["parameters"][td.variable][
-                    "time_derivative"
-                ] = self._convert_value(td.value)
+                node["parameters"][td.variable]["time_derivative"] = (
+                    self._convert_value(td.value)
+                )
 
-                if not "default_initial_value" in node["parameters"][td.variable]:
+                if "default_initial_value" not in node["parameters"][td.variable]:
                     node["parameters"][td.variable]["default_initial_value"] = [
                         0
                     ] * size
@@ -548,7 +550,6 @@ class MDFHandler(DefaultNetworkHandler):
     @classmethod
     def _get_lems_model_with_neuroml2_types(cls, nml_doc=None):
         from pyneuroml.pynml import get_path_to_jnml_jar
-        from pyneuroml.pynml import read_lems_file
         from lems.parser.LEMS import LEMSFileParser
         import zipfile
 

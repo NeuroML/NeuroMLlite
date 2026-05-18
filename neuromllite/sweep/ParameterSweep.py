@@ -239,7 +239,7 @@ class ParameterSweep:
 
                 for a in sorted(analysed.keys()):
                     ref0, var = a.split(":")
-                    if not ref0 in report_here["analysis"]:
+                    if ref0 not in report_here["analysis"]:
                         report_here["analysis"][ref0] = OrderedDict()
                     report_here["analysis"][ref0][var] = analysed[a]
 
@@ -262,7 +262,7 @@ class ParameterSweep:
                 # print_v('This has %s points in %s sec, so %s Hz'%(l,tmax_si, f_hz))
                 analysed["mean_spike_frequency"] = f_hz
 
-                if not ref0 in report_here["analysis"]:
+                if ref0 not in report_here["analysis"]:
                     report_here["analysis"][ref0] = OrderedDict()
 
                 report_here["analysis"][ref0] = analysed
@@ -288,7 +288,7 @@ class ParameterSweep:
                             )
 
                         if self.heatmap_all:
-                            dt = self.sim.dt if not "dt" in params else params["dt"]
+                            dt = self.sim.dt if "dt" not in params else params["dt"]
                             downscale = int(0.1 / dt)
                             d = [
                                 traces[y][i] * 1000
@@ -362,7 +362,6 @@ class ParameterSweep:
             # yvals = np.array(self.hm_y)
 
             if not self.heatmap_lims:
-                
                 plot0 = self.hm_ax.pcolormesh(
                     np.array(self.hm_x), np.array(self.hm_y), z, cmap=self.colormap
                 )
@@ -431,7 +430,7 @@ class ParameterSweep:
                 val2 = get_value_in_si(info["parameters"][second_param])
                 trace_id = "%s__%s" % (second_param, val2)
                 trace_id = val2
-                if not trace_id in all_traces:
+                if trace_id not in all_traces:
                     all_traces.append(trace_id)
 
         for t in all_traces:
@@ -463,7 +462,7 @@ class ParameterSweep:
                 )
                 if matching_ref == cell_ref or matching_ref == "*":
                     # print('y')
-                    if not cell_ref in all_lines[trace_id]:
+                    if cell_ref not in all_lines[trace_id]:
                         all_lines[trace_id][cell_ref] = []
                         all_pvals[trace_id][cell_ref] = []
 
@@ -570,11 +569,9 @@ class NeuroMLliteRunner:
         from neuromllite.utils import print_v
         from neuromllite.utils import load_simulation_json, load_network_json
         from neuromllite.NetworkGenerator import generate_and_run
-        from pyneuroml.pynml import get_value_in_si
 
         print_v("Running NeuroMLlite simulation in dir: %s..." % job_dir)
         sim = load_simulation_json(self.nmllite_sim)
-        import random
 
         sim.id = "%s%s" % (
             sim.id,
@@ -712,7 +709,7 @@ if __name__ == "__main__":
 
         vary = {"dt": [0.025, 0.02, 0.015, 0.01, 0.005, 0.0025]}
         vary = {"dt": [0.1, 0.05, 0.025, 0.01, 0.005, 0.0025, 0.001]}
-        #vary = {"dt": [0.1, 0.05, 0.025]}
+        # vary = {"dt": [0.1, 0.05, 0.025]}
 
         simulator = "jNeuroML_NetPyNE"
         simulator = "NetPyNE"
@@ -766,7 +763,7 @@ if __name__ == "__main__":
         vary = {"c": [-3, -1, 1, 3]}
         # vary = {'a':[.8,1,1.2]}
         # vary = {'eta':['100Hz']}
-        vary = {'I':[5,5.2]}
+        vary = {"I": [5, 5.2]}
 
         simulator = "jNeuroML"
         simulator = "jNeuroML_NEURON"

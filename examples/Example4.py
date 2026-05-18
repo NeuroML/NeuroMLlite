@@ -135,6 +135,5 @@ sim.network = net_json_file  # reverting, for call below...
 ###   Run in some simulators
 
 from neuromllite.NetworkGenerator import check_to_generate_or_run
-import sys
 
 check_to_generate_or_run(sys.argv, sim)

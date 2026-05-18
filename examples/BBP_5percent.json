@@ -1,6 +1,6 @@
 {
     "BBP_5percent": {
-        "version": "NeuroMLlite v0.5.3",
+        "version": "NeuroMLlite v0.6.1",
         "notes": "A network with the Blue Brain Project connectivity data (%s% of total cells)",
         "cells": {
             "hhcell": {
@@ -24,7 +24,7 @@
             "stim_L4_PC": {
                 "input_source": "poissonFiringSyn",
                 "population": "L4_PC",
-                "percentage": 80.0
+                "percentage": 80
             }
         },
         "network_reader": {

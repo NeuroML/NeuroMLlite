@@ -112,11 +112,16 @@ def generate(ref="Example6_PyNN", add_inputs=True):
             pops.append(pop_id)
             ref = "l%s%s" % (l[1:], t.lower())
             d = {}
-            d[ref] = Population(id=pop_id, size='int(%s*N_scaling)'%N_full[l][t], component=cell.id, properties={'color':color, 'type':t})
+            d[ref] = Population(
+                id=pop_id,
+                size="int(%s*N_scaling)" % N_full[l][t],
+                component=cell.id,
+                properties={"color": color, "type": t},
+            )
 
             d[ref].random_layout = RandomLayout(region=r.id)
             net.populations.append(d[ref])
-            pop_dict['%s'% (pop_id)] = d[ref]
+            pop_dict["%s" % (pop_id)] = d[ref]
 
             if add_inputs:
                 color = ".8 .8 .8"
@@ -124,9 +129,14 @@ def generate(ref="Example6_PyNN", add_inputs=True):
                 input_pops.append(input_id)
                 input_ref = "l%s%s_i" % (l[1:], t.lower())
                 ir = {}
-                ir[input_ref] = Population(id=input_id, size='int(%s*N_scaling)'%N_full[l][t], component=input_cell.id, properties={'color':color})
-                
-                ir[input_ref].random_layout = RandomLayout(region = r.id)
+                ir[input_ref] = Population(
+                    id=input_id,
+                    size="int(%s*N_scaling)" % N_full[l][t],
+                    component=input_cell.id,
+                    properties={"color": color},
+                )
+
+                ir[input_ref].random_layout = RandomLayout(region=r.id)
                 net.populations.append(ir[input_ref])
 
         # l23i = Population(id='L23_I', size=int(100*scale), component=cell.id, properties={'color':})

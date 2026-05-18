@@ -1,7 +1,3 @@
-import sys
-from bmtk.analyzer.visualization.spikes import plot_spikes
-
-
 from analyze_output_utils import plot_data
 
 if __name__ == "__main__":

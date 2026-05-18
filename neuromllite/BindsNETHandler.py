@@ -5,10 +5,8 @@
 #
 
 from neuromllite.utils import print_v
-from neuromllite.utils import evaluate
 from neuromllite.DefaultNetworkHandler import DefaultNetworkHandler
 
-from pyneuroml.pynml import convert_to_units
 
 import numpy as np
 

@@ -358,7 +358,7 @@ class SonataReader(NetworkReader):
                     pass  # Don't specify a particular color, use random, not a problem...
 
                 properties["color"] = color
-                if True or not "locations" in self.cell_info[sonata_pop]["0"]:
+                if True or "locations" not in self.cell_info[sonata_pop]["0"]:
                     properties = {}  #############  temp for LEMS...
 
                 if model_type != "virtual":
@@ -377,18 +377,18 @@ class SonataReader(NetworkReader):
             for i in self.cell_info[sonata_pop]["types"]:
                 pop = types_vs_pops[self.cell_info[sonata_pop]["types"][i]]
 
-                if not pop in self.cell_info[sonata_pop]["pop_count"]:
+                if pop not in self.cell_info[sonata_pop]["pop_count"]:
                     self.cell_info[sonata_pop]["pop_count"][pop] = 0
 
                 index = self.cell_info[sonata_pop]["pop_count"][pop]
                 self.cell_info[sonata_pop]["pop_map"][i] = (pop, index)
 
-                if not pop in self.nml_ids_vs_gids:
+                if pop not in self.nml_ids_vs_gids:
                     self.nml_ids_vs_gids[pop] = {}
                 self.nml_ids_vs_gids[pop][index] = (sonata_pop, i)
 
                 if i in self.cell_info[sonata_pop]["0"]["locations"]:
-                    if not pop in self.nml_pops_having_locations:
+                    if pop not in self.nml_pops_having_locations:
                         self.nml_pops_having_locations.append(pop)
                     pos = self.cell_info[sonata_pop]["0"]["locations"][i]
                     # print('Adding pos %i: %s'%(i,pos))
@@ -431,7 +431,7 @@ class SonataReader(NetworkReader):
                 )
                 self.simulation_config["node_sets"] = node_sets
 
-            if not "node_sets" in self.simulation_config:
+            if "node_sets" not in self.simulation_config:
                 self.simulation_config["node_sets"] = {}
 
             for sonata_pop in self.cell_info:
@@ -441,7 +441,7 @@ class SonataReader(NetworkReader):
                     nml_index = self.cell_info[sonata_pop]["pop_map"][sindex][1]
 
                     # Add all in this sonata_pop to a 'node_set' named after the sonata_pop
-                    if not nml_pop in self.node_set_mappings[sonata_pop]:
+                    if nml_pop not in self.node_set_mappings[sonata_pop]:
                         self.node_set_mappings[sonata_pop][nml_pop] = []
                     self.node_set_mappings[sonata_pop][nml_pop].append(nml_index)
 
@@ -470,7 +470,7 @@ class SonataReader(NetworkReader):
                                 "node_id" in node_set_props
                                 and sindex in node_set_props["node_id"]
                             ):
-                                if not nml_pop in self.node_set_mappings[node_set]:
+                                if nml_pop not in self.node_set_mappings[node_set]:
                                     self.node_set_mappings[node_set][nml_pop] = []
                                 self.node_set_mappings[node_set][nml_pop].append(
                                     nml_index
@@ -479,7 +479,7 @@ class SonataReader(NetworkReader):
                         matches = _matches_node_set_props(type_info, node_set_props)
                         # print_v('Node %i in %s (NML: %s[%i]) has type %s (%s); matches: %s'%(sindex, sonata_pop, nml_pop, nml_index, type, type_info, matches))
                         if matches:
-                            if not nml_pop in self.node_set_mappings[node_set]:
+                            if nml_pop not in self.node_set_mappings[node_set]:
                                 self.node_set_mappings[node_set][nml_pop] = []
                             self.node_set_mappings[node_set][nml_pop].append(nml_index)
 
@@ -653,7 +653,7 @@ class SonataReader(NetworkReader):
                 )
 
                 if not pop_type_pre == "virtual":
-                    if not proj_id in projections_created:
+                    if proj_id not in projections_created:
                         self.handler.handle_projection(
                             proj_id, pre_pop, post_pop, synapse
                         )
@@ -736,12 +736,12 @@ class SonataReader(NetworkReader):
                     self.current_pre_node = g._v_name.split("_to_")[0]
                     self.current_post_node = g._v_name.split("_to_")[1]
                     # print('  Found edge %s -> %s'%(self.current_pre_node, self.current_post_node))
-                    self.conn_info[self.current_edge][
-                        "pre_node"
-                    ] = self.current_pre_node
-                    self.conn_info[self.current_edge][
-                        "post_node"
-                    ] = self.current_post_node
+                    self.conn_info[self.current_edge]["pre_node"] = (
+                        self.current_pre_node
+                    )
+                    self.conn_info[self.current_edge]["post_node"] = (
+                        self.current_post_node
+                    )
 
                 self.parse_group(node)
 
@@ -759,10 +759,10 @@ class SonataReader(NetworkReader):
         if self.current_node_group:  # e.g. parent group is 0 with child datasets x,y,z
             for i in range(0, d.shape[0]):
                 if (
-                    not i
-                    in self.cell_info[self.current_sonata_pop][self.current_node_group][
-                        "locations"
-                    ]
+                    i
+                    not in self.cell_info[self.current_sonata_pop][
+                        self.current_node_group
+                    ]["locations"]
                 ):
                     self.cell_info[self.current_sonata_pop][self.current_node_group][
                         "locations"
@@ -791,8 +791,8 @@ class SonataReader(NetworkReader):
                 for i in range(0, d.shape[0]):
                     self.cell_info[self.current_sonata_pop]["types"][i] = d[i]
                     if (
-                        not d[i]
-                        in self.cell_info[self.current_sonata_pop]["type_count"]
+                        d[i]
+                        not in self.cell_info[self.current_sonata_pop]["type_count"]
                     ):
                         self.cell_info[self.current_sonata_pop]["type_count"][d[i]] = 0
                     self.cell_info[self.current_sonata_pop]["type_count"][d[i]] += 1
@@ -934,9 +934,7 @@ class SonataReader(NetworkReader):
             ):
                 contents = """<Lems>
     <impulseSynapse id="%s"/>
-</Lems>""" % (
-                    s
-                )
+</Lems>""" % (s)
 
                 syn_file_name = "%s.xml" % s
                 syn_file = open(syn_file_name, "w")
@@ -1026,13 +1024,13 @@ class SonataReader(NetworkReader):
 
                     for id in ids:
                         quantity = "%s/%i/%s/%s" % (nml_pop, id, comp, "v")
-                        if not nml_pop in self.nml_pops_having_locations:
+                        if nml_pop not in self.nml_pops_having_locations:
                             quantity = "%s[%i]/%s" % (nml_pop, id, "v")
 
-                        if not display in gen_plots_for_quantities:
+                        if display not in gen_plots_for_quantities:
                             gen_plots_for_quantities[display] = []
                         gen_plots_for_quantities[display].append(quantity)
-                        if not file_name in gen_saves_for_quantities:
+                        if file_name not in gen_saves_for_quantities:
                             gen_saves_for_quantities[file_name] = []
                         gen_saves_for_quantities[file_name].append(quantity)
 
@@ -1241,7 +1239,7 @@ def run(args):
                         nml_index
                     ]
 
-                    if not sonata_node in node_info:
+                    if sonata_node not in node_info:
                         node_info[sonata_node] = {}
                         node_info[sonata_node]["data"] = []
                         node_info[sonata_node]["gids"] = []

@@ -44,16 +44,16 @@ class SonataHandler(DefaultNetworkHandler):
             os.mkdir(self.circuit_file_info["manifest"]["$COMPONENT_DIR"])
 
         self.circuit_file_info["components"] = {}
-        self.circuit_file_info["components"][
-            "synaptic_models_dir"
-        ] = "$COMPONENT_DIR/synaptic_models"
+        self.circuit_file_info["components"]["synaptic_models_dir"] = (
+            "$COMPONENT_DIR/synaptic_models"
+        )
 
         if not os.path.exists("./components/synaptic_models"):
             os.mkdir("./components/synaptic_models")
 
-        self.circuit_file_info["components"][
-            "point_neuron_models_dir"
-        ] = "$COMPONENT_DIR/point_neuron_models_dir"
+        self.circuit_file_info["components"]["point_neuron_models_dir"] = (
+            "$COMPONENT_DIR/point_neuron_models_dir"
+        )
         if not os.path.exists("./components/point_neuron_models_dir"):
             os.mkdir("./components/point_neuron_models_dir")
 
@@ -154,7 +154,7 @@ class SonataHandler(DefaultNetworkHandler):
         )
 
     def handle_location(self, id, population_id, component, x, y, z):
-        if not population_id in self.positions:
+        if population_id not in self.positions:
             self.positions[population_id] = np.array([[x, y, z]])
             self.pop_indices[population_id] = np.array([id])
         else:

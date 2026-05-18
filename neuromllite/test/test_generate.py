@@ -2,8 +2,6 @@ from neuromllite import *
 from neuromllite.utils import *
 from neuromllite.NetworkGenerator import *
 
-from modelspec.utils import _parse_element
-
 
 try:
     import unittest2 as unittest
