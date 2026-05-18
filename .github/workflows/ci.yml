@@ -30,6 +30,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8
 
+        pip install setuptools==80 # needed for eden on Python 3.12...
+
     - name: Install NeuroMLlite and extra requirements
       run: |
           pip install .
