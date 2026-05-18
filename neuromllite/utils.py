@@ -280,7 +280,7 @@ def create_new_model(
     net.id = reference
 
     print(net.to_json())
-    if network_filename == None:
+    if network_filename is None:
         network_filename = "%s.json" % net.id
     new_file = net.to_json_file(network_filename)
 
@@ -296,7 +296,7 @@ def create_new_model(
         record_traces={"all": "*"},
     )
 
-    if simulation_filename == None:
+    if simulation_filename is None:
         simulation_filename = "%s.json" % sim.id
     sim.to_json_file(simulation_filename)
 

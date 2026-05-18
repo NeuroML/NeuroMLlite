@@ -122,7 +122,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
 
         if self.scale_by_post_pop_cond:
             gbase_nS = self._get_gbase_nS(projName)
-            if gbase_nS != None:
+            if gbase_nS is not None:
                 weight *= gbase_nS
 
         if not orig_weight == weight:
@@ -138,7 +138,7 @@ class ConnectivityHandler(DefaultNetworkHandler):
 
         if self.scale_by_post_pop_cond:
             gbase_nS = self._get_gbase_nS(projName)
-            if gbase_nS != None:
+            if gbase_nS is not None:
                 weight *= gbase_nS
 
         if not orig_weight == weight:

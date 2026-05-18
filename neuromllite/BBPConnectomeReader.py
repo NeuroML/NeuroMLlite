@@ -56,10 +56,10 @@ class BBPConnectomeReader(NetworkReaderX):
                     self.pre_pop = node._v_name.replace("-", "_")
                     self.post_pop = None
                     # print("Conn %s -> ?"%(self.pre_pop))
-                elif self.pre_pop != None and self.post_pop == None:
+                elif self.pre_pop is not None and self.post_pop is None:
                     self.post_pop = node._v_name.replace("-", "_")
                     # print("Conn2 %s -> %s"%(self.pre_pop,self.post_pop))
-                elif self.pre_pop != None and self.post_pop != None:
+                elif self.pre_pop is not None and self.post_pop is not None:
                     # print("Conn3 %s -> %s"%(self.pre_pop,self.post_pop))
                     pass
 
@@ -192,7 +192,7 @@ class BBPConnectomeReader(NetworkReaderX):
                         )
 
         # Projection
-        elif self.pre_pop != None and self.post_pop != None:
+        elif self.pre_pop is not None and self.post_pop is not None:
             proj_id = "Proj__%s__%s" % (self.pre_pop, self.post_pop)
             synapse = "gaba"
             if (

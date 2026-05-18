@@ -220,7 +220,7 @@ class MatrixHandler(ConnectivityHandler):
                         self._get_conn_label(matrix_number_conns, pclass)
                     ][pre_pop_i][post_pop_i] += abs(self.proj_conns[projName])
 
-                    cond_scale = gbase_nS if gbase_nS != None else 1.0
+                    cond_scale = gbase_nS if gbase_nS is not None else 1.0
                     tot_scaled = (
                         abs(self.proj_tot_weight[projName]) * cond_scale / num_post
                     )
@@ -489,7 +489,7 @@ class MatrixHandler(ConnectivityHandler):
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
             erev = self.get_reversal_potential_mV(synapse_obj)
-            if erev != None and erev < self.CUTOFF_INH_SYN_MV:
+            if erev is not None and erev < self.CUTOFF_INH_SYN_MV:
                 proj_type = "inhibitory"
 
         if self.nl_network:

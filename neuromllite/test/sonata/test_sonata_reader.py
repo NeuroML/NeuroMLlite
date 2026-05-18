@@ -25,7 +25,7 @@ def main():
 
         print("****        Testing %s (%s)         \n" % (id, filename))
 
-        nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
+        get_neuroml_from_sonata(filename, id, generate_lems=True)
 
         nml_file = "%s.net.nml" % id
 

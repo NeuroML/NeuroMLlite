@@ -594,7 +594,7 @@ def _extract_pynn_components_to_neuroml(nl_model, nml_doc=None):
                 cell.id = c.id
 
     for s in nl_model.synapses:
-        if nml_doc.get_by_id(s.id) == None:
+        if nml_doc.get_by_id(s.id) is None:
             if s.pynn_synapse_type and s.pynn_receptor_type:
                 import neuroml
 
@@ -720,7 +720,7 @@ def generate_neuroml2_from_network(
             if incl not in nml_doc.includes:
                 nml_doc.includes.append(incl)
 
-        if nml_doc.get_by_id(i.id) == None:
+        if nml_doc.get_by_id(i.id) is None:
             if i.neuroml2_source_file:
                 incl = neuroml.IncludeType(
                     locate_file(i.neuroml2_source_file, base_dir)
@@ -768,7 +768,7 @@ def generate_neuroml2_from_network(
                     if p.component == c.id:
                         pass
 
-            if nml_doc.get_by_id(c.id) == None:  # cell (of any type) is not in nml_doc
+            if nml_doc.get_by_id(c.id) is None:  # cell (of any type) is not in nml_doc
                 if incl not in nml_doc.includes:
                     nml_doc.includes.append(incl)
 
@@ -842,7 +842,7 @@ def generate_neuroml2_from_network(
                 )
 
     for s in nl_model.synapses:
-        if nml_doc.get_by_id(s.id) == None:
+        if nml_doc.get_by_id(s.id) is None:
             if s.neuroml2_source_file:
                 incl = neuroml.IncludeType(
                     locate_file(s.neuroml2_source_file, base_dir)
@@ -894,7 +894,7 @@ def generate_neuroml2_from_network(
         print_v(nml_doc.summary())
 
     # Save to file
-    if target_dir == None:
+    if target_dir is None:
         target_dir = base_dir
     if format == "xml":
         if not nml_file_name:
@@ -949,7 +949,7 @@ def _generate_neuron_files_from_neuroml(network, verbose=False, dir_for_mod_file
     temp_nml_doc = NeuroMLDocument(id="temp")
 
     dirs_for_mod_files = []
-    if dir_for_mod_files != None:
+    if dir_for_mod_files is not None:
         dirs_for_mod_files.append(os.path.abspath(dir_for_mod_files))
 
     for c in network.cells:
@@ -1036,7 +1036,7 @@ def generate_and_run(
     Generates the network in the specified simulator and runs, if appropriate
     """
 
-    if network == None:
+    if network is None:
         network = load_network(simulation.network)
 
     print_v(
@@ -1247,7 +1247,7 @@ plt.show()
 
             temp_nml_doc = _extract_pynn_components_to_neuroml(network)
 
-            summary = temp_nml_doc.summary()
+            temp_nml_doc.summary()
             from pyneuroml.pynml import convert_to_units
 
             sim_file_info["inputs"] = {}
@@ -1762,7 +1762,7 @@ if __name__ == "__main__":
                 return traces, events
 
         elif simulator == "NetPyNE":
-            if target_dir == None:
+            if target_dir is None:
                 target_dir = "./"
 
             _generate_neuron_files_from_neuroml(network, dir_for_mod_files=target_dir)
@@ -1804,7 +1804,7 @@ if __name__ == "__main__":
             for pop_id in trace_pop_indices_seg_ids:
                 for index in trace_pop_indices_seg_ids[pop_id]:
                     seg_ids = trace_pop_indices_seg_ids[pop_id][index]
-                    if seg_ids == None:
+                    if seg_ids is None:
                         simConfig.recordTraces[
                             "%s.%s.%s.v" % (simulation.id, pop_id, index)
                         ] = {
@@ -1853,7 +1853,7 @@ if __name__ == "__main__":
                     % (projName, ptype, prePop, postPop, synapse)
                 )
 
-                preComp = netpyne_handler.pop_ids_vs_components[prePop]
+                netpyne_handler.pop_ids_vs_components[prePop]
 
                 for conn in netpyne_handler.connections[projName]:
                     (
@@ -1905,10 +1905,8 @@ if __name__ == "__main__":
                     ):  # check if postsyn is in this node's list of gids
                         sim.net._addCellConn(connParam, pre_id, post_id)
 
-            stims = (
-                sim.net.addStims()
-            )  # add external stimulation to cells (IClamps etc)
-            simData = (
+            (sim.net.addStims())  # add external stimulation to cells (IClamps etc)
+            (
                 sim.setupRecording()
             )  # setup variables to record for each cell (spikes, V traces, etc)
             sim.runSim()  # run parallel Neuron simulation
@@ -1932,7 +1930,7 @@ if __name__ == "__main__":
                 all_v = []
                 for index in indices_segids:
                     seg_ids = indices_segids[index]
-                    if seg_ids == None:
+                    if seg_ids is None:
                         ref = "%s.%s.%s.v" % (simulation.id, pop_id, index)
                         # print('Ref: %s, existing: %s'%(ref, sim.allSimData.keys()))
                         v = [
@@ -2062,7 +2060,7 @@ if __name__ == "__main__":
                             "Recording in pop %s, cell index %i, seg ids: %s"
                             % (p.id, cell_index, seg_ids)
                         )
-                        if seg_ids == None:
+                        if seg_ids is None:
                             quantity = "%s/%i/%s/v" % (p.id, cell_index, p.component)
                             if not p.has_positions():
                                 quantity = "%s[%i]/v" % (p.id, cell_index)

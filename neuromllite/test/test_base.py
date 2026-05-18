@@ -213,7 +213,6 @@ class TestCustomSaveLoad(unittest.TestCase):
         nety = NewNetwork.from_dict(datay)
         str_nety = str(nety)
 
-        verbose = False
         print("----- Before -----")
         print(str_orig)
         print("----- After via %s -----" % filenamej)
