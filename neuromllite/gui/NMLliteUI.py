@@ -30,7 +30,7 @@ class ParameterSpinBox(QDoubleSpinBox):
         self.setDecimals(18)
         self.setMaximum(1e16)
         self.setMinimum(-1e16)
-        #print(f'\nSetting spin box params for {value}, {value_type}')
+        # print(f'\nSetting spin box params for {value}, {value_type}')
 
         if self.value_type == int:
             self.setSingleStep(1)
@@ -245,7 +245,7 @@ class NMLliteUI(QWidget):
                 entry.valueChanged.connect(self.updated_param)
 
             except Exception as e:
-                #print_v("Error: %s" % e)
+                # print_v("Error: %s" % e)
 
                 entry = QLineEdit()
                 entry_map[name] = entry
@@ -1332,9 +1332,7 @@ NMLlite-UI v{0}: A GUI for loading NeuroMLlite files
 Usage:
     {1} Sim_xxx.json
          Load a NeuroMLlite file containing a Simulation, which refers to the Network to run
-    """.format(
-        version, MAIN_CLA
-    )
+    """.format(version, MAIN_CLA)
     print(USAGE)
 
 

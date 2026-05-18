@@ -171,9 +171,9 @@ class ConnectivityHandler(DefaultNetworkHandler):
         self.proj_tot_weight[projName] += weight
         if self.is_cell_level():
             self.proj_individual_weights[projName][preCellId][postCellId] += weight
-            self.proj_individual_scaled_weights[projName][preCellId][
-                postCellId
-            ] += self._scale_individual_weight(weight, projName)
+            self.proj_individual_scaled_weights[projName][preCellId][postCellId] += (
+                self._scale_individual_weight(weight, projName)
+            )
             self.proj_individual_conn_numbers[projName][preCellId][postCellId] += 1
             """
             print_v("   - Now total weight between these cells is %s (scaled: %s) from %i individual conns" % \

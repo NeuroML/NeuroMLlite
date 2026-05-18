@@ -6,6 +6,7 @@ from modelspec import field
 from modelspec import optional, instance_of
 
 import pickle
+import sys
 
 try:
     import unittest2 as unittest

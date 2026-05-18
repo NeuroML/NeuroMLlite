@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+ruff format */*.py */*/*.py */*/*/*/*py */*/*/*/*py
+
 # pytest
 cd neuromllite/test
 pytest -v

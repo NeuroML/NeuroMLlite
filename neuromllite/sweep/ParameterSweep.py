@@ -362,7 +362,6 @@ class ParameterSweep:
             # yvals = np.array(self.hm_y)
 
             if not self.heatmap_lims:
-                
                 plot0 = self.hm_ax.pcolormesh(
                     np.array(self.hm_x), np.array(self.hm_y), z, cmap=self.colormap
                 )
@@ -712,7 +711,7 @@ if __name__ == "__main__":
 
         vary = {"dt": [0.025, 0.02, 0.015, 0.01, 0.005, 0.0025]}
         vary = {"dt": [0.1, 0.05, 0.025, 0.01, 0.005, 0.0025, 0.001]}
-        #vary = {"dt": [0.1, 0.05, 0.025]}
+        # vary = {"dt": [0.1, 0.05, 0.025]}
 
         simulator = "jNeuroML_NetPyNE"
         simulator = "NetPyNE"
@@ -766,7 +765,7 @@ if __name__ == "__main__":
         vary = {"c": [-3, -1, 1, 3]}
         # vary = {'a':[.8,1,1.2]}
         # vary = {'eta':['100Hz']}
-        vary = {'I':[5,5.2]}
+        vary = {"I": [5, 5.2]}
 
         simulator = "jNeuroML"
         simulator = "jNeuroML_NEURON"

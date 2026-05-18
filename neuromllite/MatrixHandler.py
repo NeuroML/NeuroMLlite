@@ -20,11 +20,13 @@ class MatrixHandler(ConnectivityHandler):
     weight_arrays_to_show = {}
     weight_array_figures = {}
 
-    def __init__(self, level=10, nl_network=None, show_already=True, save_figs_to_dir=None):
+    def __init__(
+        self, level=10, nl_network=None, show_already=True, save_figs_to_dir=None
+    ):
         self.nl_network = nl_network
         self.level = level
         self.show_already = show_already
-        self.save_figs_to_dir=save_figs_to_dir
+        self.save_figs_to_dir = save_figs_to_dir
 
         self.rng, seed = _get_rng_for_network(self.nl_network)
 
@@ -74,10 +76,10 @@ class MatrixHandler(ConnectivityHandler):
             if self.is_cell_level():
                 for i in range(self.pop_sizes[pop]):
                     pi = self.get_cell_identifier(pop, i)  # '%s_%i'%(pop,i)
-                    if not pi in entries:
+                    if pi not in entries:
                         entries.append(pi)
             else:
-                if not pop in entries:
+                if pop not in entries:
                     entries.append(pop)
 
         entries = sorted(entries)
@@ -121,23 +123,23 @@ class MatrixHandler(ConnectivityHandler):
                 )
 
             cbar_labels[self._get_conn_label(matrix_per_cell, pclass)] = "weight"
-            cbar_labels[
-                self._get_conn_label(matrix_per_cell_cond, pclass)
-            ] = "conductance (nS)"
-            cbar_labels[
-                self._get_conn_label(matrix_per_cell_cond_signed, pclass)
-            ] = "conductance * sign (nS)"
+            cbar_labels[self._get_conn_label(matrix_per_cell_cond, pclass)] = (
+                "conductance (nS)"
+            )
+            cbar_labels[self._get_conn_label(matrix_per_cell_cond_signed, pclass)] = (
+                "conductance * sign (nS)"
+            )
 
             cbar_labels[self._get_conn_label(matrix_number_conns, pclass)] = "number"
-            cbar_labels[
-                self._get_conn_label(matrix_single_conns, pclass)
-            ] = "weight"  # (red: exc; blue: inh)'
-            cbar_labels[
-                self._get_conn_label(matrix_total_conns, pclass)
-            ] = "total weight"  # (red: exc; blue: inh)'
-            cbar_labels[
-                self._get_conn_label(matrix_total_conns_per_cell, pclass)
-            ] = "conductance (nS)"
+            cbar_labels[self._get_conn_label(matrix_single_conns, pclass)] = (
+                "weight"  # (red: exc; blue: inh)'
+            )
+            cbar_labels[self._get_conn_label(matrix_total_conns, pclass)] = (
+                "total weight"  # (red: exc; blue: inh)'
+            )
+            cbar_labels[self._get_conn_label(matrix_total_conns_per_cell, pclass)] = (
+                "conductance (nS)"
+            )
             cbar_labels[
                 self._get_conn_label(matrix_total_signed_conns_per_cell, pclass)
             ] = "conductance * sign (nS)"
@@ -185,11 +187,7 @@ class MatrixHandler(ConnectivityHandler):
                             self._get_conn_label(matrix_per_cell, pclass)
                         ][pre_pop_i][post_pop_i] += self.proj_individual_weights[
                             projName
-                        ][
-                            pre_i
-                        ][
-                            post_i
-                        ]
+                        ][pre_i][post_i]
                         if projName in self.proj_syn_objs:
                             w_scaled = self.proj_individual_scaled_weights[projName][
                                 pre_i
@@ -201,7 +199,7 @@ class MatrixHandler(ConnectivityHandler):
                                 self._get_conn_label(
                                     matrix_per_cell_cond_signed, pclass
                                 )
-                            ][pre_pop_i][post_pop_i] += (w_scaled * sign)
+                            ][pre_pop_i][post_pop_i] += w_scaled * sign
 
             else:
                 pre_pop_i = entries.index(pre_pop)
@@ -209,16 +207,14 @@ class MatrixHandler(ConnectivityHandler):
 
                 self.weight_arrays_to_show[
                     self._get_conn_label(matrix_total_conns, pclass)
-                ][pre_pop_i][post_pop_i] += (abs(self.proj_tot_weight[projName]) * sign)
+                ][pre_pop_i][post_pop_i] += abs(self.proj_tot_weight[projName]) * sign
 
                 if abs(self.proj_tot_weight[projName]) != abs(
                     self.proj_weights[projName]
                 ):
                     self.weight_arrays_to_show[
                         self._get_conn_label(matrix_single_conns, pclass)
-                    ][pre_pop_i][post_pop_i] += (
-                        abs(self.proj_weights[projName]) * sign
-                    )
+                    ][pre_pop_i][post_pop_i] += abs(self.proj_weights[projName]) * sign
 
                     self.weight_arrays_to_show[
                         self._get_conn_label(matrix_number_conns, pclass)
@@ -233,7 +229,7 @@ class MatrixHandler(ConnectivityHandler):
                     ][pre_pop_i][post_pop_i] += tot_scaled
                     self.weight_arrays_to_show[
                         self._get_conn_label(matrix_total_signed_conns_per_cell, pclass)
-                    ][pre_pop_i][post_pop_i] += (sign * tot_scaled)
+                    ][pre_pop_i][post_pop_i] += sign * tot_scaled
 
         import matplotlib.pyplot as plt
         import matplotlib
@@ -266,7 +262,7 @@ class MatrixHandler(ConnectivityHandler):
                     cm = matplotlib.pyplot.get_cmap("rainbow")
                     self.zero_weight_color = "black"
 
-                if not cm.name in self.colormaps_used:
+                if cm.name not in self.colormaps_used:
                     self.colormaps_used.append(str(cm.name))
 
                 print_v(
@@ -313,10 +309,10 @@ class MatrixHandler(ConnectivityHandler):
 
                 # change in relation to default so that users can override
                 default_tick_size_x = matplotlib.rcParams["xtick.labelsize"]
-                print('-------  %s'%default_tick_size_x)
+                print("-------  %s" % default_tick_size_x)
                 tick_size_x = (
                     default_tick_size_x
-                    if weight_array.shape[0] < 20 or type(default_tick_size_x)==str
+                    if weight_array.shape[0] < 20 or type(default_tick_size_x) == str
                     else (
                         (default_tick_size_x - 2)
                         if weight_array.shape[0] < 40
@@ -328,7 +324,7 @@ class MatrixHandler(ConnectivityHandler):
                 default_tick_size_y = matplotlib.rcParams["ytick.labelsize"]
                 tick_size_y = (
                     default_tick_size_y
-                    if weight_array.shape[0] < 20 or type(default_tick_size_x)==str
+                    if weight_array.shape[0] < 20 or type(default_tick_size_x) == str
                     else (
                         (default_tick_size_y - 2)
                         if weight_array.shape[0] < 40
@@ -380,16 +376,21 @@ class MatrixHandler(ConnectivityHandler):
                     cbar.set_label(cbar_labels[proj_type])
 
                 if self.save_figs_to_dir:
-                    safe = proj_type.replace(' ','_').replace('(','-').replace(')','-').replace('*','_').replace('/','_')
-                    save_figure_to = os.path.join(self.save_figs_to_dir, '%s_%s.png'%(self.network_id, safe))
+                    safe = (
+                        proj_type.replace(" ", "_")
+                        .replace("(", "-")
+                        .replace(")", "-")
+                        .replace("*", "_")
+                        .replace("/", "_")
+                    )
+                    save_figure_to = os.path.join(
+                        self.save_figs_to_dir, "%s_%s.png" % (self.network_id, safe)
+                    )
                     plt.savefig(save_figure_to, bbox_inches="tight")
                     print_v("Saved image to %s of plot: %s" % (save_figure_to, title))
                     self.weight_array_figures[title] = save_figure_to
 
-
-
         print_v("Generating matrix for: %s" % self.network_id)
-
 
         self.print_settings()
 
@@ -551,24 +552,24 @@ class MatrixHandler(ConnectivityHandler):
     def finalise_input_source(self, inputListId):
         pass
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     from neuromllite.utils import load_network_json
 
-    tests = ['/Users/padraig/neuroConstruct/osb/cerebral_cortex/networks/del-Molino2017/NeuroML/delMolinoEtAl_low_baseline.json',
-    '/Users/padraig/NeuroMLlite/examples/Example12_MultiComp.json']
+    tests = [
+        "/Users/padraig/neuroConstruct/osb/cerebral_cortex/networks/del-Molino2017/NeuroML/delMolinoEtAl_low_baseline.json",
+        "/Users/padraig/NeuroMLlite/examples/Example12_MultiComp.json",
+    ]
 
     for test in tests:
-
         network = load_network_json(test)
 
         from neuromllite.NetworkGenerator import generate_network
 
         level = 1
-        handler = MatrixHandler(level, 
-                                nl_network=network, 
-                                show_already=True,
-                                save_figs_to_dir='.')
+        handler = MatrixHandler(
+            level, nl_network=network, show_already=True, save_figs_to_dir="."
+        )
 
         generate_network(
             network, handler, always_include_props=True, base_dir=os.path.dirname(test)
@@ -577,4 +578,4 @@ if __name__ == "__main__":
         print_v("Done with MatrixHandler...")
 
         for w in handler.weight_arrays_to_show:
-            print('%s:\n%s'%(w, handler.weight_arrays_to_show[w]))
+            print("%s:\n%s" % (w, handler.weight_arrays_to_show[w]))
