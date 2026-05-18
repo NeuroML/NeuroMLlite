@@ -1,10 +1,6 @@
 from neuromllite import *
 from neuromllite.utils import *
 
-from modelspec.utils import _val_info
-from modelspec.utils import evaluate
-
-import numpy as np
 
 from test_base import get_example_network, get_example_simulation
 

@@ -3,11 +3,10 @@ from neuromllite import (
     Cell,
     InputSource,
     Population,
-    Synapse,
     RectangularRegion,
     RandomLayout,
 )
-from neuromllite import Projection, RandomConnectivity, Input, Simulation
+from neuromllite import Input, Simulation
 import sys
 
 ################################################################################
@@ -117,6 +116,5 @@ sim.to_json_file()
 ###   Run in some simulators
 
 from neuromllite.NetworkGenerator import check_to_generate_or_run
-import sys
 
 check_to_generate_or_run(sys.argv, sim)

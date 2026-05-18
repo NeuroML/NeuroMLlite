@@ -244,7 +244,7 @@ class NMLliteUI(QWidget):
                 entry_map[name] = entry
                 entry.valueChanged.connect(self.updated_param)
 
-            except Exception as e:
+            except Exception:
                 # print_v("Error: %s" % e)
 
                 entry = QLineEdit()
@@ -697,7 +697,6 @@ class NMLliteUI(QWidget):
         self.update_net_sim()
         self.tabs.setCurrentWidget(self.all_tabs[self.LEMS_VIEW_TAB])
         self.update_net_sim()
-        from neuromllite.NetworkGenerator import generate_neuroml2_from_network
 
         from neuromllite.NetworkGenerator import generate_and_run
 
@@ -990,7 +989,7 @@ class NMLliteUI(QWidget):
         heat_array = []
 
         for key in sorted(self.current_traces.keys()):
-            if not key in self.current_traces_shown:
+            if key not in self.current_traces_shown:
                 self.current_traces_shown[key] = True
 
             if key != "t":
@@ -1008,7 +1007,7 @@ class NMLliteUI(QWidget):
                         # print 'using new for %s'%key
                         if (
                             pop_id in pop_colors
-                            and not pop_colors[pop_id] in colors_used
+                            and pop_colors[pop_id] not in colors_used
                         ):
                             chosen_color = pop_colors[pop_id]
                             colors_used.append(pop_colors[pop_id])
@@ -1128,7 +1127,6 @@ class NMLliteUI(QWidget):
                 fig = self.all_figures[plot3D]
 
                 # ax_3d = fig.add_subplot(111)
-                from mpl_toolkits.mplot3d import Axes3D
 
                 ax_3d = fig.add_subplot(projection="3d")
 
@@ -1185,7 +1183,7 @@ class NMLliteUI(QWidget):
 
             pop_id, cell_id = self._get_pop_id_cell_id(k)
             if pop_id in pops_to_use:
-                if not pop_id in ids_for_pop:
+                if pop_id not in ids_for_pop:
                     ids_for_pop[pop_id] = []
                     ts_for_pop[pop_id] = []
 

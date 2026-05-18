@@ -1,7 +1,5 @@
 #!/bin/env python
 
-import sys
-
 
 def run(config_file, simulator):
     if simulator == "NEURON":
