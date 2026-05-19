@@ -341,8 +341,8 @@ class NMLliteUI(QWidget):
             self.plot2DTab.setLayout(self.plot2DTabLayout)
 
             for plot2D in self.simulation.plots2D:
-                info = self.simulation.plots2D[plot2D]
-                pLayout = self.add_tab(
+                self.simulation.plots2D[plot2D]
+                self.add_tab(
                     plot2D, self.plot2DTab, figure=True, toolbar=True, options=True
                 )
 
@@ -354,8 +354,8 @@ class NMLliteUI(QWidget):
             self.plot3DTab.setLayout(self.plot3DTabLayout)
 
             for plot3D in self.simulation.plots3D:
-                info = self.simulation.plots3D[plot3D]
-                pLayout = self.add_tab(
+                self.simulation.plots3D[plot3D]
+                self.add_tab(
                     plot3D, self.plot3DTab, figure=True, toolbar=False, options=True
                 )
 
@@ -1049,7 +1049,7 @@ class NMLliteUI(QWidget):
             hm = ax_heatmap.pcolormesh(heat_array, cmap=cm)
             # cbar = ax_heatmap.colorbar(im)
 
-            if self.heatmapColorbar == None:
+            if self.heatmapColorbar is None:
                 self.heatmapColorbar = self.heatmapFigure.colorbar(hm)
                 self.heatmapColorbar.set_label("Firing rate")
 

@@ -2,8 +2,6 @@ from neuromllite import (
     RelativeLayout,
     Cell,
     Synapse,
-    InputSource,
-    Input,
     RectangularRegion,
 )
 from neuromllite.NetworkGenerator import generate_network

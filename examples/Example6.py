@@ -58,8 +58,6 @@ def generate(ref="Example6_PyNN", add_inputs=True):
         "L6": {"E": 14395, "I": 2948},
     }
 
-    scale = 0.1
-
     pops = []
     input_pops = []
     pop_dict = {}

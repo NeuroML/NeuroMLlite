@@ -1332,7 +1332,7 @@ def main(args=None):
         # id = '300_pointneurons'
         # filename = '/home/padraig/git/sonatapg/examples/%s/config.json'%id
 
-        nml_doc = get_neuroml_from_sonata(filename, id, generate_lems=True)
+        get_neuroml_from_sonata(filename, id, generate_lems=True)
         """
         nml_file_name = '%s.net.nml'%id
         nml_file_name += '.h5'
