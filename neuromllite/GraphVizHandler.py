@@ -545,7 +545,7 @@ class GraphVizHandler(ConnectivityHandler):
             else:
                 fcolor = "#ffffff"
 
-            print_v('Color %s -> %s -> %s'%(properties['color'], rgb, color))
+            print_v("Color %s -> %s -> %s" % (properties["color"], rgb, color))
 
         if properties and "type" in properties:
             self.pop_types[population_id] = properties["type"]
@@ -634,7 +634,6 @@ class GraphVizHandler(ConnectivityHandler):
         self.proj_post_pops[projName] = postPop
         self.proj_types[projName] = type
 
-
         if type == "continuousProjection":
             shape = self.CONT_CONN_ARROW_SHAPE
             line = "solid"
@@ -646,7 +645,7 @@ class GraphVizHandler(ConnectivityHandler):
         if type == "electricalProjection":
             shape = self.GAP_CONN_ARROW_SHAPE
             line = "dashed"
-            
+
         if synapse_obj:
             self.proj_syn_objs[projName] = synapse_obj
             erev = self.get_reversal_potential_mV(synapse_obj)
